@@ -31,6 +31,8 @@ from .resources import *
 from .qgyf_dockwidget import QGYFDockWidget
 import os.path
 
+import tools.database
+
 
 class QGYF:
     """QGIS Plugin Implementation."""
@@ -242,3 +244,7 @@ class QGYF:
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+
+        # Check DB for QGYF estimations
+        path = os.path.expanduser('~') + r'\Documents\QGIS\QGYF'
+        tools.database.createDB(path)
