@@ -5,7 +5,7 @@ Created on: 2019-03-13 11:37:53.00000
 ---------------------------------------------------------------------------
 '''
 
-def createDB(path):
+def createDB():
     '''
     This function checks if there is a sqlite database for QGYF estimation and
     creates one in case it doesn't
@@ -14,6 +14,8 @@ def createDB(path):
     import sys
     sys.path.append(r'C:\Program Files\QGIS 3.4\apps\qgis\python')
     from qgis.utils import spatialite_connect
+
+    path = os.path.expanduser('~') + r'\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\QGYF\Data'
 
     # Check path to database
     if not os.path.isdir(path):
@@ -91,4 +93,4 @@ def createDB(path):
     con.close()
 
 if __name__ == '__main__':
-    createDB(path)
+    createDB()

@@ -246,5 +246,4 @@ class QGYF:
             self.dockwidget.show()
 
         # Check DB for QGYF estimations
-        path = os.path.expanduser('~') + r'\Documents\QGIS\QGYF'
-        tools.database.createDB(path)
+        tools.database.createDB()
