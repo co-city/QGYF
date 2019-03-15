@@ -59,13 +59,13 @@ class Db:
 		3006, 'POLYGON', 'XY');""")
 
 		cur.execute("""
-		CREATE TABLE compartment (
+		CREATE TABLE research_area (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		namn TEXT,
 		yta DOUBLE NOT NULL,
 		beskrivning TEXT);""")
 
-		cur.execute("""SELECT AddGeometryColumn('compartment',
+		cur.execute("""SELECT AddGeometryColumn('research_area',
 		'geom', 3006, 'POLYGON', 'XY');""")
 
 		cur.execute("""
@@ -91,7 +91,7 @@ class Db:
 			'point_object',
 			'line_object',
 			'polygon_object',
-			'compartment',
+			'research_area',
 			'gyf_quality',
 			'classification'
 		]
