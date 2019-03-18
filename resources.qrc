@@ -3,6 +3,6 @@
         <file>icon.png</file>
     </qresource>
     <qresource prefix="/plugins/qgyf" >
-        <file>folder.png</file>
+        <file>assets/folder.png</file>
     </qresource>
 </RCC>

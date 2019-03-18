@@ -165,7 +165,7 @@ class QGYF:
 			callback=self.run,
 			parent=self.iface.mainWindow())
 
-		icon_path = ':/plugins/qgyf/folder.png'
+		icon_path = ':/plugins/qgyf/assets/folder.png'
 		self.add_action(
 			icon_path,
 			text=self.translate(u'Ladda lager'),
