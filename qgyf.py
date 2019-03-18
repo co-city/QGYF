@@ -27,6 +27,7 @@ from PyQt5.QtWidgets import QAction
 from qgis.core import QgsProject, QgsVectorLayer
 from .resources import *
 from .qgyf_dockwidget import QGYFDockWidget
+from .ui.welcome import WelcomeDialog
 from .lib.db import Db
 import os.path
 
@@ -59,6 +60,8 @@ class QGYF:
 
 		self.path = os.path.expanduser('~') + r'\Documents\QGYF'
 		self.initDatabase(self.path)
+
+		self.showWelcome()
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -147,29 +150,78 @@ class QGYF:
 
 		return action
 
+	def saveCheckBoxStatus(self):
+		QSettings().setValue('checkBoxStatus', not self.welcome.checkBox.isChecked())
+		QSettings().sync()
+		print(QSettings().value('checkBoxStatus', type=bool))
+
+	def showWelcome(self):
+		"""Show welcome message."""
+		check_state = QSettings().value('checkBoxStatus', True, type=bool)
+		print(check_state)
+		if check_state is True:
+			self.welcome = WelcomeDialog()
+			self.welcome.show()
+			self.welcome.okButton.clicked.connect(self.welcome.close)
+			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
+			
+
 	def load(self):
 		self.addLayers(self.path, [
 			"point_object",
 			"line_object",
 			"polygon_object",
-			"compartment"
+			"research_area"
 		])
+
+	def info(self):
+		self.welcome = WelcomeDialog()
+		self.welcome.show()
+		self.welcome.okButton.clicked.connect(self.welcome.close)
 
 	def initGui(self):
 		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-		icon_path = ':/plugins/qgyf/icon.png'
+		icon_path = ':/plugins/qgyf/assets/folder.png'
+		self.add_action(
+			icon_path,
+			text=self.translate(u'Ladda lager'),
+			callback=self.load,
+			parent=self.iface.mainWindow())
+
+		icon_path = ':/plugins/qgyf/assets/tree.png'
 		self.add_action(
 			icon_path,
 			text=self.translate(u'Beräkna grönytefaktor'),
 			callback=self.run,
 			parent=self.iface.mainWindow())
 
-		icon_path = ':/plugins/qgyf/folder.png'
+		icon_path = ':/plugins/qgyf/assets/edit_point.png'
 		self.add_action(
 			icon_path,
-			text=self.translate(u'Ladda lager'),
-			callback=self.load,
+			text=self.translate(u'Editera punktobjekt'),
+			callback=self.info,
+			parent=self.iface.mainWindow())
+		
+		icon_path = ':/plugins/qgyf/assets/edit_polyline.png'
+		self.add_action(
+			icon_path,
+			text=self.translate(u'Editera linjeobjekt'),
+			callback=self.info,
+			parent=self.iface.mainWindow())
+
+		icon_path = ':/plugins/qgyf/assets/edit_polygon.png'
+		self.add_action(
+			icon_path,
+			text=self.translate(u'Editera ytobjekt'),
+			callback=self.info,
+			parent=self.iface.mainWindow())
+
+		icon_path = ':/plugins/qgyf/assets/info.png'
+		self.add_action(
+			icon_path,
+			text=self.translate(u'Vissa upp informationsfönstret'),
+			callback=self.info,
 			parent=self.iface.mainWindow())
 
 	def addLayers(self, path, layers):

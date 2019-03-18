@@ -1,8 +1,11 @@
 <RCC>
     <qresource prefix="/plugins/qgyf" >
-        <file>icon.png</file>
-    </qresource>
-    <qresource prefix="/plugins/qgyf" >
-        <file>folder.png</file>
+        <file>assets/tree.png</file>
+        <file>assets/folder.png</file>
+        <file>assets/city_logo.png</file>
+        <file>assets/info.png</file>
+        <file>assets/edit_point.png</file>
+        <file>assets/edit_polyline.png</file>
+        <file>assets/edit_polygon.png</file>
     </qresource>
 </RCC>

@@ -6,6 +6,7 @@ Created on: 2019-03-14 16:20:53
 """
 import os
 import sys
+sys.path.append(r'C:\Program Files\QGIS 3.4\apps\qgis\python')
 from qgis.utils import spatialite_connect
 
 class Db:
@@ -118,5 +119,6 @@ class Db:
 			self.init(cur)
 		else:
 			self.clear(cur, con)
+		
 		cur.close()
 		con.close()
