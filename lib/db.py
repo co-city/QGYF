@@ -73,7 +73,7 @@ class Db:
 		CREATE TABLE gyf_quality (
 		kvalitet TEXT NOT NULL,
 		faktor DOUBLE NOT NULL,
-		exempel TEXT);
+		namn TEXT);
 		""")
 
 		cur.execute("""

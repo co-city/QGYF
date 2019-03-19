@@ -29,6 +29,7 @@ from .resources import *
 from .qgyf_dockwidget import QGYFDockWidget
 from .ui.welcome import WelcomeDialog
 from .lib.db import Db
+from .lib.qualityTable import QualityTab
 import os.path
 
 class QGYF:
@@ -233,6 +234,8 @@ class QGYF:
 	def initDatabase(self, path):
 		self.db = Db()
 		self.db.create(path)
+		self.quality = QualityTab()
+		self.quality.init(path)
 
 	def onClosePlugin(self):
 		self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
