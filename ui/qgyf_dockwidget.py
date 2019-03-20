@@ -48,3 +48,14 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
+
+        """ Functions for gyfCalculator.ui to classify input data"""    
+    
+    def chooseQ(self):
+        
+        
+    def showQ(self):
+
+    def selectObj(self):
+
+    def setQ(self):'''

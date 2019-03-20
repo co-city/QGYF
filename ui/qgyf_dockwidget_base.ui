@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QGYFDockWidgetBase</class>
+ <widget class="QDockWidget" name="QGYFDockWidgetBase">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>341</width>
+    <height>908</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Tahoma</family>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../resources.qrc">
+    <normaloff>:/plugins/qgyf/assets/leaf.png</normaloff>:/plugins/qgyf/assets/leaf.png</iconset>
+  </property>
+  <property name="windowTitle">
+   <string>QGYF - Beräkna grönytefaktor</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>-3</y>
+      <width>381</width>
+      <height>1031</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string/>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="classify">
+     <property name="contextMenuPolicy">
+      <enum>Qt::NoContextMenu</enum>
+     </property>
+     <attribute name="title">
+      <string>Klassificera</string>
+     </attribute>
+     <attribute name="toolTip">
+      <string>Här sätter du en kvalitet på objekt</string>
+     </attribute>
+     <widget class="QComboBox" name="selectQGroup">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>301</width>
+        <height>31</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="selectQ">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>81</width>
+        <height>31</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>468</y>
+        <width>101</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Objekt&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="approveButton">
+      <property name="geometry">
+       <rect>
+        <x>220</x>
+        <y>818</y>
+        <width>91</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Sätta kvalitet</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>34</y>
+        <width>100</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Valj kvalitetgrup</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>107</y>
+        <width>101</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Valj kvalitet</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>5</y>
+        <width>101</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Kvalitet&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="selectObj">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>495</y>
+        <width>161</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Klicka på objekt på kartan för att selectera dem och sätta en kvalitet</string>
+      </property>
+      <property name="text">
+       <string>Börja objektval</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="textQ">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>270</y>
+        <width>301</width>
+        <height>171</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="textObj">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>544</y>
+        <width>301</width>
+        <height>261</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>160</y>
+        <width>341</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/plugins/qgyf/assets/eco_service.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="info">
+      <property name="geometry">
+       <rect>
+        <x>75</x>
+        <y>10</y>
+        <width>31</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Visa upp GYF guide</string>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="../resources.qrc">
+        <normaloff>:/plugins/qgyf/assets/info.png</normaloff>:/plugins/qgyf/assets/info.png</iconset>
+      </property>
+      <property name="flat">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="estimate">
+     <attribute name="title">
+      <string>Beräkna</string>
+     </attribute>
+     <attribute name="toolTip">
+      <string>Här beräknas GYF:en utifrån din klassificering</string>
+     </attribute>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../resources.py"/>
+ </resources>
+ <connections/>
+</ui>

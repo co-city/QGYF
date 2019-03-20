@@ -77,6 +77,13 @@ class Db:
 		""")
 
 		cur.execute("""
+		CREATE TABLE gyf_qgroup (
+		id INTEGER NOT NULL,
+		grupp TEXT NOT NULL,
+		faktor DOUBLE NOT NULL);
+		""")
+
+		cur.execute("""
 		CREATE TABLE classification (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		geometri_typ TEXT NOT NULL,
@@ -94,6 +101,7 @@ class Db:
 			'polygon_object',
 			'research_area',
 			'gyf_quality',
+			'gyf_qgroup',
 			'classification'
 		]
 

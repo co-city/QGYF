@@ -7,5 +7,7 @@
         <file>assets/edit_point.png</file>
         <file>assets/edit_polyline.png</file>
         <file>assets/edit_polygon.png</file>
+        <file>assets/leaf.png</file>
+        <file>assets/eco_service.png</file>
     </qresource>
 </RCC>

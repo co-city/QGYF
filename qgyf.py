@@ -26,7 +26,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction
 from qgis.core import QgsProject, QgsVectorLayer
 from .resources import *
-from .qgyf_dockwidget import QGYFDockWidget
+from .ui.qgyf_dockwidget import QGYFDockWidget
 from .ui.welcome import WelcomeDialog
 from .lib.db import Db
 from .lib.qualityTable import QualityTab
@@ -270,3 +270,4 @@ class QGYF:
 				# show the dockwidget
 				self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 				self.dockwidget.show()
+			

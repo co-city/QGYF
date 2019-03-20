@@ -13,7 +13,15 @@ class QualityTab:
 
     def init(self, path):
         """ Populate the table "gyf_quality" with values of C/O City's GYF """
-        
+        group = [
+            [1, 'Biologisk mångdfald', 0.2],
+            [2, 'Bullerreducering', 0.2],
+            [3, 'Dagvatten- och skyfallshantering', 0.2],
+            [4, 'Mikroklimatreglering', 0.2],
+            [5, 'Pollination', 0.8],
+            [6, 'Rekreation och hälsa', 0.3]
+        ]
+
         q_f = [
             # Biologisk mångdfald
             ['K1',  2.0, 'Bevarad viktig livsmiljö inom landskapssamband'],
@@ -69,7 +77,10 @@ class QualityTab:
 
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
+        cur.executemany('INSERT INTO gyf_qgroup VALUES (?,?,?)', group)
         cur.executemany('INSERT INTO gyf_quality VALUES (?,?,?)', q_f)
         cur.close()
         con.commit()
+
+        
         con.close()
