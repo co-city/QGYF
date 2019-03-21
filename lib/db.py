@@ -29,10 +29,7 @@ class Db:
 		cur.execute("""CREATE TABLE point_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		filnamn TEXT,
-		kvalitetgrupp TEXT NOT NULL,
-		kvalitet TEXT NOT NULL,
-		beskrivning TEXT);
-		""")
+		beskrivning TEXT);""")
 
 		cur.execute("""SELECT AddGeometryColumn('point_object', 'geom',
 		3006, 'POINT', 'XY');""")
@@ -41,8 +38,6 @@ class Db:
 		CREATE TABLE line_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		filnamn TEXT,
-		kvalitetgrupp TEXT NOT NULL,
-		kvalitet TEXT NOT NULL,
 		beskrivning TEXT);""")
 
 		cur.execute("""SELECT AddGeometryColumn('line_object', 'geom',
@@ -126,6 +121,6 @@ class Db:
 			self.init(cur)
 		else:
 			self.clear(cur, con)
-		
+
 		cur.close()
 		con.close()
