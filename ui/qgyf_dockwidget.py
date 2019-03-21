@@ -26,6 +26,8 @@ import os
 
 from PyQt5 import QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
+from qgis.core import QgsProject, QgsVectorLayer
+from qgis.utils import iface
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgyf_dockwidget_base.ui'))
@@ -49,13 +51,43 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.closingPlugin.emit()
         event.accept()
 
-        """ Functions for gyfCalculator.ui to classify input data"""    
+        """ Functions to classify input data"""    
     
-    def chooseQ(self):
-        
-        
-    def showQ(self):
+    def chooseQ(self, cur):
+        self.textQ.clear()
+        cur.execute('''SELECT grupp FROM gyf_qgroup''')
+        items = [i[0] for i in cur.fetchall()]
+        self.selectQGroup.addItems(items)
+        print(cur)
 
-    def selectObj(self):
+    def getQ(self, cur):
+        self.selectQ.clear()
+        self.textQ.clear()
+        
+        i = str(self.selectQGroup.currentIndex() + 1)
+        cur.execute('SELECT kvalitet FROM gyf_quality WHERE grupp_id = ' + i)
+        quality = [j[0] for j in cur.fetchall()]
+        self.selectQ.addItems(quality)
+        
+    def getF(self, cur):
+        self.textQ.clear()
+        if self.selectQ.count() > 0:
+            q = [self.selectQ.currentText()]
+            cur.execute('SELECT faktor,namn FROM gyf_quality WHERE kvalitet = ?', q)
+            text = cur.fetchone()
+            print(text)
+            t = text[1] + ', faktor = ' + str(text[0])
+            self.textQ.append(t)
 
-    def setQ(self):'''
+    def select(self):
+        # Start selection for QGYF
+        iface.actionSelect().trigger()
+        layer = iface.activeLayer()
+        selected = layer.selectedFeatures()
+        print(selected)
+        for f in selected:
+            print(f.attributes())
+
+    def setQ(self, cur, con):
+        cur.close()
+        con.close()

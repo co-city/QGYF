@@ -71,6 +71,7 @@ class Db:
 
 		cur.execute("""
 		CREATE TABLE gyf_quality (
+		grupp_id INTEGER NOT NULL,
 		kvalitet TEXT NOT NULL,
 		faktor DOUBLE NOT NULL,
 		namn TEXT);
@@ -125,8 +126,8 @@ class Db:
 		# Clear layers/tables in db or fill db if it is empty.
 		if not cur.fetchall():
 			self.init(cur)
-		else:
-			self.clear(cur, con)
+		#else:
+		#	self.clear(cur, con)
 		
 		cur.close()
 		con.close()

@@ -25,7 +25,9 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction
 from qgis.core import QgsProject, QgsVectorLayer
+from qgis.utils import spatialite_connect
 from .resources import *
+
 from .ui.qgyf_dockwidget import QGYFDockWidget
 from .ui.welcome import WelcomeDialog
 from .lib.db import Db
@@ -270,4 +272,21 @@ class QGYF:
 				# show the dockwidget
 				self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 				self.dockwidget.show()
+
+				# Connect to db
+				con = spatialite_connect(self.path + r'\qgyf.sqlite')
+				cur = con.cursor()
+				
+				# Qualities
+				self.dockwidget.selectQGroup.clear()
+				self.dockwidget.chooseQ(cur)
+				getQ = lambda : self.dockwidget.getQ(cur)
+				self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
+				getF = lambda : self.dockwidget.getF(cur)
+				self.dockwidget.selectQ.currentIndexChanged.connect(getF)
+				setQ = lambda : self.dockwidget.setQ(cur,con)
+				self.dockwidget.approveButton.clicked.connect(setQ)
+				
+				# Objects
+				self.dockwidget.selectObj.clicked.connect(self.dockwidget.select)
 			
