@@ -15,8 +15,8 @@ def loadFile(interface):
 
   for feature in features:
     geom = feature.geometry()
-    print("Load", feature.geometry().type())
     geom.convertToSingleType()
+    feature.setGeometry(geom);
     type = QgsWkbTypes.geometryDisplayString(geom.type())
     addFeature(feature, type, fileName)
 
@@ -27,7 +27,6 @@ def addFeature(feature, type, fileName):
 
   fields = feature.fields()
   attributes = feature.attributes()
-  print("Attributes", attributes)
 
   fields = QgsFields()
   fields.append(QgsField("id", QVariant.Int, "serial"))
