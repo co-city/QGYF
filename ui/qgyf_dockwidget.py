@@ -59,6 +59,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur = con.cursor()
 
         self.textQ.clear()
+        self.selectQ.clear()
         cur.execute('''SELECT grupp FROM gyf_qgroup''')
         items = [i[0] for i in cur.fetchall()]
         self.selectQGroup.addItems(items)
