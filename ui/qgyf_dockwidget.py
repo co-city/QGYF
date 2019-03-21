@@ -28,6 +28,7 @@ from PyQt5 import QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.utils import iface
+from qgis.utils import spatialite_connect
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgyf_dockwidget_base.ui'))
@@ -53,41 +54,64 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         """ Functions to classify input data"""    
     
-    def chooseQ(self, cur):
+    def chooseQ(self, path):
+        con = spatialite_connect(path + r'\qgyf.sqlite')
+        cur = con.cursor()
+
         self.textQ.clear()
         cur.execute('''SELECT grupp FROM gyf_qgroup''')
         items = [i[0] for i in cur.fetchall()]
         self.selectQGroup.addItems(items)
-        print(cur)
+        
+        cur.close()
+        con.close()
 
-    def getQ(self, cur):
+    def getQ(self, path):
         self.selectQ.clear()
         self.textQ.clear()
+
+        con = spatialite_connect(path + r'\qgyf.sqlite')
+        cur = con.cursor()
         
         i = str(self.selectQGroup.currentIndex() + 1)
         cur.execute('SELECT kvalitet FROM gyf_quality WHERE grupp_id = ' + i)
         quality = [j[0] for j in cur.fetchall()]
         self.selectQ.addItems(quality)
+
+        cur.close()
+        con.close()
         
-    def getF(self, cur):
+    def getF(self, path):
         self.textQ.clear()
+
         if self.selectQ.count() > 0:
+            con = spatialite_connect(path + r'\qgyf.sqlite')
+            cur = con.cursor()
+            
             q = [self.selectQ.currentText()]
             cur.execute('SELECT faktor,namn FROM gyf_quality WHERE kvalitet = ?', q)
             text = cur.fetchone()
-            print(text)
             t = text[1] + ', faktor = ' + str(text[0])
             self.textQ.append(t)
-
-    def select(self):
+            
+            cur.close()
+            con.close()
+            
+    def selectStart(self):
         # Start selection for QGYF
         iface.actionSelect().trigger()
-        layer = iface.activeLayer()
-        selected = layer.selectedFeatures()
-        print(selected)
-        for f in selected:
-            print(f.attributes())
+        def select():
+            layer = iface.activeLayer()
+            selected = layer.selectedFeatures()
+            print(selected)
+            if selected:
+                for f in selected:
+                    print(f.attributes())
+        iface.mapCanvas().selectionChanged.connect(select)
 
-    def setQ(self, cur, con):
+    def setQ(self, path):
+        con = spatialite_connect(path + r'\qgyf.sqlite')
+        cur = con.cursor()
+
         cur.close()
         con.close()

@@ -52,8 +52,6 @@ class Db:
 		CREATE TABLE polygon_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		filnamn TEXT,
-		kvalitetgrupp TEXT NOT NULL,
-		kvalitet TEXT NOT NULL,
 		beskrivning TEXT);""")
 
 		cur.execute("""SELECT AddGeometryColumn('polygon_object', 'geom',
