@@ -77,6 +77,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         i = str(self.selectQGroup.currentIndex() + 1)
         cur.execute('SELECT kvalitet FROM gyf_quality WHERE grupp_id = ' + i)
         quality = [j[0] for j in cur.fetchall()]
+        quality = quality + ['Vet inte']
         self.selectQ.addItems(quality)
 
         cur.close()
@@ -84,25 +85,35 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         
     def getF(self, path):
         self.textQ.clear()
+        con = spatialite_connect(path + r'\qgyf.sqlite')
+        cur = con.cursor()
+        print(self.selectQ.count())
 
         if self.selectQ.count() > 0:
-            con = spatialite_connect(path + r'\qgyf.sqlite')
-            cur = con.cursor()
-            
-            q = [self.selectQ.currentText()]
-            cur.execute('SELECT faktor,namn FROM gyf_quality WHERE kvalitet = ?', q)
-            text = cur.fetchone()
-            t = text[1] + ', faktor = ' + str(text[0])
-            self.textQ.append(t)
-            
-            cur.close()
-            con.close()
+            if self.selectQ.currentText() != 'Vet inte':
+                q = [self.selectQ.currentText()]
+                cur.execute('SELECT faktor,namn FROM gyf_quality WHERE kvalitet = ?', q)
+                text = cur.fetchone()
+                t = text[1] + ', faktor = ' + str(text[0])
+                self.textQ.append(t)
+            else:
+                i = [self.selectQGroup.currentIndex() + 1]
+                cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
+                text = '<b>Ungerfärligt beräkningsläge för GYF:en!</b><br>' + \
+                    self.selectQGroup.currentText() + ', grov faktor = ' + str(cur.fetchone()[0])
+                self.textQ.append(text)
+
+        cur.close()
+        con.close()
             
     def selectStart(self):
         # Start selection for QGYF
         iface.actionSelect().trigger()
+        #gyf_layers = iface.mapCanvas().layers()
         def select():
             layer = iface.activeLayer()
+            #gyf_layers = iface.mapCanvas().layers()
+            #iface.setActiveLayer(gyf_layers)
             selected = layer.selectedFeatures()
             print(selected)
             if selected:

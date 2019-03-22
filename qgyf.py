@@ -234,22 +234,23 @@ class QGYF:
 
 				# connect to provide cleanup on closing of dockwidget
 				self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+		
+		self.dockwidget = QGYFDockWidget()
+		# show the dockwidget
+		self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+		self.dockwidget.show()
 
-				# show the dockwidget
-				self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
-				self.dockwidget.show()
+		# Classification
+		# Qualities
+		self.dockwidget.selectQGroup.clear()
+		self.dockwidget.chooseQ(self.path)
+		getQ = lambda : self.dockwidget.getQ(self.path)
+		self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
+		getF = lambda : self.dockwidget.getF(self.path)
+		self.dockwidget.selectQ.currentIndexChanged.connect(getF)
+		setQ = lambda : self.dockwidget.setQ(self.path)
+		self.dockwidget.approveButton.clicked.connect(setQ)
 
-				# Classification
-				# Qualities
-				self.dockwidget.selectQGroup.clear()
-				self.dockwidget.chooseQ(self.path)
-				getQ = lambda : self.dockwidget.getQ(self.path)
-				self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
-				getF = lambda : self.dockwidget.getF(self.path)
-				self.dockwidget.selectQ.currentIndexChanged.connect(getF)
-				setQ = lambda : self.dockwidget.setQ(self.path)
-				self.dockwidget.approveButton.clicked.connect(setQ)
-
-				# Objects
-				self.dockwidget.selectObj.clicked.connect(self.dockwidget.selectStart)
+		# Objects
+		self.dockwidget.selectObj.clicked.connect(self.dockwidget.selectStart)
 

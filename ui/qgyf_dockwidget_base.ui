@@ -20,6 +20,9 @@
    <iconset resource="../resources.qrc">
     <normaloff>:/plugins/qgyf/assets/leaf.png</normaloff>:/plugins/qgyf/assets/leaf.png</iconset>
   </property>
+  <property name="allowedAreas">
+   <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+  </property>
   <property name="windowTitle">
    <string>QGYF - Beräkna grönytefaktor</string>
   </property>
@@ -35,6 +38,12 @@
       <width>381</width>
       <height>1031</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="toolTip">
      <string/>
@@ -161,6 +170,11 @@
         <width>301</width>
         <height>171</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+       </font>
       </property>
      </widget>
      <widget class="QTextBrowser" name="textObj">
