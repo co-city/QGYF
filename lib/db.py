@@ -79,10 +79,11 @@ class Db:
 
 		cur.execute("""
 		CREATE TABLE classification (
-		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		geometri_typ TEXT NOT NULL,
+		filnamn TEXT,
 		id_ini INTEGER NOT NULL,
-		kvalitet TEXT NOT NULL,
+		grupp TEXT NOT NULL,
+		kvalitet TEXT,
 		faktor DOUBLE NOT NULL);""")
 
 	def clear(self, cur, con):
@@ -119,8 +120,8 @@ class Db:
 		# Clear layers/tables in db or fill db if it is empty.
 		if not cur.fetchall():
 			self.init(cur)
-		else:
-			self.clear(cur, con)
+		#else:
+		#	self.clear(cur, con)
 
 		cur.close()
 		con.close()

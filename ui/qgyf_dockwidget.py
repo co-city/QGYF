@@ -87,7 +87,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.textQ.clear()
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
-        print(self.selectQ.count())
 
         if self.selectQ.count() > 0:
             if self.selectQ.currentText() != 'Vet inte':
@@ -105,25 +104,76 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cur.close()
         con.close()
+
+    def setLayers(self):
+        self.selectLayer.clear()
+        items = ['', 'punkt', 'linje', 'yta']
+        self.selectLayer.addItems(items)
             
     def selectStart(self):
         # Start selection for QGYF
+        for a in iface.attributesToolBar().actions(): 
+            if a.objectName() == 'mActionDeselectAll':
+                a.trigger()
+                break
+
         iface.actionSelect().trigger()
-        #gyf_layers = iface.mapCanvas().layers()
-        def select():
-            layer = iface.activeLayer()
-            #gyf_layers = iface.mapCanvas().layers()
-            #iface.setActiveLayer(gyf_layers)
-            selected = layer.selectedFeatures()
-            print(selected)
-            if selected:
-                for f in selected:
-                    print(f.attributes())
-        iface.mapCanvas().selectionChanged.connect(select)
+
+        def lyr(x):
+            return {'punkt': 'point_object',
+                    'linje': 'line_object'}.get(x, 'polygon_object')
+                    
+        l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))[0]
+        iface.setActiveLayer(l)
 
     def setQ(self, path):
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
+
+        layer = iface.activeLayer()
+        selected = layer.selectedFeatures()
+        attributes = []
+        if selected:
+            for f in selected:
+                attributes.append(f.attributes())
+        
+        g = self.selectQGroup.currentText()
+        geom = self.selectLayer.currentText()
+
+        if self.selectQ.currentText() != 'Vet inte':
+            q = self.selectQ.currentText()
+            cur.execute('SELECT faktor FROM gyf_quality WHERE kvalitet = ?', [q])
+        else:
+            q = ''
+            i = [self.selectQGroup.currentIndex() + 1]
+            cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
+        f = cur.fetchone()[0]
+        
+        data = []
+        for obj in attributes:
+            data.append([geom, obj[1], obj[0], g, q, f])
+        
+        cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?)', data)
+        cur.close()
+        con.commit()
+        con.close()
+
+    def showClass(self, path):
+        self.classtable.clear()
+        con = spatialite_connect(path + r'\qgyf.sqlite')
+        cur = con.cursor()
+
+        cur.execute('SELECT * FROM classification')
+        data = cur.fetchall()
+        
+        if data:
+            self.classtable.setRowCount(len(data))
+            self.classtable.setColumnCount(len(data[0]))
+            self.classtable.setHorizontalHeaderLabels(["geom", "fil namn", 'id', 'Grupp', 'K', 'F'])
+            for i, item in enumerate(data):
+                for j, field in enumerate(item):
+                    self.classtable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
+                    self.classtable.horizontalHeader().setSectionResizeMode(j, QtWidgets.QHeaderView.ResizeToContents)
 
         cur.close()
         con.close()

@@ -241,6 +241,8 @@ class QGYF:
 		self.dockwidget.show()
 
 		# Classification
+		showClass = lambda : self.dockwidget.showClass(self.path)
+		showClass()
 		# Qualities
 		self.dockwidget.selectQGroup.clear()
 		self.dockwidget.chooseQ(self.path)
@@ -250,7 +252,9 @@ class QGYF:
 		self.dockwidget.selectQ.currentIndexChanged.connect(getF)
 		setQ = lambda : self.dockwidget.setQ(self.path)
 		self.dockwidget.approveButton.clicked.connect(setQ)
-
+		self.dockwidget.approveButton.clicked.connect(showClass)
 		# Objects
+		self.dockwidget.setLayers()
 		self.dockwidget.selectObj.clicked.connect(self.dockwidget.selectStart)
+		
 
