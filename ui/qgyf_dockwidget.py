@@ -55,6 +55,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         """ Functions to classify input data"""    
     
     def chooseQ(self, path):
+        self.selectQGroup.clear()
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
 
