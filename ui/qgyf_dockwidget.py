@@ -29,6 +29,8 @@ from PyQt5.QtCore import pyqtSignal
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.utils import iface
 from qgis.utils import spatialite_connect
+from .saveResearchArea import saveRA
+ 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgyf_dockwidget_base.ui'))
@@ -48,12 +50,14 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
+
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
 
         """ Functions to classify input data"""    
     
+    # CLASSIFICATION
     def chooseQ(self, path):
         self.selectQGroup.clear()
         con = spatialite_connect(path + r'\qgyf.sqlite')
@@ -178,3 +182,53 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cur.close()
         con.close()
+
+
+    #RESEARCH_AREA
+    def okClicked(self, l, path):
+            print('I see you!')
+            l.commitChanges()
+            iface.vectorLayerTools().stopEditing(l)
+            con = spatialite_connect(path + r'\qgyf.sqlite')
+            con.commit()
+            con.close()
+            self.window.close()
+
+    def cancelClicked(self, l):
+            f = [f for f in l.getFeatures()][0]
+            print(f.id())
+            l.deleteFeature(f.id())
+            l.triggerRepaint()
+            self.window.close()
+
+    def showSaveDialog(self, l, path):
+            self.window = saveRA()
+            self.window.show()
+            ok = lambda : self.okClicked(l, path)
+            cancel = lambda : self.cancelClicked(l)
+            self.window.okButton.clicked.connect(ok)
+            self.window.cancelButton.clicked.connect(cancel)
+
+    def createArea(self, path):
+        l = QgsProject.instance().mapLayersByName('research_area')
+        if l:
+            l = l[0]
+            iface.setActiveLayer(l)
+            iface.actionToggleEditing().trigger()
+            iface.actionAddFeature().trigger()
+            showSave = lambda : self.showSaveDialog(l, path)
+            l.featureAdded.connect(showSave)
+
+    def selectArea(self):
+        for a in iface.attributesToolBar().actions():
+            if a.objectName() == 'mActionDeselectAll':
+                a.trigger()
+                break
+
+        l = QgsProject.instance().mapLayersByName('research_area')
+        if l:
+            l = l[0]
+            iface.setActiveLayer(l)
+            iface.actionSelect().trigger()
+
+    # Visualization

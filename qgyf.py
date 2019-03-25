@@ -256,5 +256,15 @@ class QGYF:
 		# Objects
 		self.dockwidget.setLayers()
 		self.dockwidget.selectObj.clicked.connect(self.dockwidget.selectStart)
+
+		# Visualisation
+
+		# Estimation of GYF
+		# Research area
+		self.dockwidget.selectRA.clicked.connect(self.dockwidget.selectArea)
+		createArea = lambda : self.dockwidget.createArea(self.path)
+		self.dockwidget.createRA.clicked.connect(createArea)
+		
+		
 		
 

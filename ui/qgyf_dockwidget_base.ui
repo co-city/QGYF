@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>427</width>
-    <height>908</height>
+    <width>345</width>
+    <height>982</height>
    </rect>
   </property>
   <property name="font">
@@ -35,7 +35,7 @@
      <rect>
       <x>0</x>
       <y>-3</y>
-      <width>381</width>
+      <width>341</width>
       <height>1031</height>
      </rect>
     </property>
@@ -117,7 +117,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Valj kvalitetgrup</string>
+       <string>Välj kvalitetgrup</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_4">
@@ -130,7 +130,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Valj kvalitet</string>
+       <string>Välj kvalitet</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_2">
@@ -238,6 +238,12 @@
         <height>311</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="toolTip">
        <string>Tabellen visar objekt med bestämda kvaliteter</string>
       </property>
@@ -295,6 +301,51 @@
      <attribute name="toolTip">
       <string>Här beräknas GYF:en utifrån din klassificering</string>
      </attribute>
+     <widget class="QLabel" name="label_6">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>3</y>
+        <width>151</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Utredningsområde&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="createRA">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>75</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Rita upp ett avgränsningsområde där du vill beräkna GYF</string>
+      </property>
+      <property name="text">
+       <string>Skapa</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="selectRA">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>40</y>
+        <width>75</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Välj ett avgränsningsområde där du vill beräkna GYF</string>
+      </property>
+      <property name="text">
+       <string>Välj</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
