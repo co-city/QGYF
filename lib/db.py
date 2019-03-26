@@ -56,7 +56,7 @@ class Db:
 		CREATE TABLE research_area (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		namn TEXT,
-		yta DOUBLE NOT NULL,
+		yta DOUBLE,
 		beskrivning TEXT);""")
 
 		cur.execute("""SELECT AddGeometryColumn('research_area',
@@ -79,10 +79,11 @@ class Db:
 
 		cur.execute("""
 		CREATE TABLE classification (
-		geometri_typ TEXT NOT NULL,
+		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		geometri_typ TEXT,
 		filnamn TEXT,
 		id_ini INTEGER NOT NULL,
-		grupp TEXT NOT NULL,
+		grupp TEXT,
 		kvalitet TEXT,
 		faktor DOUBLE NOT NULL);""")
 
@@ -120,8 +121,8 @@ class Db:
 		# Clear layers/tables in db or fill db if it is empty.
 		if not cur.fetchall():
 			self.init(cur)
-		#else:
-			#self.clear(cur, con)
+		else:
+			self.clear(cur, con)
 
 		cur.close()
 		con.close()

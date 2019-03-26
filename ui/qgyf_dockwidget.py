@@ -66,7 +66,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.textQ.clear()
         self.selectQ.clear()
         cur.execute('''SELECT grupp FROM gyf_qgroup''')
-        items = [i[0] for i in cur.fetchall()]
+        items = [''] + [i[0] for i in cur.fetchall()]
         self.selectQGroup.addItems(items)
         
         cur.close()
@@ -79,7 +79,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
         
-        i = str(self.selectQGroup.currentIndex() + 1)
+        i = str(self.selectQGroup.currentIndex())
         cur.execute('SELECT kvalitet FROM gyf_quality WHERE grupp_id = ' + i)
         quality = [j[0] for j in cur.fetchall()]
         quality = quality + ['Vet inte']
@@ -101,7 +101,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 t = text[1] + ', faktor = ' + str(text[0])
                 self.textQ.append(t)
             else:
-                i = [self.selectQGroup.currentIndex() + 1]
+                i = [self.selectQGroup.currentIndex()]
                 cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
                 text = '<b>Ungerfärligt beräkningsläge för GYF:en!</b><br>' + \
                     self.selectQGroup.currentText() + ', grov faktor = ' + str(cur.fetchone()[0])
@@ -116,7 +116,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.selectLayer.addItems(items)
             
     def selectStart(self):
-        # Start selection for QGYF
+        # Start object selection for QGYF
         for a in iface.attributesToolBar().actions(): 
             if a.objectName() == 'mActionDeselectAll':
                 a.trigger()
@@ -150,15 +150,18 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             cur.execute('SELECT faktor FROM gyf_quality WHERE kvalitet = ?', [q])
         else:
             q = ''
-            i = [self.selectQGroup.currentIndex() + 1]
+            i = [self.selectQGroup.currentIndex()]
             cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
         f = cur.fetchone()[0]
+
+        cur.execute('SELECT count(id) FROM classification')
+        n = cur.fetchone()[0]
         
         data = []
-        for obj in attributes:
-            data.append([geom, obj[1], obj[0], g, q, f])
+        for i,obj in enumerate(attributes):
+            data.append([n+i, geom, obj[1], obj[0], g, q, f])
         
-        cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?)', data)
+        cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?)', data)
         cur.close()
         con.commit()
         con.close()
@@ -170,6 +173,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cur.execute('SELECT * FROM classification')
         data = cur.fetchall()
+        data = [d[1:] for d in data]
         
         if data:
             self.classtable.setRowCount(len(data))
@@ -199,6 +203,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             print(f.id())
             l.deleteFeature(f.id())
             l.triggerRepaint()
+            iface.vectorLayerTools().stopEditing(l)
             self.window.close()
 
     def showSaveDialog(self, l, path):

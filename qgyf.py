@@ -33,6 +33,7 @@ from .ui.welcome import WelcomeDialog
 from .ui.layer_selector import LayerSelectorDialog
 from .lib.db import Db
 from .lib.qualityTable import QualityTab
+from .lib.db_view import DbView
 from .lib.fileLoader import loadFile
 
 import os.path
@@ -261,6 +262,8 @@ class QGYF:
 		self.dockwidget.selectObj.clicked.connect(self.dockwidget.selectStart)
 
 		# Visualisation
+		self.dbView = DbView()
+		self.dbView.init(self.path)
 
 		# Estimation of GYF
 		# Research area
