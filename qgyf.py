@@ -23,13 +23,14 @@
 """
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QFileDialog
+from PyQt5.QtWidgets import QAction
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.gui import QgsFileWidget
 from .resources import *
 
 from .ui.qgyf_dockwidget import QGYFDockWidget
 from .ui.welcome import WelcomeDialog
+from .ui.layer_selector import LayerSelectorDialog
 from .lib.db import Db
 from .lib.qualityTable import QualityTab
 from .lib.fileLoader import loadFile
@@ -137,7 +138,8 @@ class QGYF:
 			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
 
 	def load(self):
-		loadFile(self.iface.mainWindow())
+		self.layerSelectorDialog = LayerSelectorDialog()
+		loadFile(self.iface.mainWindow(), self.layerSelectorDialog)
 
 	def info(self):
 		self.welcome = WelcomeDialog()
@@ -234,7 +236,7 @@ class QGYF:
 
 				# connect to provide cleanup on closing of dockwidget
 				self.dockwidget.closingPlugin.connect(self.onClosePlugin)
-		
+
 		self.dockwidget = QGYFDockWidget()
 		# show the dockwidget
 		self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
@@ -256,5 +258,5 @@ class QGYF:
 		# Objects
 		self.dockwidget.setLayers()
 		self.dockwidget.selectObj.clicked.connect(self.dockwidget.selectStart)
-		
+
 
