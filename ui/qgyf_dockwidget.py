@@ -236,4 +236,32 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             iface.setActiveLayer(l)
             iface.actionSelect().trigger()
 
+
     # Visualization
+    def checkGroup(self, checkboxnames, checkbox):
+        checkbox_list = []
+        for n in checkboxnames:
+            checkbox_list.append(getattr(self, n))
+        
+        view = QgsProject.instance().mapLayersByName('ytor_klassade')
+        if view:
+            view = view[0]
+            if not checkbox.isChecked():
+                print('Not checked')
+                view.setSubsetString('"%s" != \'%s\'' % ('grupp', checkbox.text()))
+            else:
+                print('Checked, lets try!')
+                checkbox_list = [c for c in checkbox_list if not c.isChecked()]
+                print(checkbox_list)
+                view.setSubsetString('')
+                for c in checkbox_list:
+                    view.setSubsetString('"%s" != \'%s\'' % ('grupp', c.text()))
+            
+            
+    def groupList(self):
+        checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
+        checkGroup = lambda : self.checkGroup(checkboxnames, checkbox)
+        for n in checkboxnames:
+            checkbox = getattr(self, n)
+            checkbox.setChecked(True)
+            checkbox.stateChanged.connect(checkGroup)

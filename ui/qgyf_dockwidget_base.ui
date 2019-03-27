@@ -49,7 +49,7 @@
      <string/>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="classify">
      <property name="contextMenuPolicy">
@@ -292,6 +292,111 @@
       <attribute name="verticalHeaderMinimumSectionSize">
        <number>25</number>
       </attribute>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="visualize">
+     <attribute name="title">
+      <string>Visulisera</string>
+     </attribute>
+     <attribute name="toolTip">
+      <string>Sätta stil på de klassificerade objekten utifrån kvalitet</string>
+     </attribute>
+     <widget class="QCheckBox" name="checkBio">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>141</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Biologisk mångdfald</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="setSymbol">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>201</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Visa upp objekt utifrån kvalitet</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBuller">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>92</y>
+        <width>141</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Bullerreducering</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkVatten">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>114</y>
+        <width>231</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Dagvatten- och skyfallshantering</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkKlimat">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>137</y>
+        <width>141</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Mikroklimatreglering</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkPoll">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>160</y>
+        <width>141</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Pollination</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkHalsa">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>182</y>
+        <width>141</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Rekreation och hälsa</string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="estimate">

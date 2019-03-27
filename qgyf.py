@@ -69,10 +69,10 @@ class QGYF:
 		self.path = os.path.expanduser('~') + r'\Documents\QGYF'
 		self.initDatabase(self.path)
 		self.addLayers(self.path, [
-			"point_object",
-			"line_object",
+			"research_area",
 			"polygon_object",
-			"research_area"
+			"line_object",
+			"point_object",		
 		])
 		self.showWelcome()
 
@@ -222,6 +222,11 @@ class QGYF:
 			self.iface.removeToolBarIcon(action)
 		del self.toolbar
 
+	def createDataView(self):
+		self.dbView = DbView()
+		self.dbView.init(self.path)
+		print('I have created a new table')
+
 	def openCalculationDialog(self):
 		"""Run method that loads and starts the plugin"""
 		if not self.pluginIsActive:
@@ -261,8 +266,10 @@ class QGYF:
 		self.dockwidget.selectObj.clicked.connect(self.dockwidget.selectStart)
 
 		# Visualisation
-		self.dbView = DbView()
-		self.dbView.init(self.path)
+		self.dockwidget.setSymbol.clicked.connect(self.createDataView)
+		#self.dockwidget.setSymbol.clicked.connect(self.dockwidget.groupList)
+		self.dockwidget.groupList()
+		
 
 		# Estimation of GYF
 		# Research area
