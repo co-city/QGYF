@@ -75,6 +75,8 @@ class QGYF:
 			"point_object",		
 		])
 		self.showWelcome()
+		self.layerSelectorDialog = LayerSelectorDialog()
+		self.layerSelectorDialog.loadClassifications(self.path)
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -139,7 +141,6 @@ class QGYF:
 			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
 
 	def load(self):
-		self.layerSelectorDialog = LayerSelectorDialog()
 		loadFile(self.iface.mainWindow(), self.layerSelectorDialog)
 
 	def info(self):
@@ -276,7 +277,3 @@ class QGYF:
 		self.dockwidget.selectRA.clicked.connect(self.dockwidget.selectArea)
 		createArea = lambda : self.dockwidget.createArea(self.path)
 		self.dockwidget.createRA.clicked.connect(createArea)
-		
-		
-		
-

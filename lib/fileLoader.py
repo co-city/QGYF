@@ -9,17 +9,18 @@ def loadFile(interface, layerSelectorDialog):
   Load file and add features to input layers of matching type (Point, Line, Polygon).
   @param {QtWidget} interface
   """
-  file = QFileDialog.getOpenFileName(interface, 'Öppna fil', '', '*.shp; *.dxf; *.dwg')
+  file = QFileDialog.getOpenFileName(interface, 'Öppna fil', '', '*.shp; *.dxf')
   filePath = file[0]
   fileName = os.path.basename(filePath)
   extension = os.path.splitext(fileName)[1]
 
   layer = QgsVectorLayer(filePath, fileName, "ogr")
 
-  layers = []
-  lookupLayers(layer.getFeatures(), layers)
-
-  layerSelectorDialog.show()
+  if extension == ".dxf":
+    layers = []
+    lookupLayers(layer.getFeatures(), layers)
+    layerSelectorDialog.load(layers)
+    layerSelectorDialog.show()
 
   pointLayer = QgsProject.instance().mapLayersByName("point_object")[0]
   lineLayer = QgsProject.instance().mapLayersByName("line_object")[0]
