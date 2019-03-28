@@ -12,7 +12,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsDataSourceUri
 from .styles import Style
 
 class DbView:
-    
+
     def init(self, path):
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
@@ -20,17 +20,18 @@ class DbView:
         cur.execute('DROP VIEW IF EXISTS polygon_class')
         cur.execute('DROP VIEW IF EXISTS line_class')
         cur.execute('DROP VIEW IF EXISTS point_class')
-        
+
         cur.execute("""CREATE VIEW polygon_class AS
-            SELECT class.id AS id, 
-                class.id_ini AS id_new, 
-                class.geometri_typ, 
-                class.grupp AS grupp, 
-                class.kvalitet AS kvalitet, 
-                polygon_object.id AS id_ini, 
-                polygon_object.geom AS geom 
-            FROM polygon_object 
-            JOIN classification AS class ON (polygon_object.id = class.id_ini) 
+            SELECT class.id AS id,
+                class.id_ini AS id_new,
+                class.geometri_typ,
+                class.grupp AS grupp,
+                class.kvalitet AS kvalitet,
+                class.faktor AS faktor,
+                polygon_object.id AS id_ini,
+                polygon_object.geom AS geom
+            FROM polygon_object
+            JOIN classification AS class ON (polygon_object.id = class.id_ini)
             WHERE class.geometri_typ = 'yta';""")
 
         cur.execute("""INSERT OR IGNORE INTO views_geometry_columns
@@ -38,15 +39,16 @@ class DbView:
             VALUES ('polygon_class', 'geom', 'id', 'polygon_object', 'geom', 1);""")
 
         cur.execute("""CREATE VIEW line_class AS
-            SELECT class.id AS id, 
-                class.id_ini AS id_new, 
-                class.geometri_typ, 
-                class.grupp AS grupp, 
-                class.kvalitet AS kvalitet, 
-                line_object.id AS id_ini, 
-                line_object.geom AS geom 
-            FROM line_object 
-            JOIN classification AS class ON (line_object.id = class.id_ini) 
+            SELECT class.id AS id,
+                class.id_ini AS id_new,
+                class.geometri_typ,
+                class.grupp AS grupp,
+                class.kvalitet AS kvalitet,
+                class.faktor AS faktor,
+                line_object.id AS id_ini,
+                line_object.geom AS geom
+            FROM line_object
+            JOIN classification AS class ON (line_object.id = class.id_ini)
             WHERE class.geometri_typ = 'linje';""")
 
         cur.execute("""INSERT OR IGNORE INTO views_geometry_columns
@@ -54,21 +56,22 @@ class DbView:
             VALUES ('line_class', 'geom', 'id', 'line_object', 'geom', 1);""")
 
         cur.execute("""CREATE VIEW point_class AS
-            SELECT class.id AS id, 
-                class.id_ini AS id_new, 
-                class.geometri_typ, 
-                class.grupp AS grupp, 
-                class.kvalitet AS kvalitet, 
-                point_object.id AS id_ini, 
-                point_object.geom AS geom 
-            FROM point_object 
-            JOIN classification AS class ON (point_object.id = class.id_ini) 
+            SELECT class.id AS id,
+                class.id_ini AS id_new,
+                class.geometri_typ,
+                class.grupp AS grupp,
+                class.kvalitet AS kvalitet,
+                class.faktor AS faktor,
+                point_object.id AS id_ini,
+                point_object.geom AS geom
+            FROM point_object
+            JOIN classification AS class ON (point_object.id = class.id_ini)
             WHERE class.geometri_typ = 'punkt';""")
 
         cur.execute("""INSERT OR IGNORE INTO views_geometry_columns
             (view_name, view_geometry, view_rowid, f_table_name, f_geometry_column, read_only)
             VALUES ('point_class', 'geom', 'id', 'point_object', 'geom', 1);""")
-        
+
         con.commit()
         cur.close()
         con.close()
@@ -96,6 +99,6 @@ class DbView:
                 vlayer = QgsVectorLayer(pathLayer, view, 'ogr')
                 QgsProject.instance().addMapLayer(vlayer, False)
                 mygroup.addLayer(vlayer)
-        
+
         self.style = Style()
         self.style.init(path)

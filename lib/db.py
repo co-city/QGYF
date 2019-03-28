@@ -121,8 +121,8 @@ class Db:
 		# Clear layers/tables in db or fill db if it is empty.
 		if not cur.fetchall():
 			self.init(cur)
-		else:
-			self.clear(cur, con)
+		# else:
+			# self.clear(cur, con)
 
 		cur.close()
 		con.close()

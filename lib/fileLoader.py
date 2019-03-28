@@ -122,12 +122,9 @@ class FileLoader():
     @param {list} filters
     @param {list} classifications
     """
-    layer.startEditing()
     index = feature.fields().indexFromName(self.filter_attribute)
     layer_name = str(feature.attributes()[index])
     layer_name = layer_name.encode("windows-1252").decode("utf-8")
-
-    print("Filter", filters)
 
     if not filters or any(layer_name in filtr for filtr in filters):
       fields = QgsFields()
@@ -137,6 +134,8 @@ class FileLoader():
 
       feature.setFields(fields, True)
       feature.setAttributes([None, self.fileName, layer_name])
+
+      layer.startEditing()
       layer.addFeature(feature)
       layer.commitChanges()
 
@@ -200,6 +199,7 @@ class FileLoader():
 
     q_list = self.layerSelectorDialog.qualities_list
     factor = -1
+    group_name = None
 
     # try to find mathing quality
     r = list(filter(lambda q: q[1][1] == quality_name, q_list))
@@ -208,13 +208,15 @@ class FileLoader():
       r = list(filter(lambda q: q[1][0] == quality_name, q_list))
       if len(r) > 0:
         factor = r[0][1][4]
+        group_name = r[0][1][0]
     else:
       factor = r[0][1][3]
+      group_name = r[0][1][0]
 
     if factor != 1:
-      data = [None, geometry_type, feature_id, quality_name, factor]
-      # id, geometri_typ, id_ini, kvalitet, faktor
-      cur.execute('INSERT INTO classification VALUES (?, ?, ?, ?, ?)', data)
+      data = [None, geometry_type, self.fileName, feature_id, group_name, quality_name, factor]
+      # id, geometri_typ, filnamn, id_ini, grupp, kvalitet, faktor
+      cur.execute('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?)', data)
 
     cur.close()
     con.commit()
