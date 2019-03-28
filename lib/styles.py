@@ -51,13 +51,9 @@ class Style:
             categories1.append(category1)
             categories2.append(category2)
             categories3.append(category3)
-        
-        #def setCategories(symbology):
-        #    for groups, (c1, c2) in symbology.items():
 
         views = ['point_class', 'line_class', 'polygon_class']
         symbols = dict(zip(views, [categories1, categories2, categories3]))
-        print(symbols)
         for v, c in symbols.items():
             l = QgsProject.instance().mapLayersByName(v) #'polygon_class'
             if l:
@@ -65,14 +61,15 @@ class Style:
                 renderer = QgsCategorizedSymbolRenderer('grupp', c)
                 l.setRenderer(renderer)
                 l.triggerRepaint()
-        
-        # One color solution 
-        ''' if l:
-            l = l[0]
-            r = l.renderer()
-            bio_symbol = QgsFillSymbol.createSimple({
+
+    def styleResearchArea(self):
+        lyr = QgsProject.instance().mapLayersByName('research_area')
+        if lyr:
+            lyr = lyr[0]
+            symbol = QgsFillSymbol.createSimple({
                 'color':'255,0,0,50',
-                'color_border':'#289e26',
-                'width_border':'0.5'})
-            r.setSymbol(bio_symbol)
-            l.triggerRepaint()'''
+                'color_border':'red',
+                'width_border':'1'})
+            lyr.renderer().setSymbol(symbol)
+            print(lyr)
+            lyr.triggerRepaint()

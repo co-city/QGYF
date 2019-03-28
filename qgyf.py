@@ -35,6 +35,7 @@ from .lib.db import Db
 from .lib.qualityTable import QualityTab
 from .lib.db_view import DbView
 from .lib.fileLoader import FileLoader
+from .lib.styles import Style
 
 import os.path
 import inspect
@@ -200,7 +201,8 @@ class QGYF:
 			if not exists:
 				vlayer = QgsVectorLayer(pathLayer, layer, "ogr")
 				QgsProject.instance().addMapLayer(vlayer)
-				root = QgsProject.instance().layerTreeRoot()
+		self.style = Style()
+		self.style.styleResearchArea()
 
 	def initDatabase(self, path):
 		self.db = Db()

@@ -85,7 +85,7 @@ class DbView:
             exists = len(layer) > 0
             if exists:
                 root.findLayer(layer.id()).setItemVisibilityChecked(False)
-        iface.mapCanvas().refresh()
+        #iface.mapCanvas().refresh()
 
         views = ['point_class', 'line_class', 'polygon_class']
         for view in views:
