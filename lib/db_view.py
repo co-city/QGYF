@@ -17,43 +17,85 @@ class DbView:
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
 
-        cur.execute('DROP VIEW IF EXISTS ytor_klassade')
+        cur.execute('DROP VIEW IF EXISTS polygon_class')
+        cur.execute('DROP VIEW IF EXISTS line_class')
+        cur.execute('DROP VIEW IF EXISTS point_class')
         
-        cur.execute("CREATE VIEW ytor_klassade AS \
-            SELECT class.id AS id, \
-                class.id_ini AS id_new, \
-                class.geometri_typ, \
-                class.grupp AS grupp, \
-                class.kvalitet AS kvalitet, \
-                polygon_object.id AS id_ini, \
-                polygon_object.geom AS geom \
-            FROM polygon_object \
-            JOIN classification AS class ON (polygon_object.id = class.id_ini) \
-            WHERE class.geometri_typ = 'yta';")
+        cur.execute("""CREATE VIEW polygon_class AS
+            SELECT class.id AS id, 
+                class.id_ini AS id_new, 
+                class.geometri_typ, 
+                class.grupp AS grupp, 
+                class.kvalitet AS kvalitet, 
+                polygon_object.id AS id_ini, 
+                polygon_object.geom AS geom 
+            FROM polygon_object 
+            JOIN classification AS class ON (polygon_object.id = class.id_ini) 
+            WHERE class.geometri_typ = 'yta';""")
 
-        cur.execute("INSERT INTO views_geometry_columns  \
-            (view_name, view_geometry, view_rowid, f_table_name, f_geometry_column, read_only) \
-            VALUES ('ytor_klassade', 'geom', 'id', 'polygon_object', 'geom', 1);")
-        cur.execute("SELECT * FROM ytor_klassade;")
-        ##cur.execute("SELECT RecoverGeometryColumn('ytor_klassade','geom',3006,'POLYGON',2);")
-        cur.execute("SELECT RecoverSpatialIndex('ytor_klassade','geom');")
-        cur.execute("SELECT UpdateLayerStatistics('ytor_klassade');")
-        cur.execute("SELECT * FROM ytor_klassade;")
+        cur.execute("""INSERT OR IGNORE INTO views_geometry_columns
+            (view_name, view_geometry, view_rowid, f_table_name, f_geometry_column, read_only)
+            VALUES ('polygon_class', 'geom', 'id', 'polygon_object', 'geom', 1);""")
+
+        cur.execute("""CREATE VIEW line_class AS
+            SELECT class.id AS id, 
+                class.id_ini AS id_new, 
+                class.geometri_typ, 
+                class.grupp AS grupp, 
+                class.kvalitet AS kvalitet, 
+                line_object.id AS id_ini, 
+                line_object.geom AS geom 
+            FROM line_object 
+            JOIN classification AS class ON (line_object.id = class.id_ini) 
+            WHERE class.geometri_typ = 'linje';""")
+
+        cur.execute("""INSERT OR IGNORE INTO views_geometry_columns
+            (view_name, view_geometry, view_rowid, f_table_name, f_geometry_column, read_only)
+            VALUES ('line_class', 'geom', 'id', 'line_object', 'geom', 1);""")
+
+        cur.execute("""CREATE VIEW point_class AS
+            SELECT class.id AS id, 
+                class.id_ini AS id_new, 
+                class.geometri_typ, 
+                class.grupp AS grupp, 
+                class.kvalitet AS kvalitet, 
+                point_object.id AS id_ini, 
+                point_object.geom AS geom 
+            FROM point_object 
+            JOIN classification AS class ON (point_object.id = class.id_ini) 
+            WHERE class.geometri_typ = 'punkt';""")
+
+        cur.execute("""INSERT OR IGNORE INTO views_geometry_columns
+            (view_name, view_geometry, view_rowid, f_table_name, f_geometry_column, read_only)
+            VALUES ('point_class', 'geom', 'id', 'point_object', 'geom', 1);""")
         
+        con.commit()
         cur.close()
         con.close()
 
-        views = ['ytor_klassade'] #'polygon_object'
-        uri = QgsDataSourceUri()
-        uri.setDatabase(path + r'\qgyf.sqlite')
-        schema = ''
-        geom_column = '' #geom
-        for view in views:
-            uri.setDataSource(schema, view, geom_column)
-            iface.addVectorLayer(uri.uri(), view, 'spatialite')
-            self.style = Style()
-        
-        self.style.init()
-            
-        
+        root = QgsProject.instance().layerTreeRoot()
+        mygroup = root.findGroup('Object_classified')
+        if not mygroup:
+            mygroup = root.insertGroup(0, 'Object_classified')
 
+        # Set layers to invisible
+        lyr = ['point_object', 'line_object', 'polygon_object']
+        for l in lyr:
+            layer = QgsProject.instance().mapLayersByName(l)[0]
+            exists = len(layer) > 0
+            if exists:
+                root.findLayer(layer.id()).setItemVisibilityChecked(False)
+        iface.mapCanvas().refresh()
+
+        views = ['point_class', 'line_class', 'polygon_class']
+        for view in views:
+            mapLayers = QgsProject.instance().mapLayersByName(view)
+            exists = len(mapLayers) > 0
+            if not exists:
+                pathLayer = path + r"\qgyf.sqlite|layername=" + view
+                vlayer = QgsVectorLayer(pathLayer, view, 'ogr')
+                QgsProject.instance().addMapLayer(vlayer, False)
+                mygroup.addLayer(vlayer)
+        
+        self.style = Style()
+        self.style.init(path)
