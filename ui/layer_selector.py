@@ -16,22 +16,47 @@ from qgis.utils import spatialite_connect
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'layer_selector.ui'))
 
-
 class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         super(LayerSelectorDialog, self).__init__(parent)
         self.setupUi(self)
-        self.pushButton.clicked.connect(self.addToImport)
-        self.okButton.clicked.connect(self.importToMap)
+
+        self.addButton.clicked.connect(self.addToImport)
+        self.removeButton.clicked.connect(self.removeFromImport)
+        self.layerAbort.clicked.connect(self.abortLayerSelection)
+        self.qualityAbort.clicked.connect(self.abortQualitySelection)
 
         self.importsModel = QStandardItemModel()
         self.importItems.setModel(self.importsModel)
         self.addedMappings = []
         self.addedLayers = []
 
-    def importToMap(self):
-        print("Import selected items to map")
-        return self.addedMappings
+    def closeEvent(self, event):
+        self.reset()
+
+    def reset(self):
+        self.layers.setModel(None)
+        self.importsModel.clear()
+        self.addedMappings = []
+        self.addedLayers = []
+
+    def abortLayerSelection(self):
+        self.layers.selectionModel().clear()
+
+    def abortQualitySelection(self):
+        self.classifications.selectionModel().clear()
+
+    def removeFromImport(self):
+        import_indexes = self.importItems.selectedIndexes()
+        if len(import_indexes) > 0:
+            data = import_indexes[0].data()
+            row = import_indexes[0].row()
+            values = data.split(">")
+            layer = values[0].strip()
+
+            self.importsModel.removeRows(row, 1)
+            self.addedLayers.remove(layer)
+            self.addedMappings.remove(data)
 
     def addToImport(self):
         classifications_list = self.classifications
@@ -47,8 +72,11 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
         for index in layers_indexes:
             layer = index.data()
 
-        if classification and layer:
-            item = layer + " > " + classification
+        if layer:
+            if classification:
+                item = layer + " > " + classification
+            else:
+                item = layer
             if not any(layer in addedLayer for addedLayer in self.addedLayers):
                 self.addedLayers.append(layer)
                 self.addedMappings.append(item)
@@ -60,28 +88,28 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
 
         cur = con.cursor()
         cur.execute("""
-            SELECT DISTINCT grupp, kvalitet, namn
+            SELECT DISTINCT grupp, kvalitet, namn, gyf_quality.faktor AS k_faktor, gyf_qgroup.faktor AS g_faktor
             FROM gyf_quality
             LEFT JOIN gyf_qgroup
             ON gyf_qgroup.id = grupp_id""")
 
         qualities = cur.fetchall()
-        qualities_list = list(enumerate(qualities, 0))
+        self.qualities_list = list(enumerate(qualities, 0))
         model = QStandardItemModel(classifications_list)
 
-        for i, fields in qualities_list:
+        for i, fields in self.qualities_list:
             if i == 0:
-                item = QStandardItem(qualities_list[i][1][0])
+                item = QStandardItem(self.qualities_list[i][1][0])
                 model.appendRow(item)
 
             item = QStandardItem(fields[1] + ", " + fields[2])
             model.appendRow(item)
 
-            if (i < len(qualities_list) - 1):
-                if qualities_list[i][1][0] != qualities_list[i + 1][1][0]:
+            if (i < len(self.qualities_list) - 1):
+                if self.qualities_list[i][1][0] != self.qualities_list[i + 1][1][0]:
                     item = QStandardItem("")
                     model.appendRow(item)
-                    item = QStandardItem(qualities_list[i + 1][1][0])
+                    item = QStandardItem(self.qualities_list[i + 1][1][0])
                     model.appendRow(item)
 
         classifications_list.setModel(model)
@@ -93,7 +121,7 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
         layers_list = self.layers
         model = QStandardItemModel(layers_list)
         for layer in layers:
-            item = QStandardItem(layer)
+            item = QStandardItem(str(layer))
             model.appendRow(item)
 
         layers_list.setModel(model)

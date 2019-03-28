@@ -34,7 +34,7 @@ from .ui.layer_selector import LayerSelectorDialog
 from .lib.db import Db
 from .lib.qualityTable import QualityTab
 from .lib.db_view import DbView
-from .lib.fileLoader import loadFile
+from .lib.fileLoader import FileLoader
 
 import os.path
 import inspect
@@ -42,8 +42,6 @@ import inspect
 class QGYF:
 
 	def __init__(self, iface):
-
-
 		self.iface = iface
 		self.plugin_dir = os.path.dirname(__file__)
 
@@ -72,11 +70,12 @@ class QGYF:
 			"research_area",
 			"polygon_object",
 			"line_object",
-			"point_object",		
+			"point_object",
 		])
 		self.showWelcome()
 		self.layerSelectorDialog = LayerSelectorDialog()
 		self.layerSelectorDialog.loadClassifications(self.path)
+		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.path)
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -141,7 +140,7 @@ class QGYF:
 			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
 
 	def load(self):
-		loadFile(self.iface.mainWindow(), self.layerSelectorDialog)
+		self.fileLoader.loadFile()
 
 	def info(self):
 		self.welcome = WelcomeDialog()
@@ -269,7 +268,7 @@ class QGYF:
 		self.dockwidget.setSymbol.clicked.connect(self.createDataView)
 		#self.dockwidget.setSymbol.clicked.connect(self.dockwidget.groupList)
 		self.dockwidget.groupList()
-		
+
 
 		# Estimation of GYF
 		# Research area
