@@ -30,7 +30,7 @@ from qgis.core import QgsProject, QgsVectorLayer
 from qgis.utils import iface
 from qgis.utils import spatialite_connect
 from .saveResearchArea import saveRA
- 
+
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgyf_dockwidget_base.ui'))
@@ -50,13 +50,12 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
 
-        """ Functions to classify input data"""    
-    
+        """ Functions to classify input data"""
+
     # CLASSIFICATION
     def chooseQ(self, path):
         self.selectQGroup.clear()
@@ -68,7 +67,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur.execute('''SELECT grupp FROM gyf_qgroup''')
         items = [''] + [i[0] for i in cur.fetchall()]
         self.selectQGroup.addItems(items)
-        
+
         cur.close()
         con.close()
 
@@ -78,7 +77,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
-        
+
         i = str(self.selectQGroup.currentIndex())
         cur.execute('SELECT kvalitet FROM gyf_quality WHERE grupp_id = ' + i)
         quality = [j[0] for j in cur.fetchall()]
@@ -87,7 +86,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cur.close()
         con.close()
-        
+
     def getF(self, path):
         self.textQ.clear()
         con = spatialite_connect(path + r'\qgyf.sqlite')
@@ -114,10 +113,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.selectLayer.clear()
         items = ['', 'punkt', 'linje', 'yta']
         self.selectLayer.addItems(items)
-            
+
     def selectStart(self):
         # Start object selection for QGYF
-        for a in iface.attributesToolBar().actions(): 
+        for a in iface.attributesToolBar().actions():
             if a.objectName() == 'mActionDeselectAll':
                 a.trigger()
                 break
@@ -127,7 +126,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         def lyr(x):
             return {'punkt': 'point_object',
                     'linje': 'line_object'}.get(x, 'polygon_object')
-                    
+
         l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))[0]
         iface.setActiveLayer(l)
 
@@ -141,7 +140,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if selected:
             for f in selected:
                 attributes.append(f.attributes())
-        
+
         g = self.selectQGroup.currentText()
         geom = self.selectLayer.currentText()
 
@@ -156,11 +155,11 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cur.execute('SELECT count(id) FROM classification')
         n = cur.fetchone()[0]
-        
+
         data = []
         for i,obj in enumerate(attributes):
             data.append([n+i, geom, obj[1], obj[0], g, q, f])
-        
+
         cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?)', data)
         cur.close()
         con.commit()
@@ -174,7 +173,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur.execute('SELECT * FROM classification')
         data = cur.fetchall()
         data = [d[1:] for d in data]
-        
+
         if data:
             self.classtable.setRowCount(len(data))
             self.classtable.setColumnCount(len(data[0]))
@@ -190,29 +189,29 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     #RESEARCH_AREA
     def okClicked(self, l, path):
-            print('I see you!')
-            l.commitChanges()
-            iface.vectorLayerTools().stopEditing(l)
-            con = spatialite_connect(path + r'\qgyf.sqlite')
-            con.commit()
-            con.close()
-            self.window.close()
+        print('I see you!')
+        l.commitChanges()
+        iface.vectorLayerTools().stopEditing(l)
+        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con.commit()
+        con.close()
+        self.window.close()
 
     def cancelClicked(self, l):
-            f = [f for f in l.getFeatures()][0]
-            print(f.id())
-            l.deleteFeature(f.id())
-            l.triggerRepaint()
-            iface.vectorLayerTools().stopEditing(l)
-            self.window.close()
+        f = [f for f in l.getFeatures()][0]
+        print(f.id())
+        l.deleteFeature(f.id())
+        l.triggerRepaint()
+        iface.vectorLayerTools().stopEditing(l)
+        self.window.close()
 
     def showSaveDialog(self, l, path):
-            self.window = saveRA()
-            self.window.show()
-            ok = lambda : self.okClicked(l, path)
-            cancel = lambda : self.cancelClicked(l)
-            self.window.okButton.clicked.connect(ok)
-            self.window.cancelButton.clicked.connect(cancel)
+        self.window = saveRA()
+        self.window.show()
+        ok = lambda : self.okClicked(l, path)
+        cancel = lambda : self.cancelClicked(l)
+        self.window.okButton.clicked.connect(ok)
+        self.window.cancelButton.clicked.connect(cancel)
 
     def createArea(self, path):
         l = QgsProject.instance().mapLayersByName('research_area')
@@ -249,17 +248,17 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 print(unchecked)
                 query = "SELECT * FROM " + view.name() + " WHERE grupp not in ('" + unchecked + "')"
                 view.setSubsetString(query)
-            
-            
+
+
     def groupList(self):
         checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
         checkbox_list = [getattr(self, n) for n in checkboxnames]
         for checkbox in checkbox_list:
             checkbox.setChecked(True)
-        
+
         checkGroup = lambda : self.checkGroup(checkbox_list)
-        self.checkBio.stateChanged.connect(checkGroup) 
-        self.checkBuller.stateChanged.connect(checkGroup) 
+        self.checkBio.stateChanged.connect(checkGroup)
+        self.checkBuller.stateChanged.connect(checkGroup)
         self.checkVatten.stateChanged.connect(checkGroup)
         self.checkKlimat.stateChanged.connect(checkGroup)
         self.checkPoll.stateChanged.connect(checkGroup)

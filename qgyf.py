@@ -35,6 +35,7 @@ from .lib.db import Db
 from .lib.qualityTable import QualityTab
 from .lib.db_view import DbView
 from .lib.fileLoader import FileLoader
+from .lib.gyf_calculator import GyfCalculator
 
 import os.path
 import inspect
@@ -76,6 +77,7 @@ class QGYF:
 		self.layerSelectorDialog = LayerSelectorDialog()
 		self.layerSelectorDialog.loadClassifications(self.path)
 		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.path)
+		self.calculator = GyfCalculator(self.path)
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -269,9 +271,10 @@ class QGYF:
 		#self.dockwidget.setSymbol.clicked.connect(self.dockwidget.groupList)
 		self.dockwidget.groupList()
 
-
 		# Estimation of GYF
 		# Research area
 		self.dockwidget.selectRA.clicked.connect(self.dockwidget.selectArea)
 		createArea = lambda : self.dockwidget.createArea(self.path)
 		self.dockwidget.createRA.clicked.connect(createArea)
+
+		self.dockwidget.calculate.clicked.connect(self.calculator.calculate)

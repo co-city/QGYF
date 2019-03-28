@@ -122,7 +122,6 @@ class FileLoader():
     @param {list} filters
     @param {list} classifications
     """
-    layer.startEditing()
     index = feature.fields().indexFromName(self.filter_attribute)
     layer_name = str(feature.attributes()[index])
     layer_name = layer_name.encode("windows-1252").decode("utf-8")
@@ -135,6 +134,8 @@ class FileLoader():
 
       feature.setFields(fields, True)
       feature.setAttributes([None, self.fileName, layer_name])
+
+      layer.startEditing()
       layer.addFeature(feature)
       layer.commitChanges()
 
@@ -202,8 +203,6 @@ class FileLoader():
 
     # try to find mathing quality
     r = list(filter(lambda q: q[1][1] == quality_name, q_list))
-    print(r)
-
     if len(r) == 0:
       # try to find mathing group
       r = list(filter(lambda q: q[1][0] == quality_name, q_list))
