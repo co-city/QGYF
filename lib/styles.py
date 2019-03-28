@@ -6,7 +6,7 @@ Created on: 2019-03-27 16:20:53
 """
 import os
 import sys
-from qgis.core import QgsProject, QgsVectorLayer, QgsFillSymbol, QgsLineSymbol, QgsRendererCategory, QgsCategorizedSymbolRenderer
+from qgis.core import QgsProject, QgsVectorLayer, QgsFillSymbol, QgsLineSymbol, QgsMarkerSymbol, QgsRendererCategory, QgsCategorizedSymbolRenderer
 from qgis.utils import spatialite_connect, iface
 
 class Style:
@@ -30,6 +30,9 @@ class Style:
         ]
 
         symbology = dict(zip(items, colors))
+        categories1 = []
+        categories2 = []
+        categories3 = []
         for groups, (c1, c2) in symbology.items():
             symbol_point = QgsMarkerSymbol.createSimple({
                 'color':c1,
@@ -37,26 +40,33 @@ class Style:
                 'width_border':'0.5'})
             symbol_line = QgsLineSymbol.createSimple({
                 'color':c1,
-                'width':'2'})
+                'width':'1.5'})
             symbol_poly = QgsFillSymbol.createSimple({
                 'color':c1,
                 'color_border':c2,
                 'width_border':'0.5'})
+            category1 = QgsRendererCategory(groups, symbol_point, groups)
+            category2 = QgsRendererCategory(groups, symbol_line, groups)
+            category3 = QgsRendererCategory(groups, symbol_poly, groups)
+            categories1.append(category1)
+            categories2.append(category2)
+            categories3.append(category3)
+        
+        #def setCategories(symbology):
+        #    for groups, (c1, c2) in symbology.items():
 
         views = ['point_class', 'line_class', 'polygon_class']
-        for v in views:
+        symbols = dict(zip(views, [categories1, categories2, categories3]))
+        print(symbols)
+        for v, c in symbols.items():
             l = QgsProject.instance().mapLayersByName(v) #'polygon_class'
             if l:
                 l = l[0]
-                categories = []
-                
-                    category = QgsRendererCategory(groups, symbol_poly, groups)
-                    categories.append(category)
-
-                renderer = QgsCategorizedSymbolRenderer('grupp', categories)
+                renderer = QgsCategorizedSymbolRenderer('grupp', c)
                 l.setRenderer(renderer)
                 l.triggerRepaint()
         
+        # One color solution 
         ''' if l:
             l = l[0]
             r = l.renderer()
