@@ -35,11 +35,8 @@ from .lib.db import Db
 from .lib.qualityTable import QualityTab
 from .lib.db_view import DbView
 from .lib.fileLoader import FileLoader
-<<<<<<< HEAD
 from .lib.styles import Style
-=======
 from .lib.gyf_calculator import GyfCalculator
->>>>>>> 75f625424f858bbdfe28027b0121d24870a835d4
 
 import os.path
 import inspect
