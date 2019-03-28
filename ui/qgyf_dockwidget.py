@@ -25,7 +25,7 @@
 import os
 
 from PyQt5 import QtGui, QtWidgets, uic
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.utils import iface
 from qgis.utils import spatialite_connect
@@ -238,30 +238,29 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
     # Visualization
-    def checkGroup(self, checkboxnames, checkbox):
-        checkbox_list = []
-        for n in checkboxnames:
-            checkbox_list.append(getattr(self, n))
-        
-        view = QgsProject.instance().mapLayersByName('ytor_klassade')
-        if view:
-            view = view[0]
-            if not checkbox.isChecked():
-                print('Not checked')
-                view.setSubsetString('"%s" != \'%s\'' % ('grupp', checkbox.text()))
-            else:
-                print('Checked, lets try!')
-                checkbox_list = [c for c in checkbox_list if not c.isChecked()]
-                print(checkbox_list)
-                view.setSubsetString('')
-                for c in checkbox_list:
-                    view.setSubsetString('"%s" != \'%s\'' % ('grupp', c.text()))
+    def checkGroup(self, checkbox_list):
+        views = ['polygon_class', 'line_class', 'point_class']
+        for v in views:
+            view = QgsProject.instance().mapLayersByName(v) #'polygon_class'
+            if view:
+                view = view[0]
+                unchecked_list = [c.text() for c in checkbox_list if not c.isChecked()]
+                unchecked = "', '".join(c for c in unchecked_list)
+                print(unchecked)
+                query = "SELECT * FROM " + view.name() + " WHERE grupp not in ('" + unchecked + "')"
+                view.setSubsetString(query)
             
             
     def groupList(self):
         checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
-        checkGroup = lambda : self.checkGroup(checkboxnames, checkbox)
-        for n in checkboxnames:
-            checkbox = getattr(self, n)
+        checkbox_list = [getattr(self, n) for n in checkboxnames]
+        for checkbox in checkbox_list:
             checkbox.setChecked(True)
-            checkbox.stateChanged.connect(checkGroup)
+        
+        checkGroup = lambda : self.checkGroup(checkbox_list)
+        self.checkBio.stateChanged.connect(checkGroup) 
+        self.checkBuller.stateChanged.connect(checkGroup) 
+        self.checkVatten.stateChanged.connect(checkGroup)
+        self.checkKlimat.stateChanged.connect(checkGroup)
+        self.checkPoll.stateChanged.connect(checkGroup)
+        self.checkHalsa.stateChanged.connect(checkGroup)

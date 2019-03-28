@@ -226,7 +226,6 @@ class QGYF:
 	def createDataView(self):
 		self.dbView = DbView()
 		self.dbView.init(self.path)
-		print('I have created a new table')
 
 	def openCalculationDialog(self):
 		"""Run method that loads and starts the plugin"""
