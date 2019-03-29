@@ -231,6 +231,10 @@ class QGYF:
 		self.dbView = DbView()
 		self.dbView.init(self.path)
 
+	def calculate(self):
+		gyf = self.calculator.calculate()
+		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
+
 	def openCalculationDialog(self):
 		"""Run method that loads and starts the plugin"""
 		if not self.pluginIsActive:
@@ -284,4 +288,4 @@ class QGYF:
 		createArea = lambda : self.dockwidget.createArea(self.path)
 		self.dockwidget.createRA.clicked.connect(createArea)
 
-		self.dockwidget.calculate.clicked.connect(self.calculator.calculate)
+		self.dockwidget.calculate.clicked.connect(self.calculate)

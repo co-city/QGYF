@@ -3,11 +3,13 @@ import processing
 
 class GyfCalculator:
   def __init__(self, path):
-    print("Gyf calcuclator")
     self.path = path
 
   def getFeatures(self):
-
+    """
+    Get features from given layers.
+    @return {list} features
+    """
     polygon_layer = QgsProject.instance().mapLayersByName("polygon_class")[0]
     line_layer = QgsProject.instance().mapLayersByName("line_class")[0]
     point_layer = QgsProject.instance().mapLayersByName("point_class")[0]
@@ -18,13 +20,46 @@ class GyfCalculator:
       *list(point_layer.getFeatures())
     ]
 
+  def calculateIntersectionArea(self, feature, intersector, with_factor):
+    """
+    Calculate the instersection of two features, and optionally scale with given factor.
+    @param {QgsFeature} feature
+    @param {QgsFeature} intersector
+    @param {bool} with_factor
+    @return {list} features
+    """
+    geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
+    new_geom = None
+    if geometry_type == "Point":
+        new_geom = feature.geometry().buffer(3, 20)
+    if geometry_type == "Line":
+        new_geom = feature.geometry().buffer(0.5, 20)
+
+    if new_geom:
+      intersection = new_geom.intersection(intersector.geometry())
+    else:
+      intersection = feature.geometry().intersection(intersector.geometry())
+
+    index = feature.fields().indexFromName("faktor")
+    factor = feature.attributes()[index]
+
+    if with_factor:
+      return intersection.area() * factor
+    else:
+      return intersection.area()
+
   def calculate(self):
+    """
+    Calculate gyf factor.
+    @return {number} gyf
+    """
     research_area_layer = QgsProject.instance().mapLayersByName("research_area")[0]
     selected_features = list(research_area_layer.selectedFeatures())
     if list(selected_features):
       selected_feature = selected_features[0]
       features = self.getFeatures()
 
+      calculation_area = selected_feature.geometry().area()
       feature_area_sum = 0
       feature_area_factor_sum = 0
 
@@ -33,34 +68,24 @@ class GyfCalculator:
       unique_id = []
 
       for feature in features:
-        if feature.geometry().intesects(selected_feature.geometry()):
-          intersecting_features.append(feature)
+        geom = feature.geometry()
+        selected_geometry = selected_feature.geometry()
+        # TODO: find a comparer to test intersection,
+        # the intersection calculation is not necsessary if the feature is completely outside the calculation area.
+        # if geom.overlaps(selected_geometry):
+        intersecting_features.append(feature)
 
       for feature in intersecting_features:
         if not feature.attributes()[1] in unique_id:
           unique_id.append(feature.attributes()[1])
           unique_features.append(feature)
 
+      for feature in unique_features:
+        feature_area_sum += self.calculateIntersectionArea(feature, selected_feature, False)
+
       for feature in intersecting_features:
-        geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
-        new_geom = None
-        if geometry_type == "Point":
-            new_geom = feature.geometry().buffer(3, 20)
-        if geometry_type == "Line":
-            new_geom = feature.geometry().buffer(0.5, 20)
+        feature_area_factor_sum += self.calculateIntersectionArea(feature, selected_feature, True)
 
-        if (new_geom):
-          intersection = new_geom.intersection(selected_feature.geometry())
-        else:
-          intersection = feature.geometry().intersection(selected_feature.geometry())
+      gyf = (feature_area_sum + feature_area_factor_sum) / calculation_area
 
-        feature_area_sum += intersection.area()
-
-        index = feature.fields().indexFromName("faktor")
-        factor = feature.attributes()[index]
-
-        # summa(feature.area) + summa(feature.area * faktor) / selected_feature.area
-        print("Feature intersection area", intersection.area())
-
-
-      print("Calculate!", features, selected_feature)
+      return gyf
