@@ -90,6 +90,7 @@ class DbView:
                 root.findLayer(layer.id()).setItemVisibilityChecked(False)
         #iface.mapCanvas().refresh()
 
+        self.style = Style()
         views = ['point_class', 'line_class', 'polygon_class']
         for view in views:
             lyr = QgsProject.instance().mapLayersByName(view)
@@ -97,8 +98,6 @@ class DbView:
                 pathLayer = path + r"\qgyf.sqlite|layername=" + view
                 vlayer = QgsVectorLayer(pathLayer, view, 'ogr')
                 vlayer.setProviderEncoding("utf-8")
+                self.style.oneColor(vlayer)
                 QgsProject.instance().addMapLayer(vlayer, False)
                 mygroup.addLayer(vlayer)
-
-        self.style = Style()
-        self.style.oneColor()
