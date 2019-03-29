@@ -26,17 +26,22 @@ class GyfCalculator:
       features = self.getFeatures()
 
       feature_area_sum = 0
+      feature_area_factor_sum = 0
 
+      intersecting_features = []
       unique_features = []
       unique_id = []
+
       for feature in features:
+        if feature.geometry().intesects(selected_feature.geometry()):
+          intersecting_features.append(feature)
+
+      for feature in intersecting_features:
         if not feature.attributes()[1] in unique_id:
           unique_id.append(feature.attributes()[1])
           unique_features.append(feature)
 
-      print("Unique", unique_id, unique_features)
-
-      for feature in features:
+      for feature in intersecting_features:
         geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
         new_geom = None
         if geometry_type == "Point":

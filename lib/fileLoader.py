@@ -102,16 +102,16 @@ class FileLoader():
     polygonLayer = QgsProject.instance().mapLayersByName("polygon_object")[0]
 
     for feature in self.layer.getFeatures():
-      try:
-        type = self.prepareFeature(feature)
-        if type == "Point":
-          self.addFeature(feature, type, pointLayer, filters, classifications)
-        if type == "Line":
-          self.addFeature(feature, type, lineLayer, filters, classifications)
-        if type == "Polygon":
-          self.addFeature(feature, type, polygonLayer, filters, classifications)
-      except:
-        print("Load error", feature)
+      #try:
+      type = self.prepareFeature(feature)
+      if type == "Point":
+        self.addFeature(feature, type, pointLayer, filters, classifications)
+      if type == "Line":
+        self.addFeature(feature, type, lineLayer, filters, classifications)
+      if type == "Polygon":
+        self.addFeature(feature, type, polygonLayer, filters, classifications)
+      #except:
+        #print("Load error", feature)
 
   def addFeature(self, feature, type, layer, filters, classifications):
     """
