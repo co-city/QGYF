@@ -265,6 +265,10 @@ class QGYF:
 		setQ = lambda : self.dockwidget.setQ(self.path)
 		self.dockwidget.approveButton.clicked.connect(setQ)
 		self.dockwidget.approveButton.clicked.connect(showClass)
+		removeQ = lambda : self.dockwidget.removeQ(self.path)
+		self.dockwidget.removeButton.clicked.connect(removeQ)
+		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightQ)
+
 		# Objects
 		self.dockwidget.setLayers()
 		self.dockwidget.selectObj.clicked.connect(self.dockwidget.selectStart)

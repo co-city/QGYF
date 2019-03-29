@@ -11,7 +11,7 @@ from qgis.utils import spatialite_connect, iface
 
 class Style:
     
-    def init(self, path):
+    def styleCategories(self, path):
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
         cur.execute('''SELECT grupp FROM gyf_qgroup''')
@@ -61,6 +61,30 @@ class Style:
                 renderer = QgsCategorizedSymbolRenderer('grupp', c)
                 l.setRenderer(renderer)
                 l.triggerRepaint()
+
+    def oneColor(self):
+        views = ['point_class', 'line_class', 'polygon_class']
+        for v in views:
+            lyr = QgsProject.instance().mapLayersByName(v)
+            if lyr:
+                lyr = lyr[0]
+                if v == 'polygon_class':
+                    symbol = QgsFillSymbol.createSimple({
+                        'color':'0, 153, 51, 50',
+                        'color_border':'0, 102, 0, 50',
+                        'width_border':'0.5'})
+                elif v == 'point_class':
+                    symbol = QgsMarkerSymbol.createSimple({
+                        'color':'153, 0, 0, 50',
+                        'color_border':'128, 0, 0, 50',
+                        'width_border':'0.5'})
+                else:
+                    QgsLineSymbol.createSimple({
+                        'color':'51, 102, 0, 50',
+                        'width':'1.5'})
+                lyr.renderer().setSymbol(symbol)
+                lyr.triggerRepaint()
+
 
     def styleResearchArea(self, lyr):
         symbol = QgsFillSymbol.createSimple({

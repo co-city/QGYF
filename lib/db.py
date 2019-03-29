@@ -67,7 +67,8 @@ class Db:
 		grupp_id INTEGER NOT NULL,
 		kvalitet TEXT NOT NULL,
 		faktor DOUBLE NOT NULL,
-		namn TEXT);
+		namn TEXT,
+		kort_namn TEXT);
 		""")
 
 		cur.execute("""

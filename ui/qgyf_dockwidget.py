@@ -26,7 +26,7 @@ import os
 
 from PyQt5 import QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal, Qt
-from qgis.core import QgsProject, QgsVectorLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
 from qgis.utils import iface
 from qgis.utils import spatialite_connect
 from .saveResearchArea import saveRA
@@ -79,8 +79,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur = con.cursor()
 
         i = str(self.selectQGroup.currentIndex())
-        cur.execute('SELECT kvalitet FROM gyf_quality WHERE grupp_id = ' + i)
-        quality = [j[0] for j in cur.fetchall()]
+        cur.execute('SELECT kvalitet, kort_namn FROM gyf_quality WHERE grupp_id = ' + i)
+        quality = [j[0] + ' - ' + j[1] for j in cur.fetchall()]
         quality = quality + ['Vet inte']
         self.selectQ.addItems(quality)
 
@@ -94,8 +94,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         if self.selectQ.count() > 0:
             if self.selectQ.currentText() != 'Vet inte':
-                q = [self.selectQ.currentText()]
-                cur.execute('SELECT faktor,namn FROM gyf_quality WHERE kvalitet = ?', q)
+                q = self.selectQ.currentText()
+                q = q.split(' ')[0]
+                cur.execute('SELECT faktor,namn FROM gyf_quality WHERE kvalitet = ?', [q])
                 text = cur.fetchone()
                 t = text[1] + ', faktor = ' + str(text[0])
                 self.textQ.append(t)
@@ -146,6 +147,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         if self.selectQ.currentText() != 'Vet inte':
             q = self.selectQ.currentText()
+            q = q.split(' ')[0]
             cur.execute('SELECT faktor FROM gyf_quality WHERE kvalitet = ?', [q])
         else:
             q = ''
@@ -169,12 +171,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cur.execute('SELECT * FROM classification')
         data = cur.fetchall()
-        data = [d[1:] for d in data]
+        data = [list(d[1:])+[d[0]] for d in data]
 
         if data:
+            self.classtable.setSortingEnabled(True)
             self.classtable.setRowCount(len(data))
             self.classtable.setColumnCount(len(data[0]))
-            self.classtable.setHorizontalHeaderLabels(["geom", "fil namn", 'id', 'Grupp', 'K', 'F'])
+            self.classtable.setHorizontalHeaderLabels(["geom", "fil namn", 'id', 'Grupp', 'K', 'F', 'uid'])
             for i, item in enumerate(data):
                 for j, field in enumerate(item):
                     self.classtable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
@@ -183,7 +186,53 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur.close()
         con.close()
 
+    def removeQ(self, path):
 
+        ids = self.classtable.selectedItems()
+        ids = [i.text() for i in ids] #i.row()
+        if len(ids) == 7:
+            ids = [ids[-1]]
+        else:
+            ids = [ids[7*n-1] for n in range(1, int(len(ids)/7 + 1))]
+        ids = [int(i) for i in ids]
+        
+        con = spatialite_connect(path + r'\qgyf.sqlite')
+        cur = con.cursor()
+
+        for i in ids:
+            cur.execute('DELETE FROM classification WHERE id = (?);', [i])
+
+        cur.close()
+        con.commit()
+        con.close()
+        self.showClass(path)
+
+    def highlightQ(self):
+        items = self.classtable.selectedItems()
+
+        items = [i.text() for i in items] #i.row()
+        if len(items) == 7:
+            ids = [(items[0], items[-1])]
+        else:
+            ids = [items[7*n-1] for n in range(1, int(len(items)/7 + 1))]
+            geom = [items[7*n-7] for n in range(1, int(len(items)/7 + 1))]
+            ids = list(zip(geom, ids))       
+
+        for obj in ids:
+            if obj[0] == 'yta':
+                lyr = QgsProject.instance().mapLayersByName('polygon_class')
+            elif obj[0] == 'linje':
+                lyr = QgsProject.instance().mapLayersByName('line_class')
+            else:
+                lyr = QgsProject.instance().mapLayersByName('point_class')
+            
+            if lyr:
+                lyr = lyr[0]
+                query = '"id" = ' + obj[1]
+                selection = lyr.getFeatures(QgsFeatureRequest().setFilterExpression(query))
+                lyr.selectByIds([k.id() for k in selection])
+                
+        
     #RESEARCH_AREA
     def okClicked(self, l, path):
         print('I see you!')

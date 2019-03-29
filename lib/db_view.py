@@ -101,4 +101,4 @@ class DbView:
                 mygroup.addLayer(vlayer)
 
         self.style = Style()
-        self.style.init(path)
+        self.style.oneColor()

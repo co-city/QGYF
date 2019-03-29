@@ -173,11 +173,11 @@ class FileLoader():
       type = QgsWkbTypes.geometryDisplayString(geom.type())
 
       if type == "Polygon":
-        feature.setGeometry(geom);
+        feature.setGeometry(geom)
 
       if type == "Line":
         geom = feature.geometry().fromPolylineXY(feature.geometry().asPolyline())
-        feature.setGeometry(geom);
+        feature.setGeometry(geom)
 
     return type
 
