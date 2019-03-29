@@ -196,15 +196,16 @@ class QGYF:
 			parent=self.iface.mainWindow())
 
 	def addLayers(self, path, layers):
+		self.style = Style()
 		for layer in layers:
 			pathLayer = path + r"\qgyf.sqlite|layername=" + layer
 			mapLayers = QgsProject.instance().mapLayersByName(layer)
 			exists = len(mapLayers) > 0
 			if not exists:
 				vlayer = QgsVectorLayer(pathLayer, layer, "ogr")
+				if layer == 'research_area':
+					self.style.styleResearchArea(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
-		self.style = Style()
-		self.style.styleResearchArea()
 
 	def initDatabase(self, path):
 		self.db = Db()

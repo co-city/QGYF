@@ -28,12 +28,13 @@ class GyfCalculator:
       feature_area_sum = 0
 
       unique_features = []
+      unique_id = []
       for feature in features:
-        #if not any(feature.attributes()[1] == feature.attributes()[1] in unique_features):
-        if not feature.attributes()[1] in unique_features:
+        if not feature.attributes()[1] in unique_id:
+          unique_id.append(feature.attributes()[1])
           unique_features.append(feature)
 
-      print("Unique", unique_features)
+      print("Unique", unique_id, unique_features)
 
       for feature in features:
         geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())

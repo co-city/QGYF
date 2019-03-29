@@ -240,12 +240,11 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def checkGroup(self, checkbox_list):
         views = ['polygon_class', 'line_class', 'point_class']
         for v in views:
-            view = QgsProject.instance().mapLayersByName(v) #'polygon_class'
+            view = QgsProject.instance().mapLayersByName(v)
             if view:
                 view = view[0]
                 unchecked_list = [c.text() for c in checkbox_list if not c.isChecked()]
                 unchecked = "', '".join(c for c in unchecked_list)
-                print(unchecked)
                 query = "SELECT * FROM " + view.name() + " WHERE grupp not in ('" + unchecked + "')"
                 view.setSubsetString(query)
 

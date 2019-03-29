@@ -62,14 +62,11 @@ class Style:
                 l.setRenderer(renderer)
                 l.triggerRepaint()
 
-    def styleResearchArea(self):
-        lyr = QgsProject.instance().mapLayersByName('research_area')
-        if lyr:
-            lyr = lyr[0]
-            symbol = QgsFillSymbol.createSimple({
-                'color':'255,0,0,50',
-                'color_border':'red',
-                'width_border':'1'})
-            lyr.renderer().setSymbol(symbol)
-            print(lyr)
-            lyr.triggerRepaint()
+    def styleResearchArea(self, lyr):
+        symbol = QgsFillSymbol.createSimple({
+            'color':'255,255,255,20',
+            'color_border':'204,0,0',
+            'width_border':'1',
+            'style_border':'dash'})
+        lyr.renderer().setSymbol(symbol)
+        lyr.triggerRepaint()

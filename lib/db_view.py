@@ -92,9 +92,8 @@ class DbView:
 
         views = ['point_class', 'line_class', 'polygon_class']
         for view in views:
-            mapLayers = QgsProject.instance().mapLayersByName(view)
-            exists = len(mapLayers) > 0
-            if not exists:
+            lyr = QgsProject.instance().mapLayersByName(view)
+            if not lyr:
                 pathLayer = path + r"\qgyf.sqlite|layername=" + view
                 vlayer = QgsVectorLayer(pathLayer, view, 'ogr')
                 QgsProject.instance().addMapLayer(vlayer, False)
