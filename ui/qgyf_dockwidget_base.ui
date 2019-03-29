@@ -509,7 +509,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../resources.qrc"/>
+  <include location="../resources.py"/>
  </resources>
  <connections/>
 </ui>
