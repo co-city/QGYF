@@ -96,6 +96,7 @@ class DbView:
             if not lyr:
                 pathLayer = path + r"\qgyf.sqlite|layername=" + view
                 vlayer = QgsVectorLayer(pathLayer, view, 'ogr')
+                vlayer.setProviderEncoding("utf-8")
                 QgsProject.instance().addMapLayer(vlayer, False)
                 mygroup.addLayer(vlayer)
 
