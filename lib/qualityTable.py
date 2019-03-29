@@ -6,7 +6,6 @@ Created on: 2019-03-18 13:30:53
 """
 import os
 import sys
-sys.path.append(r'C:\Program Files\QGIS 3.4\apps\qgis\python')
 from qgis.utils import spatialite_connect
 
 class QualityTab:
@@ -77,10 +76,8 @@ class QualityTab:
 
         con = spatialite_connect(path + r'\qgyf.sqlite')
         cur = con.cursor()
-        cur.executemany('INSERT INTO gyf_qgroup VALUES (?,?,?)', group)
-        cur.executemany('INSERT INTO gyf_quality VALUES (?,?,?,?)', q_f)
+        cur.executemany('INSERT OR IGNORE INTO gyf_qgroup VALUES (?,?,?)', group)
+        cur.executemany('INSERT OR IGNORE INTO gyf_quality VALUES (?,?,?,?)', q_f)
         cur.close()
         con.commit()
-
-        
         con.close()

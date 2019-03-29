@@ -153,12 +153,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
         f = cur.fetchone()[0]
 
-        cur.execute('SELECT count(id) FROM classification')
-        n = cur.fetchone()[0]
-
         data = []
         for i,obj in enumerate(attributes):
-            data.append([n+i, geom, obj[1], obj[0], g, q, f])
+            data.append([None, geom, obj[1], obj[0], g, q, f])
 
         cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?)', data)
         cur.close()
