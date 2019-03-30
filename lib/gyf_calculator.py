@@ -55,6 +55,7 @@ class GyfCalculator:
     """
     research_area_layer = QgsProject.instance().mapLayersByName("research_area")[0]
     selected_features = list(research_area_layer.selectedFeatures())
+    gyf = 0
     if list(selected_features):
       selected_feature = selected_features[0]
       features = self.getFeatures()
@@ -88,4 +89,4 @@ class GyfCalculator:
 
       gyf = (feature_area_sum + feature_area_factor_sum) / calculation_area
 
-      return gyf
+    return gyf

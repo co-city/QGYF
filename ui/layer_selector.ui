@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1195</width>
-    <height>768</height>
+    <width>1185</width>
+    <height>738</height>
    </rect>
   </property>
   <property name="font">
@@ -51,8 +51,8 @@
       <colorrole role="Highlight">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>85</red>
-         <green>85</green>
+         <red>0</red>
+         <green>170</green>
          <blue>255</blue>
         </color>
        </brush>
@@ -62,8 +62,8 @@
       <colorrole role="Highlight">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>85</red>
-         <green>85</green>
+         <red>0</red>
+         <green>170</green>
          <blue>255</blue>
         </color>
        </brush>
@@ -119,7 +119,7 @@
    <property name="geometry">
     <rect>
      <x>830</x>
-     <y>180</y>
+     <y>170</y>
      <width>81</width>
      <height>16</height>
     </rect>
@@ -169,8 +169,8 @@
       <colorrole role="Highlight">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>85</red>
-         <green>85</green>
+         <red>0</red>
+         <green>170</green>
          <blue>255</blue>
         </color>
        </brush>
@@ -180,8 +180,8 @@
       <colorrole role="Highlight">
        <brush brushstyle="SolidPattern">
         <color alpha="255">
-         <red>85</red>
-         <green>85</green>
+         <red>0</red>
+         <green>170</green>
          <blue>255</blue>
         </color>
        </brush>
@@ -281,9 +281,9 @@
    <property name="geometry">
     <rect>
      <x>160</x>
-     <y>170</y>
-     <width>75</width>
-     <height>23</height>
+     <y>165</y>
+     <width>81</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
@@ -294,9 +294,9 @@
    <property name="geometry">
     <rect>
      <x>660</x>
-     <y>170</y>
-     <width>75</width>
-     <height>23</height>
+     <y>165</y>
+     <width>81</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">

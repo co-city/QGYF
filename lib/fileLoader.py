@@ -102,7 +102,6 @@ class FileLoader():
     polygonLayer = QgsProject.instance().mapLayersByName("polygon_object")[0]
 
     for feature in self.layer.getFeatures():
-      #try:
       type = self.prepareFeature(feature)
       if type == "Point":
         self.addFeature(feature, type, pointLayer, filters, classifications)
@@ -110,8 +109,6 @@ class FileLoader():
         self.addFeature(feature, type, lineLayer, filters, classifications)
       if type == "Polygon":
         self.addFeature(feature, type, polygonLayer, filters, classifications)
-      #except:
-        #print("Load error", feature)
 
   def addFeature(self, feature, type, layer, filters, classifications):
     """
@@ -143,7 +140,8 @@ class FileLoader():
         classification = list(filter(lambda classification: classification[0] == layer_name, classifications))
         features = sorted(list(layer.getFeatures()), key=lambda feature: feature.attributes()[feature.fields().indexFromName("id")])
         inserted_feature = features[len(features) - 1]
-        self.insertQuality(classification, inserted_feature)
+        if classification:
+          self.insertQuality(classification, inserted_feature)
 
   def prepareFeature(self, feature):
 
