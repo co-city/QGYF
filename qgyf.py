@@ -70,9 +70,9 @@ class QGYF:
 		self.initDatabase(self.path)
 		self.addLayers(self.path, [
 			"research_area",
-			"polygon_object",
-			"line_object",
 			"point_object",
+			"line_object",
+			"polygon_object",
 		])
 		self.showWelcome()
 		self.layerSelectorDialog = LayerSelectorDialog()
@@ -197,15 +197,26 @@ class QGYF:
 
 	def addLayers(self, path, layers):
 		self.style = Style()
+		root = QgsProject.instance().layerTreeRoot()
+		mygroup = root.findGroup('Klassificering')
+		vlayers = [l.name() for l in root.findLayers()]
+		if not mygroup:
+			mygroup = root.insertGroup(0, 'Klassificering')
 		for layer in layers:
-			pathLayer = path + r"\qgyf.sqlite|layername=" + layer
-			mapLayers = QgsProject.instance().mapLayersByName(layer)
-			exists = len(mapLayers) > 0
-			if not exists:
+			if layer not in vlayers:
+				pathLayer = path + r"\qgyf.sqlite|layername=" + layer
 				vlayer = QgsVectorLayer(pathLayer, layer, "ogr")
 				if layer == 'research_area':
 					self.style.styleResearchArea(vlayer)
-				QgsProject.instance().addMapLayer(vlayer)
+					QgsProject.instance().addMapLayer(vlayer)
+				else:
+					QgsProject.instance().addMapLayer(vlayer, False)
+					mygroup.addLayer(vlayer)
+
+	def objectSelected(self):
+		lyr = self.iface.activeLayer()
+		highlightRows = lambda: self.dockwidget.highlightRows(lyr)
+		lyr.selectionChanged.connect(highlightRows)
 
 	def initDatabase(self, path):
 		self.db = Db()
@@ -228,8 +239,9 @@ class QGYF:
 		del self.toolbar
 
 	def createDataView(self):
-		self.dbView = DbView()
-		self.dbView.init(self.path)
+		if self.dockwidget.tabWidget.currentIndex() == 1:
+			self.dbView = DbView()
+			self.dbView.init(self.path)
 
 	def calculate(self):
 		gyf = self.calculator.calculate()
@@ -259,6 +271,7 @@ class QGYF:
 		# Classification
 		showClass = lambda : self.dockwidget.showClass(self.path)
 		showClass()
+		self.objectSelected()
 		# Qualities
 		self.dockwidget.selectQGroup.clear()
 		self.dockwidget.chooseQ(self.path)
@@ -271,14 +284,15 @@ class QGYF:
 		self.dockwidget.approveButton.clicked.connect(showClass)
 		removeQ = lambda : self.dockwidget.removeQ(self.path)
 		self.dockwidget.removeButton.clicked.connect(removeQ)
-		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightQ)
+		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
 
 		# Objects
 		self.dockwidget.setLayers()
-		self.dockwidget.selectObj.clicked.connect(self.dockwidget.selectStart)
+		self.dockwidget.selectLayer.currentIndexChanged.connect(self.dockwidget.selectStart)
 
 		# Visualisation
-		self.dockwidget.setSymbol.clicked.connect(self.createDataView)
+		self.dockwidget.tabWidget.currentChanged.connect(self.createDataView)
+		self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
 		#self.dockwidget.setSymbol.clicked.connect(self.dockwidget.groupList)
 		self.dockwidget.groupList()
 

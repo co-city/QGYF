@@ -27,9 +27,9 @@ import os
 from PyQt5 import QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal, Qt
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
-from qgis.utils import iface
-from qgis.utils import spatialite_connect
+from qgis.utils import iface, spatialite_connect
 from .saveResearchArea import saveRA
+from ..lib.styles import Style
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -207,35 +207,53 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con.close()
         self.showClass(path)
 
-    def highlightQ(self):
+    def highlightFeatures(self):
         items = self.classtable.selectedItems()
+        items = [i.text() for i in items]
 
-        items = [i.text() for i in items] #i.row()
-        if len(items) == 7:
-            ids = [(items[0], items[-1])]
+        if items[0] == 'yta':
+            lyr = QgsProject.instance().mapLayersByName('polygon_object')
+        elif items[0] == 'linje':
+            lyr = QgsProject.instance().mapLayersByName('line_object')
         else:
-            ids = [items[7*n-1] for n in range(1, int(len(items)/7 + 1))]
-            geom = [items[7*n-7] for n in range(1, int(len(items)/7 + 1))]
-            ids = list(zip(geom, ids))       
+            lyr = QgsProject.instance().mapLayersByName('point_object')
 
-        for obj in ids:
-            if obj[0] == 'yta':
-                lyr = QgsProject.instance().mapLayersByName('polygon_class')
-            elif obj[0] == 'linje':
-                lyr = QgsProject.instance().mapLayersByName('line_class')
-            else:
-                lyr = QgsProject.instance().mapLayersByName('point_class')
+        if lyr:
+            lyr = lyr[0]
+            query = '"id" = ' + items[2]
+            selection = lyr.getFeatures(QgsFeatureRequest().setFilterExpression(query))
+            lyr.selectByIds([k.id() for k in selection])
+
+    def highlightRows(self, lyr):
+        print("I see you!")
+        if self.tabWidget.currentIndex() == 0 and lyr.selectedFeatures():
+            selected = list(lyr.selectedFeatures())
+            selected = [f.attribute('id') for f in selected]
+            rows = []
+            for i in selected:
+                items = self.classtable.findItems(str(i), Qt.MatchExactly)
+                row = [item.row() + 1 for item in items]
+                for r in row:
+                    header = self.classtable.verticalHeaderItem(r)
+                    self.classtable.setItemSelected(header)
+                    rows.append(r)
+            print(rows)
+
             
-            if lyr:
-                lyr = lyr[0]
-                query = '"id" = ' + obj[1]
-                selection = lyr.getFeatures(QgsFeatureRequest().setFilterExpression(query))
-                lyr.selectByIds([k.id() for k in selection])
-                
+
+
+    def switchLayerGroups(self):
+        self.style = Style()
+        if self.tabWidget.currentIndex() == 0:
+            self.style.visibility('Visualisering', False)
+            self.style.visibility('Klassificering', True)
+        else:
+            self.style.visibility('Visualisering', True)
+            self.style.visibility('Klassificering', False)
+
         
     #RESEARCH_AREA
     def okClicked(self, l, path):
-        print('I see you!')
         l.commitChanges()
         iface.vectorLayerTools().stopEditing(l)
         con = spatialite_connect(path + r'\qgyf.sqlite')

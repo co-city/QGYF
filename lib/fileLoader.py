@@ -12,7 +12,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import QVariant
 from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsFields, QgsField, QgsGeometry, QgsPointXY
-from qgis.utils import spatialite_connect
+from qgis.utils import spatialite_connect, iface
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'attribute_selector.ui'))
@@ -109,6 +109,8 @@ class FileLoader():
         self.addFeature(feature, type, lineLayer, filters, classifications)
       if type == "Polygon":
         self.addFeature(feature, type, polygonLayer, filters, classifications)
+
+    iface.mapCanvas().zoomToFullExtent()
 
   def addFeature(self, feature, type, layer, filters, classifications):
     """

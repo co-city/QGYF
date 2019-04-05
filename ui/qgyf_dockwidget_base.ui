@@ -39,6 +39,12 @@
    <string>QGYF - Beräkna grönytefaktor</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <widget class="QTabWidget" name="tabWidget">
     <property name="enabled">
      <bool>true</bool>
@@ -56,6 +62,12 @@
       <horstretch>0</horstretch>
       <verstretch>0</verstretch>
      </sizepolicy>
+    </property>
+    <property name="font">
+     <font>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
     </property>
     <property name="toolTip">
      <string/>
@@ -96,7 +108,7 @@
      <widget class="QPushButton" name="approveButton">
       <property name="geometry">
        <rect>
-        <x>200</x>
+        <x>110</x>
         <y>410</y>
         <width>111</width>
         <height>30</height>
@@ -130,22 +142,6 @@
       </property>
       <property name="text">
        <string>Välj kvalitet</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="selectObj">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>410</y>
-        <width>91</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>Klicka på objekt i kartan för att markera dem, tryck sedna på &quot;Lägg till kvalitet&quot;</string>
-      </property>
-      <property name="text">
-       <string>Välj objekt</string>
       </property>
      </widget>
      <widget class="QTextBrowser" name="textQ">
@@ -298,10 +294,10 @@
      <widget class="QPushButton" name="removeButton">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>770</y>
+        <x>240</x>
+        <y>410</y>
         <width>111</width>
-        <height>30</height>
+        <height>31</height>
        </rect>
       </property>
       <property name="toolTip">
@@ -323,7 +319,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>70</y>
+        <y>40</y>
         <width>141</width>
         <height>17</height>
        </rect>
@@ -338,26 +334,13 @@
        <bool>false</bool>
       </property>
      </widget>
-     <widget class="QPushButton" name="setSymbol">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>201</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Visa upp objekt utifrån kvalitet</string>
-      </property>
-     </widget>
      <widget class="QCheckBox" name="checkBuller">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>92</y>
+        <y>65</y>
         <width>141</width>
-        <height>17</height>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -368,7 +351,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>114</y>
+        <y>90</y>
         <width>231</width>
         <height>20</height>
        </rect>
@@ -381,7 +364,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>137</y>
+        <y>115</y>
         <width>141</width>
         <height>20</height>
        </rect>
@@ -394,7 +377,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>160</y>
+        <y>140</y>
         <width>141</width>
         <height>20</height>
        </rect>
@@ -407,13 +390,32 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>182</y>
+        <y>165</y>
         <width>141</width>
         <height>20</height>
        </rect>
       </property>
       <property name="text">
        <string>Rekreation och hälsa</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Visa kvaliteter per grupp</string>
       </property>
      </widget>
     </widget>
@@ -434,7 +436,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Utredningsområde&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:600;&quot;&gt;Utredningsområde&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
      <widget class="QPushButton" name="createRA">

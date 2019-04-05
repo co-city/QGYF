@@ -77,20 +77,13 @@ class DbView:
         con.close()
 
         root = QgsProject.instance().layerTreeRoot()
-        mygroup = root.findGroup('Object_classified')
+        mygroup = root.findGroup('Visualisering')
         if not mygroup:
-            mygroup = root.insertGroup(0, 'Object_classified')
-
-        # Set layers to invisible
-        lyr = ['point_object', 'line_object', 'polygon_object']
-        for l in lyr:
-            layer = QgsProject.instance().mapLayersByName(l)[0]
-            exists = len(layer) > 0
-            if exists:
-                root.findLayer(layer.id()).setItemVisibilityChecked(False)
-        #iface.mapCanvas().refresh()
+            mygroup = root.insertGroup(1, 'Visualisering')
 
         self.style = Style()
+        self.style.visibility('Klassificering', False)
+
         views = ['point_class', 'line_class', 'polygon_class']
         for view in views:
             lyr = QgsProject.instance().mapLayersByName(view)

@@ -89,3 +89,11 @@ class Style:
             'style_border':'dash'})
         lyr.renderer().setSymbol(symbol)
         lyr.triggerRepaint()
+
+    def visibility(self, group_name, bool):
+        # Set layer group to visible/invisible
+        root = QgsProject.instance().layerTreeRoot()
+        group = root.findGroup(group_name)
+        if group:
+            group.setItemVisibilityChecked(bool)
+
