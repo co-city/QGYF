@@ -42,9 +42,11 @@ class GyfCalculator:
 
     index = feature.fields().indexFromName("faktor")
     factor = feature.attributes()[index]
+    index2 = feature.fields().indexFromName("grupp")
+    grupp = feature.attributes()[index2]
 
     if with_factor:
-      return intersection.area() * factor
+      return intersection.area() * factor, grupp
     else:
       return intersection.area()
 
@@ -56,6 +58,8 @@ class GyfCalculator:
     research_area_layer = QgsProject.instance().mapLayersByName("research_area")[0]
     selected_features = list(research_area_layer.selectedFeatures())
     gyf = 0
+    factor_areas = []
+    groups = []
     if list(selected_features):
       selected_feature = selected_features[0]
       features = self.getFeatures()
@@ -83,10 +87,14 @@ class GyfCalculator:
 
       for feature in unique_features:
         feature_area_sum += self.calculateIntersectionArea(feature, selected_feature, False)
-
+      
+      
       for feature in intersecting_features:
-        feature_area_factor_sum += self.calculateIntersectionArea(feature, selected_feature, True)
+        factor_area, group = self.calculateIntersectionArea(feature, selected_feature, True)
+        feature_area_factor_sum += factor_area
+        factor_areas.append(factor_area)
+        groups.append(group)
 
       gyf = (feature_area_sum + feature_area_factor_sum) / calculation_area
 
-    return gyf
+    return gyf, factor_areas, groups

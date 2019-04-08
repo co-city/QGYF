@@ -18,7 +18,6 @@ class Style:
         items = [i[0] for i in cur.fetchall()][:6]
         cur.close()
         con.close()
-        print(items)
 
         colors = [
             ['76,153,0,50', '0,102,0,50'], # green

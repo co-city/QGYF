@@ -31,6 +31,7 @@ from qgis.utils import iface, spatialite_connect
 from .saveResearchArea import saveRA
 from ..lib.styles import Style
 
+from .mplwidget import MplWidget
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgyf_dockwidget_base.ui'))
@@ -224,21 +225,25 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             selection = lyr.getFeatures(QgsFeatureRequest().setFilterExpression(query))
             lyr.selectByIds([k.id() for k in selection])
 
-    def highlightRows(self, lyr):
-        print("I see you!")
-        if self.tabWidget.currentIndex() == 0 and lyr.selectedFeatures():
-            selected = list(lyr.selectedFeatures())
-            selected = [f.attribute('id') for f in selected]
-            rows = []
-            for i in selected:
-                items = self.classtable.findItems(str(i), Qt.MatchExactly)
-                row = [item.row() + 1 for item in items]
-                for r in row:
-                    header = self.classtable.verticalHeaderItem(r)
-                    self.classtable.setItemSelected(header)
-                    rows.append(r)
-            print(rows)
-
+    def highlightRows(self):
+        #iface.mapCanvas().setSelectionColor(QtGui.QColor(0, 0, 255, 127))
+        lyr = iface.activeLayer()
+        self.classtable.clearSelection()
+        self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        if self.tabWidget.currentIndex() == 0:
+            if lyr:
+                selected = list(lyr.selectedFeatures())
+                selected = [f.attribute('id') for f in selected]
+                print(selected)
+                rows = []
+                for i in selected:
+                    items = self.classtable.findItems(str(i), Qt.MatchExactly)
+                    row = [item.row() for item in items]
+                    for r in row:
+                        self.classtable.selectRow(r)
+                        rows.append(r)
+                print(rows)
+        self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
             
 
 
@@ -326,3 +331,4 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.checkKlimat.stateChanged.connect(checkGroup)
         self.checkPoll.stateChanged.connect(checkGroup)
         self.checkHalsa.stateChanged.connect(checkGroup)
+

@@ -23,7 +23,7 @@
 """
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction
+from PyQt5.QtWidgets import QAction, QApplication
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.gui import QgsFileWidget
 from .resources import *
@@ -37,6 +37,8 @@ from .lib.db_view import DbView
 from .lib.fileLoader import FileLoader
 from .lib.styles import Style
 from .lib.gyf_calculator import GyfCalculator
+from .lib.gyf_diagram import Diagram
+from .lib.canvasClickedEvent import CanvasClick
 
 import os.path
 import inspect
@@ -213,11 +215,6 @@ class QGYF:
 					QgsProject.instance().addMapLayer(vlayer, False)
 					mygroup.addLayer(vlayer)
 
-	def objectSelected(self):
-		lyr = self.iface.activeLayer()
-		highlightRows = lambda: self.dockwidget.highlightRows(lyr)
-		lyr.selectionChanged.connect(highlightRows)
-
 	def initDatabase(self, path):
 		self.db = Db()
 		self.db.create(path)
@@ -244,8 +241,15 @@ class QGYF:
 			self.dbView.init(self.path)
 
 	def calculate(self):
-		gyf = self.calculator.calculate()
+		self.dockwidget.plot.canvas.ax.cla()
+		gyf, factor_areas, groups = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
+		self.diagram = Diagram()
+		sizes, labels, colors, outline = self.diagram.init(factor_areas, groups)
+		self.dockwidget.plot.canvas.ax.pie(sizes, labels=labels, autopct='%1.1f%', colors=colors, startangle=90, labeldistance=1, wedgeprops=outline)
+		#self.dockwidget.plot.canvas.fig.tight_layout()
+		self.dockwidget.plot.canvas.draw()
+		self.dockwidget.plot.canvas.fig.savefig('PieChart.png') # where to save??
 
 	def openCalculationDialog(self):
 		"""Run method that loads and starts the plugin"""
@@ -271,7 +275,12 @@ class QGYF:
 		# Classification
 		showClass = lambda : self.dockwidget.showClass(self.path)
 		showClass()
-		self.objectSelected()
+
+		# Highlight rows in classification table
+		#canvas_clicked = CanvasClick(self.iface.mapCanvas())
+		#self.iface.mapCanvas().setMapTool( canvas_clicked )
+		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
+		
 		# Qualities
 		self.dockwidget.selectQGroup.clear()
 		self.dockwidget.chooseQ(self.path)
@@ -284,7 +293,7 @@ class QGYF:
 		self.dockwidget.approveButton.clicked.connect(showClass)
 		removeQ = lambda : self.dockwidget.removeQ(self.path)
 		self.dockwidget.removeButton.clicked.connect(removeQ)
-		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
+		self.dockwidget.classtable.itemClicked.connect(self.dockwidget.highlightFeatures)
 
 		# Objects
 		self.dockwidget.setLayers()
@@ -293,7 +302,6 @@ class QGYF:
 		# Visualisation
 		self.dockwidget.tabWidget.currentChanged.connect(self.createDataView)
 		self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
-		#self.dockwidget.setSymbol.clicked.connect(self.dockwidget.groupList)
 		self.dockwidget.groupList()
 
 		# Estimation of GYF
@@ -303,3 +311,6 @@ class QGYF:
 		self.dockwidget.createRA.clicked.connect(createArea)
 
 		self.dockwidget.calculate.clicked.connect(self.calculate)
+
+		# Try matplotlib
+		#self.dockwidget.calculate.clicked.connect(self.testMPL)
