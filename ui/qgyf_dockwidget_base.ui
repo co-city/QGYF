@@ -436,7 +436,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:600;&quot;&gt;Utredningsområde&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Beräkningsområde&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
      <widget class="QPushButton" name="createRA">
@@ -474,24 +474,31 @@
      <widget class="QPushButton" name="calculate">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>100</y>
-        <width>75</width>
+        <x>40</x>
+        <y>90</y>
+        <width>111</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
       <property name="toolTip">
        <string>Rita upp ett avgränsningsområde där du vill beräkna GYF</string>
       </property>
       <property name="text">
-       <string>Beräkna</string>
+       <string>Beräkna GYF</string>
       </property>
      </widget>
      <widget class="QLabel" name="gyfValue">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>150</y>
+        <y>140</y>
         <width>131</width>
         <height>71</height>
        </rect>
@@ -509,9 +516,9 @@
       <property name="geometry">
        <rect>
         <x>9</x>
-        <y>249</y>
-        <width>381</width>
-        <height>291</height>
+        <y>210</y>
+        <width>321</width>
+        <height>391</height>
        </rect>
       </property>
       <property name="font">
@@ -519,6 +526,22 @@
         <family>Century Gothic</family>
         <pointsize>5</pointsize>
        </font>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="report">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>690</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Skapa en PDF rapport</string>
+      </property>
+      <property name="text">
+       <string>Export rapport</string>
       </property>
      </widget>
     </widget>

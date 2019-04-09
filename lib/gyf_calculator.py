@@ -1,4 +1,6 @@
 from qgis.core import QgsProject, QgsVectorLayer, QgsApplication, QgsWkbTypes
+from PyQt5.QtWidgets import QMessageBox
+from ..ui.welcome import WelcomeDialog
 import processing
 
 class GyfCalculator:
@@ -96,5 +98,9 @@ class GyfCalculator:
         groups.append(group)
 
       gyf = (feature_area_sum + feature_area_factor_sum) / calculation_area
+    
+    else:
+      QMessageBox.warning(WelcomeDialog(), 'Inget beräkningsområde', 'Välj beräkningsområde för att beräkna GYF!')
+
 
     return gyf, factor_areas, groups

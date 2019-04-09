@@ -244,8 +244,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                         rows.append(r)
                 print(rows)
         self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-            
-
 
     def switchLayerGroups(self):
         self.style = Style()
