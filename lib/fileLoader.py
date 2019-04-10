@@ -9,8 +9,8 @@ import os
 import sys
 from PyQt5 import uic
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QFileDialog,QMessageBox
-from PyQt5.QtCore import QVariant
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtCore import QVariant, QSettings
 from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsFields, QgsField, QgsGeometry, QgsPointXY
 from qgis.utils import spatialite_connect, iface
 
@@ -197,7 +197,7 @@ class FileLoader():
     return type
 
   def insertQuality(self, classification, feature):
-    con = spatialite_connect(self.path + r'\qgyf.sqlite')
+    con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))    
     cur = con.cursor()
 
     geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())

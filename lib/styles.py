@@ -8,11 +8,12 @@ import os
 import sys
 from qgis.core import QgsProject, QgsVectorLayer, QgsFillSymbol, QgsLineSymbol, QgsMarkerSymbol, QgsRendererCategory, QgsCategorizedSymbolRenderer
 from qgis.utils import spatialite_connect, iface
+from PyQt5.QtCore import QSettings
 
 class Style:
     
     def styleCategories(self, path):
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))        
         cur = con.cursor()
         cur.execute('''SELECT grupp FROM gyf_qgroup''')
         items = [i[0] for i in cur.fetchall()][:6]

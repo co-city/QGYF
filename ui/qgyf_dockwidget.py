@@ -282,7 +282,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.window.cancelButton.clicked.connect(cancel)
 
     def createArea(self, path):
-        l = QgsProject.instance().mapLayersByName('research_area')
+        l = QgsProject.instance().mapLayersByName('Beräkningsområde')
         if l:
             l = l[0]
             iface.setActiveLayer(l)
@@ -297,7 +297,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 a.trigger()
                 break
 
-        l = QgsProject.instance().mapLayersByName('research_area')
+        l = QgsProject.instance().mapLayersByName('Beräkningsområde')
         if l:
             l = l[0]
             iface.setActiveLayer(l)

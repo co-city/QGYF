@@ -57,7 +57,7 @@ class GyfCalculator:
     Calculate gyf factor.
     @return {number} gyf
     """
-    research_area_layer = QgsProject.instance().mapLayersByName("research_area")[0]
+    research_area_layer = QgsProject.instance().mapLayersByName("Beräkningsområde")[0]
     selected_features = list(research_area_layer.selectedFeatures())
     gyf = 0
     factor_areas = []
