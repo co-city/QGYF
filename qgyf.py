@@ -23,7 +23,7 @@
 """
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QApplication
+from PyQt5.QtWidgets import QAction, QApplication, QFileDialog
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.gui import QgsFileWidget
 from .resources import *
@@ -43,8 +43,6 @@ from .lib.canvasClickedEvent import CanvasClick
 
 import os.path
 import inspect
-import time
-import datetime
 from shutil import copyfile
 
 class QGYF:
@@ -65,13 +63,6 @@ class QGYF:
 			if qVersion() > '4.3.3':
 				QCoreApplication.installTranslator(self.translator)
 
-		self.actions = []
-		self.menu = self.translate(u'&QGYF')
-		self.toolbar = self.iface.addToolBar(u'QGYF')
-		self.toolbar.setObjectName(u'QGYF')
-		self.pluginIsActive = False
-		self.dockwidget = None
-
 		if not QSettings().value('dataPath'):
 			QSettings().setValue('dataPath', os.getenv('APPDATA') + '\QGYF')
 			if not os.path.exists(QSettings().value('dataPath')):
@@ -79,6 +70,20 @@ class QGYF:
 
 		if not QSettings().value('activeDataBase'):
 			QSettings().setValue('activeDataBase', 'qgyf.sqlite')
+
+		self.actions = []
+		self.menu = self.translate(u'&QGYF')
+		self.toolbar = self.iface.addToolBar(u'QGYF')
+		self.toolbar.setObjectName(u'QGYF')
+		self.pluginIsActive = False
+		self.dockwidget = None
+
+		self.initDatabase(QSettings().value('dataPath'))
+		self.layerSelectorDialog = LayerSelectorDialog()
+		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, QSettings().value('dataPath'))
+		self.calculator = GyfCalculator(QSettings().value('dataPath'))
+		self.layerSelectorDialog.loadClassifications(QSettings().value('dataPath'))
+		self.showWelcome()
 
 	def initGui(self):
 		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
@@ -147,18 +152,12 @@ class QGYF:
 			parent=self.iface.mainWindow())
 
 	def load(self):
-		self.initDatabase(QSettings().value('dataPath'))
 		self.addLayers(QSettings().value('dataPath'), [
 			"research_area",
 			"point_object",
 			"line_object",
 			"polygon_object",
 		])
-		self.showWelcome()
-		self.layerSelectorDialog = LayerSelectorDialog()
-		self.layerSelectorDialog.loadClassifications(QSettings().value('dataPath'))
-		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, QSettings().value('dataPath'))
-		self.calculator = GyfCalculator(QSettings().value('dataPath'))
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -235,18 +234,19 @@ class QGYF:
 		root = QgsProject.instance().layerTreeRoot()
 		classificationGroup = root.findGroup('Klassificering')
 
-		for layer in root.findLayers():
-			if layer.name() == "Beräkningsområde":
-				root.removeChildNode(layer)
+		root.clear()
 
-		if classificationGroup:
-			root.removeChildNode(classificationGroup)
+		# for layer in root.findLayers():
+		# 	if layer.name() == "Beräkningsområde":
+		# 		root.removeChildNode(layer)
+		# if classificationGroup:
+		# 	root.removeChildNode(classificationGroup)
 
 		classificationGroup = root.insertGroup(0, 'Klassificering')
 		layerNames =	{
-		  "point_object": "Punkt",
-		  "line_object": "Linje",
-		  "polygon_object": "Yta",
+		  "point_object": "Punktobjekt",
+		  "line_object": "Linjeobjekt",
+		  "polygon_object": "Ytobjekt",
 		  "research_area": "Beräkningsområde"
 		}
 
@@ -256,6 +256,7 @@ class QGYF:
 			if layer == 'research_area':
 				self.style.styleResearchArea(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
+				print("Add research area")
 			else:
 				QgsProject.instance().addMapLayer(vlayer, False)
 				classificationGroup.addLayer(vlayer)
@@ -366,8 +367,8 @@ class QGYF:
 		self.settings.okButton.clicked.connect(self.settings.close)
 
 	def save(self):
-		database = QSettings().value('activeDataBase').replace(".sqlite", "")
+		path = QFileDialog.getSaveFileName(self.iface.mainWindow(), 'Spara som', '', '.sqlite')
+		new_path = "{0}{1}".format(path[0], path[1])
+		database = QSettings().value('activeDataBase')
 		path = "{}/{}".format(QSettings().value('dataPath'), database)
-		ts = time.time()
-		new_path = "{}_{}.sqlite".format(path, datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S'))
-		copyfile(path + ".sqlite", new_path)
+		copyfile(path, new_path)

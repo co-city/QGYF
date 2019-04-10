@@ -11,6 +11,8 @@ from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QStandardItemModel
 from PyQt5.QtGui import QStandardItem
+from PyQt5.QtCore import QSettings
+from PyQt5.QtWidgets import QMessageBox
 from qgis.utils import spatialite_connect
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -84,7 +86,7 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def loadClassifications(self, path):
         classifications_list = self.classifications
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
 
         cur = con.cursor()
         cur.execute("""

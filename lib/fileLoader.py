@@ -9,7 +9,7 @@ import os
 import sys
 from PyQt5 import uic
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog,QMessageBox
 from PyQt5.QtCore import QVariant
 from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsFields, QgsField, QgsGeometry, QgsPointXY
 from qgis.utils import spatialite_connect, iface
@@ -97,20 +97,38 @@ class FileLoader():
     self.layerSelectorDialog.close()
 
   def loadFeatures(self, filters, classifications):
-    pointLayer = QgsProject.instance().mapLayersByName("point_object")[0]
-    lineLayer = QgsProject.instance().mapLayersByName("line_object")[0]
-    polygonLayer = QgsProject.instance().mapLayersByName("polygon_object")[0]
+    try:
+      pointLayer = QgsProject.instance().mapLayersByName("Punktobjekt")[0]
+      lineLayer = QgsProject.instance().mapLayersByName("Linjeobjekt")[0]
+      polygonLayer = QgsProject.instance().mapLayersByName("Ytobjekt")[0]
 
-    for feature in self.layer.getFeatures():
-      type = self.prepareFeature(feature)
-      if type == "Point":
-        self.addFeature(feature, type, pointLayer, filters, classifications)
-      if type == "Line":
-        self.addFeature(feature, type, lineLayer, filters, classifications)
-      if type == "Polygon":
-        self.addFeature(feature, type, polygonLayer, filters, classifications)
+      pointLayer.startEditing()
+      lineLayer.startEditing()
+      polygonLayer.startEditing()
 
-    iface.mapCanvas().zoomToFullExtent()
+      for feature in self.layer.getFeatures():
+        try:
+          type = self.prepareFeature(feature)
+          if type == "Point":
+            self.addFeature(feature, type, pointLayer, filters, classifications)
+          if type == "Line":
+            self.addFeature(feature, type, lineLayer, filters, classifications)
+          if type == "Polygon":
+            self.addFeature(feature, type, polygonLayer, filters, classifications)
+        except:
+          print("Load feature error")
+
+      pointLayer.commitChanges()
+      lineLayer.commitChanges()
+      polygonLayer.commitChanges()
+
+      iface.mapCanvas().zoomToFullExtent()
+    except:
+      self.msg = QMessageBox()
+      self.msg.setIcon(QMessageBox.Information)
+      self.msg.setWindowTitle("Importfel")
+      self.msg.setText("Nödvändiga kartlager saknas. Ladda in databasen på nytt.")
+      self.msg.show()
 
   def addFeature(self, feature, type, layer, filters, classifications):
     """
@@ -133,10 +151,7 @@ class FileLoader():
 
       feature.setFields(fields, True)
       feature.setAttributes([None, self.fileName, layer_name])
-
-      layer.startEditing()
       layer.addFeature(feature)
-      layer.commitChanges()
 
       if classifications:
         classification = list(filter(lambda classification: classification[0] == layer_name, classifications))

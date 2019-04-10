@@ -7,6 +7,7 @@ Created on: 2019-03-25 16:20:53
 import os
 import sys
 sys.path.append(r'C:\Program Files\QGIS 3.4\apps\qgis\python')
+from PyQt5.QtCore import QSettings
 from qgis.utils import spatialite_connect, iface
 from qgis.core import QgsProject, QgsVectorLayer, QgsDataSourceUri
 from .styles import Style
@@ -14,7 +15,8 @@ from .styles import Style
 class DbView:
 
     def init(self, path):
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         cur.execute('DROP VIEW IF EXISTS polygon_class')
@@ -88,7 +90,7 @@ class DbView:
         for view in views:
             lyr = QgsProject.instance().mapLayersByName(view)
             if not lyr:
-                pathLayer = path + r"\qgyf.sqlite|layername=" + view
+                pathLayer = '{}\{}|layername={}'.format(path, QSettings().value('activeDataBase'), view)
                 vlayer = QgsVectorLayer(pathLayer, view, 'ogr')
                 vlayer.setProviderEncoding("utf-8")
                 self.style.oneColor(vlayer)

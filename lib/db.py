@@ -89,17 +89,18 @@ class Db:
 		kvalitet TEXT,
 		faktor DOUBLE NOT NULL);""")
 
-	def clear(self, cur, con):
+	def clear(self, path):
 		"""
 		Empty existing tables.
 		"""
+		con = spatialite_connect(path)
+		cur = con.cursor()
+
 		tables = [
 			'point_object',
 			'line_object',
 			'polygon_object',
 			'research_area',
-			'gyf_quality',
-			'gyf_qgroup',
 			'classification'
 		]
 
@@ -109,22 +110,22 @@ class Db:
 		con.isolation_level = None
 		cur.execute("VACUUM")
 		con.isolation_level = ""
+		cur.close()
+		con.close()
 
 	def create(self, path):
 		# Check path to database.
 		if not os.path.isdir(path):
 			os.mkdir(path)
 
-		# Create a db or connect to existing one.
+		# Create a database or connect to existing one.
 		con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
 		cur = con.cursor()
 
 		cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
-		# Clear layers/tables in db or fill db if it is empty.
+		# Fill database if it is empty.
 		if not cur.fetchall():
 			self.init(cur, con)
-		# else:
-		# 	self.clear(cur, con)
 
 		cur.close()
 		con.close()

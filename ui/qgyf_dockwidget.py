@@ -124,8 +124,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         iface.actionSelect().trigger()
 
         def lyr(x):
-            return {'punkt': 'Punkt',
-                    'linje': 'Linje'}.get(x, 'Yta')
+            return {'punkt': 'Punktobjekt',
+                    'linje': 'Linjeobjekt'}.get(x, 'Ytobjekt')
 
         l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))[0]
         iface.setActiveLayer(l)
@@ -211,11 +211,11 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         items = [i.text() for i in items]
 
         if items[0] == 'yta':
-            lyr = QgsProject.instance().mapLayersByName('Punkt')
+            lyr = QgsProject.instance().mapLayersByName('Punktobjekt')
         elif items[0] == 'linje':
-            lyr = QgsProject.instance().mapLayersByName('Linje')
+            lyr = QgsProject.instance().mapLayersByName('Linjeobjekt')
         else:
-            lyr = QgsProject.instance().mapLayersByName('Yta')
+            lyr = QgsProject.instance().mapLayersByName('Ytobjekt')
 
         if lyr:
             lyr = lyr[0]
