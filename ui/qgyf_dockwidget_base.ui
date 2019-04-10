@@ -533,7 +533,7 @@
        <rect>
         <x>10</x>
         <y>690</y>
-        <width>101</width>
+        <width>121</width>
         <height>31</height>
        </rect>
       </property>
@@ -541,7 +541,7 @@
        <string>Skapa en PDF rapport</string>
       </property>
       <property name="text">
-       <string>Export rapport</string>
+       <string>Exportera rapport</string>
       </property>
      </widget>
     </widget>

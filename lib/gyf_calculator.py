@@ -103,4 +103,4 @@ class GyfCalculator:
       QMessageBox.warning(WelcomeDialog(), 'Inget beräkningsområde', 'Välj beräkningsområde för att beräkna GYF!')
 
 
-    return gyf, factor_areas, groups
+    return gyf, factor_areas, groups, selected_features[0].id()

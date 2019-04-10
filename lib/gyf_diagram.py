@@ -19,7 +19,6 @@ class Diagram:
             sizes = []
             for group in labels:
                 ii = [index for (index, g) in enumerate(groups) if g == group]
-                print(ii)
                 size = factor_areas[ii].sum()
                 sizes.append(size*100/total)
 
@@ -46,6 +45,5 @@ class Diagram:
 
             outline = {"edgecolor":"white", 'linewidth': 0.8, 'antialiased': True}
             legend = ['{:.1f} % - {}'.format(float(i[0]), i[1]) for i in items]
-            print(legend)
 
             return sizes, legend, colors, outline

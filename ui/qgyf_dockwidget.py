@@ -257,6 +257,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         
     #RESEARCH_AREA
     def okClicked(self, l, path):
+        f = [f for f in l.getFeatures()][0]
+        f['yta'] = f.geometry().area()
+        print (f.geometry().area())
+        l.updateFeature(f)
         l.commitChanges()
         iface.vectorLayerTools().stopEditing(l)
         con = spatialite_connect(path + r'\qgyf.sqlite')
@@ -266,7 +270,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def cancelClicked(self, l):
         f = [f for f in l.getFeatures()][0]
-        print(f.id())
         l.deleteFeature(f.id())
         l.triggerRepaint()
         iface.vectorLayerTools().stopEditing(l)
