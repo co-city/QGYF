@@ -7,6 +7,7 @@ Created on: 2019-03-18 13:30:53
 import os
 import sys
 from qgis.utils import spatialite_connect
+from PyQt5.QtCore import QSettings
 
 class QualityTab:
 
@@ -73,11 +74,12 @@ class QualityTab:
             [6, 'K43', 0.3, 'Rofylldhet','Rofylldhet']
         ]
 
-
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
-        cur.executemany('INSERT OR IGNORE INTO gyf_qgroup VALUES (?,?,?)', group)
-        cur.executemany('INSERT OR IGNORE INTO gyf_quality VALUES (?,?,?,?,?)', q_f)
+        cur.execute("SELECT id FROM gyf_qgroup")
+        if not cur.fetchall():
+            cur.executemany('INSERT OR IGNORE INTO gyf_qgroup VALUES (?,?,?)', group)
+            cur.executemany('INSERT OR IGNORE INTO gyf_quality VALUES (?,?,?,?,?)', q_f)
+            con.commit()
         cur.close()
-        con.commit()
         con.close()

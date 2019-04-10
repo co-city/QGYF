@@ -30,6 +30,7 @@ from .resources import *
 
 from .ui.qgyf_dockwidget import QGYFDockWidget
 from .ui.welcome import WelcomeDialog
+from .ui.settings import SettingsDialog
 from .ui.layer_selector import LayerSelectorDialog
 from .lib.db import Db
 from .lib.qualityTable import QualityTab
@@ -42,6 +43,9 @@ from .lib.canvasClickedEvent import CanvasClick
 
 import os.path
 import inspect
+import time
+import datetime
+from shutil import copyfile
 
 class QGYF:
 
@@ -68,9 +72,83 @@ class QGYF:
 		self.pluginIsActive = False
 		self.dockwidget = None
 
-		self.path = os.path.expanduser('~') + r'\Documents\QGYF'
-		self.initDatabase(self.path)
-		self.addLayers(self.path, [
+		if not QSettings().value('dataPath'):
+			QSettings().setValue('dataPath', os.getenv('APPDATA') + '\QGYF')
+			if not os.path.exists(QSettings().value('dataPath')):
+				os.makedirs(QSettings().value('dataPath'))
+
+		if not QSettings().value('activeDataBase'):
+			QSettings().setValue('activeDataBase', 'qgyf.sqlite')
+
+	def initGui(self):
+		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
+
+		icon_path = ':/plugins/qgyf/assets/folder.png'
+		self.addAction(
+			icon_path,
+			text=self.translate(u'Ladda lager'),
+			callback=self.loadFile,
+			parent=self.iface.mainWindow())
+
+		icon_path = ':/plugins/qgyf/assets/tree.png'
+		self.addAction(
+			icon_path,
+			text=self.translate(u'Beräkna grönytefaktor'),
+			callback=self.openCalculationDialog,
+			parent=self.iface.mainWindow())
+
+		icon_path = ':/plugins/qgyf/assets/load_db.png'
+		self.addAction(
+			icon_path,
+			text=self.translate(u'Ladda databas'),
+			callback=self.load,
+			parent=self.iface.mainWindow())
+
+		icon_path = ':/plugins/qgyf/assets/save.png'
+		self.addAction(
+			icon_path,
+			text=self.translate(u'Spara'),
+			callback=self.save,
+			parent=self.iface.mainWindow())
+
+		icon_path = ':/plugins/qgyf/assets/settings.png'
+		self.addAction(
+			icon_path,
+			text=self.translate(u'Inställningar'),
+			callback=self.openSettingsDialog,
+			parent=self.iface.mainWindow())
+
+		# icon_path = ':/plugins/qgyf/assets/edit_point.png'
+		# self.addAction(
+		# 	icon_path,
+		# 	text=self.translate(u'Editera punktobjekt'),
+		# 	callback=self.info,
+		# 	parent=self.iface.mainWindow())
+
+		# icon_path = ':/plugins/qgyf/assets/edit_polyline.png'
+		# self.addAction(
+		# 	icon_path,
+		# 	text=self.translate(u'Editera linjeobjekt'),
+		# 	callback=self.info,
+		# 	parent=self.iface.mainWindow())
+
+		# icon_path = ':/plugins/qgyf/assets/edit_polygon.png'
+		# self.addAction(
+		# 	icon_path,
+		# 	text=self.translate(u'Editera ytobjekt'),
+		# 	callback=self.info,
+		# 	parent=self.iface.mainWindow())
+
+		icon_path = ':/plugins/qgyf/assets/info.png'
+		self.addAction(
+			icon_path,
+			text=self.translate(u'Vissa upp informationsfönstret'),
+			callback=self.info,
+			parent=self.iface.mainWindow())
+
+	def load(self):
+		self.initDatabase(QSettings().value('dataPath'))
+		self.addLayers(QSettings().value('dataPath'), [
 			"research_area",
 			"point_object",
 			"line_object",
@@ -78,9 +156,9 @@ class QGYF:
 		])
 		self.showWelcome()
 		self.layerSelectorDialog = LayerSelectorDialog()
-		self.layerSelectorDialog.loadClassifications(self.path)
-		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.path)
-		self.calculator = GyfCalculator(self.path)
+		self.layerSelectorDialog.loadClassifications(QSettings().value('dataPath'))
+		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, QSettings().value('dataPath'))
+		self.calculator = GyfCalculator(QSettings().value('dataPath'))
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -144,7 +222,7 @@ class QGYF:
 			self.welcome.okButton.clicked.connect(self.welcome.close)
 			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
 
-	def load(self):
+	def loadFile(self):
 		self.fileLoader.loadFile()
 
 	def info(self):
@@ -152,68 +230,35 @@ class QGYF:
 		self.welcome.show()
 		self.welcome.okButton.clicked.connect(self.welcome.close)
 
-	def initGui(self):
-		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
-
-		icon_path = ':/plugins/qgyf/assets/folder.png'
-		self.addAction(
-			icon_path,
-			text=self.translate(u'Ladda lager'),
-			callback=self.load,
-			parent=self.iface.mainWindow())
-
-		icon_path = ':/plugins/qgyf/assets/tree.png'
-		self.addAction(
-			icon_path,
-			text=self.translate(u'Beräkna grönytefaktor'),
-			callback=self.openCalculationDialog,
-			parent=self.iface.mainWindow())
-
-		icon_path = ':/plugins/qgyf/assets/edit_point.png'
-		self.addAction(
-			icon_path,
-			text=self.translate(u'Editera punktobjekt'),
-			callback=self.info,
-			parent=self.iface.mainWindow())
-
-		icon_path = ':/plugins/qgyf/assets/edit_polyline.png'
-		self.addAction(
-			icon_path,
-			text=self.translate(u'Editera linjeobjekt'),
-			callback=self.info,
-			parent=self.iface.mainWindow())
-
-		icon_path = ':/plugins/qgyf/assets/edit_polygon.png'
-		self.addAction(
-			icon_path,
-			text=self.translate(u'Editera ytobjekt'),
-			callback=self.info,
-			parent=self.iface.mainWindow())
-
-		icon_path = ':/plugins/qgyf/assets/info.png'
-		self.addAction(
-			icon_path,
-			text=self.translate(u'Vissa upp informationsfönstret'),
-			callback=self.info,
-			parent=self.iface.mainWindow())
-
 	def addLayers(self, path, layers):
 		self.style = Style()
 		root = QgsProject.instance().layerTreeRoot()
-		mygroup = root.findGroup('Klassificering')
-		vlayers = [l.name() for l in root.findLayers()]
-		if not mygroup:
-			mygroup = root.insertGroup(0, 'Klassificering')
+		classificationGroup = root.findGroup('Klassificering')
+
+		for layer in root.findLayers():
+			if layer.name() == "Beräkningsområde":
+				root.removeChildNode(layer)
+
+		if classificationGroup:
+			root.removeChildNode(classificationGroup)
+
+		classificationGroup = root.insertGroup(0, 'Klassificering')
+		layerNames =	{
+		  "point_object": "Punkt",
+		  "line_object": "Linje",
+		  "polygon_object": "Yta",
+		  "research_area": "Beräkningsområde"
+		}
+
 		for layer in layers:
-			if layer not in vlayers:
-				pathLayer = path + r"\qgyf.sqlite|layername=" + layer
-				vlayer = QgsVectorLayer(pathLayer, layer, "ogr")
-				if layer == 'research_area':
-					self.style.styleResearchArea(vlayer)
-					QgsProject.instance().addMapLayer(vlayer)
-				else:
-					QgsProject.instance().addMapLayer(vlayer, False)
-					mygroup.addLayer(vlayer)
+			pathLayer = '{}\{}|layername={}'.format(path, QSettings().value('activeDataBase'), layer)
+			vlayer = QgsVectorLayer(pathLayer, layerNames[layer], "ogr")
+			if layer == 'research_area':
+				self.style.styleResearchArea(vlayer)
+				QgsProject.instance().addMapLayer(vlayer)
+			else:
+				QgsProject.instance().addMapLayer(vlayer, False)
+				classificationGroup.addLayer(vlayer)
 
 	def initDatabase(self, path):
 		self.db = Db()
@@ -238,7 +283,7 @@ class QGYF:
 	def createDataView(self):
 		if self.dockwidget.tabWidget.currentIndex() == 1:
 			self.dbView = DbView()
-			self.dbView.init(self.path)
+			self.dbView.init(QSettings().value('dataPath'))
 
 	def calculate(self):
 		self.dockwidget.plot.canvas.ax.cla()
@@ -273,25 +318,25 @@ class QGYF:
 		self.dockwidget.show()
 
 		# Classification
-		showClass = lambda : self.dockwidget.showClass(self.path)
+		showClass = lambda : self.dockwidget.showClass(QSettings().value('dataPath'))
 		showClass()
 
 		# Highlight rows in classification table
 		#canvas_clicked = CanvasClick(self.iface.mapCanvas())
 		#self.iface.mapCanvas().setMapTool( canvas_clicked )
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
-		
+
 		# Qualities
 		self.dockwidget.selectQGroup.clear()
-		self.dockwidget.chooseQ(self.path)
-		getQ = lambda : self.dockwidget.getQ(self.path)
+		self.dockwidget.chooseQ(QSettings().value('dataPath'))
+		getQ = lambda : self.dockwidget.getQ(QSettings().value('dataPath'))
 		self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
-		getF = lambda : self.dockwidget.getF(self.path)
+		getF = lambda : self.dockwidget.getF(QSettings().value('dataPath'))
 		self.dockwidget.selectQ.currentIndexChanged.connect(getF)
-		setQ = lambda : self.dockwidget.setQ(self.path)
+		setQ = lambda : self.dockwidget.setQ(QSettings().value('dataPath'))
 		self.dockwidget.approveButton.clicked.connect(setQ)
 		self.dockwidget.approveButton.clicked.connect(showClass)
-		removeQ = lambda : self.dockwidget.removeQ(self.path)
+		removeQ = lambda : self.dockwidget.removeQ(QSettings().value('dataPath'))
 		self.dockwidget.removeButton.clicked.connect(removeQ)
 		self.dockwidget.classtable.itemClicked.connect(self.dockwidget.highlightFeatures)
 
@@ -307,10 +352,22 @@ class QGYF:
 		# Estimation of GYF
 		# Research area
 		self.dockwidget.selectRA.clicked.connect(self.dockwidget.selectArea)
-		createArea = lambda : self.dockwidget.createArea(self.path)
+		createArea = lambda : self.dockwidget.createArea(QSettings().value('dataPath'))
 		self.dockwidget.createRA.clicked.connect(createArea)
 
 		self.dockwidget.calculate.clicked.connect(self.calculate)
 
 		# Try matplotlib
 		#self.dockwidget.calculate.clicked.connect(self.testMPL)
+
+	def openSettingsDialog(self):
+		self.settings = SettingsDialog()
+		self.settings.show()
+		self.settings.okButton.clicked.connect(self.settings.close)
+
+	def save(self):
+		database = QSettings().value('activeDataBase').replace(".sqlite", "")
+		path = "{}/{}".format(QSettings().value('dataPath'), database)
+		ts = time.time()
+		new_path = "{}_{}.sqlite".format(path, datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S'))
+		copyfile(path + ".sqlite", new_path)

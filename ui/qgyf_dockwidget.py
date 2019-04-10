@@ -23,9 +23,8 @@
 """
 
 import os
-
 from PyQt5 import QtGui, QtWidgets, uic
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import QSettings, pyqtSignal, Qt
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
 from qgis.utils import iface, spatialite_connect
 from .saveResearchArea import saveRA
@@ -60,7 +59,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     # CLASSIFICATION
     def chooseQ(self, path):
         self.selectQGroup.clear()
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         self.textQ.clear()
@@ -75,8 +74,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def getQ(self, path):
         self.selectQ.clear()
         self.textQ.clear()
-
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         i = str(self.selectQGroup.currentIndex())
@@ -90,7 +88,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def getF(self, path):
         self.textQ.clear()
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         if self.selectQ.count() > 0:
@@ -126,14 +124,14 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         iface.actionSelect().trigger()
 
         def lyr(x):
-            return {'punkt': 'point_object',
-                    'linje': 'line_object'}.get(x, 'polygon_object')
+            return {'punkt': 'Punkt',
+                    'linje': 'Linje'}.get(x, 'Yta')
 
         l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))[0]
         iface.setActiveLayer(l)
 
     def setQ(self, path):
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         layer = iface.activeLayer()
@@ -167,7 +165,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def showClass(self, path):
         self.classtable.clear()
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         cur.execute('SELECT * FROM classification')
@@ -196,8 +194,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             ids = [ids[7*n-1] for n in range(1, int(len(ids)/7 + 1))]
         ids = [int(i) for i in ids]
-        
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         for i in ids:
@@ -213,11 +211,11 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         items = [i.text() for i in items]
 
         if items[0] == 'yta':
-            lyr = QgsProject.instance().mapLayersByName('polygon_object')
+            lyr = QgsProject.instance().mapLayersByName('Punkt')
         elif items[0] == 'linje':
-            lyr = QgsProject.instance().mapLayersByName('line_object')
+            lyr = QgsProject.instance().mapLayersByName('Linje')
         else:
-            lyr = QgsProject.instance().mapLayersByName('point_object')
+            lyr = QgsProject.instance().mapLayersByName('Yta')
 
         if lyr:
             lyr = lyr[0]
@@ -234,7 +232,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if lyr:
                 selected = list(lyr.selectedFeatures())
                 selected = [f.attribute('id') for f in selected]
-                print(selected)
                 rows = []
                 for i in selected:
                     items = self.classtable.findItems(str(i), Qt.MatchExactly)
@@ -242,9 +239,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     for r in row:
                         self.classtable.selectRow(r)
                         rows.append(r)
-                print(rows)
         self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-            
+
 
 
     def switchLayerGroups(self):
@@ -256,19 +252,18 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.style.visibility('Visualisering', True)
             self.style.visibility('Klassificering', False)
 
-        
+
     #RESEARCH_AREA
     def okClicked(self, l, path):
         l.commitChanges()
         iface.vectorLayerTools().stopEditing(l)
-        con = spatialite_connect(path + r'\qgyf.sqlite')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         con.commit()
         con.close()
         self.window.close()
 
     def cancelClicked(self, l):
         f = [f for f in l.getFeatures()][0]
-        print(f.id())
         l.deleteFeature(f.id())
         l.triggerRepaint()
         iface.vectorLayerTools().stopEditing(l)

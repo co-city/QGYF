@@ -8,10 +8,11 @@ import os
 import sys
 sys.path.append(r'C:\Program Files\QGIS 3.4\apps\qgis\python')
 from qgis.utils import spatialite_connect
+from PyQt5.QtCore import QSettings
 
 class Db:
 
-	def init(self, cur):
+	def init(self, cur, con):
 		"""
 		Check for existing sqlite database for QGYF estimations, create one if needed.
 		Initialize tables to store geo-objects (point, line, polygon) and calculations.
@@ -22,7 +23,7 @@ class Db:
 		# The PRAGMA operations speeds up the process.
 		cur.execute("PRAGMA synchronous = OFF;")
 		cur.execute("PRAGMA journal_mode = MEMORY;")
-		cur.execute("SELECT InitSpatialMetaData()")
+		cur.execute("SELECT InitSpatialMetaData(0)")
 		cur.execute("PRAGMA synchronous = FULL;")
 		cur.execute("PRAGMA journal_mode = DELETE;")
 
@@ -115,15 +116,15 @@ class Db:
 			os.mkdir(path)
 
 		# Create a db or connect to existing one.
-		con = spatialite_connect(path + r'\qgyf.sqlite')
+		con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
 		cur = con.cursor()
 
 		cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
 		# Clear layers/tables in db or fill db if it is empty.
 		if not cur.fetchall():
-			self.init(cur)
-		#else:
-		#	self.clear(cur, con)
+			self.init(cur, con)
+		# else:
+		# 	self.clear(cur, con)
 
 		cur.close()
 		con.close()
