@@ -32,6 +32,7 @@ from .ui.qgyf_dockwidget import QGYFDockWidget
 from .ui.welcome import WelcomeDialog
 from .ui.settings import SettingsDialog
 from .ui.layer_selector import LayerSelectorDialog
+from .ui.export import ExportDialog
 from .lib.db import Db
 from .lib.qualityTable import QualityTab
 from .lib.db_view import DbView
@@ -39,7 +40,8 @@ from .lib.fileLoader import FileLoader
 from .lib.styles import Style
 from .lib.gyf_calculator import GyfCalculator
 from .lib.gyf_diagram import Diagram
-from .lib.canvasClickedEvent import CanvasClick
+from .lib.map_export import ExportCreator
+#from .lib.canvasClickedEvent import CanvasClick
 
 import os.path
 import inspect
@@ -287,15 +289,37 @@ class QGYF:
 			self.dbView.init(QSettings().value('dataPath'))
 
 	def calculate(self):
-		self.dockwidget.plot.canvas.ax.cla()
-		gyf, factor_areas, groups = self.calculator.calculate()
+		
+		gyf, factor_areas, groups, area_id = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
-		self.diagram = Diagram()
-		sizes, labels, colors, outline = self.diagram.init(factor_areas, groups)
-		self.dockwidget.plot.canvas.ax.pie(sizes, labels=labels, autopct='%1.1f%', colors=colors, startangle=90, labeldistance=1, wedgeprops=outline)
-		#self.dockwidget.plot.canvas.fig.tight_layout()
-		self.dockwidget.plot.canvas.draw()
-		self.dockwidget.plot.canvas.fig.savefig('PieChart.png') # where to save??
+
+		if factor_areas:
+			# Plot
+			self.diagram = Diagram()
+			self.dockwidget.plot.canvas.ax.cla()
+			self.dockwidget.plot.canvas.ax.set_title('Fördelning av kvalitetspoäng')
+			sizes, legend, colors, outline = self.diagram.init(factor_areas, groups)
+			patches, text = self.dockwidget.plot.canvas.ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
+			#self.dockwidget.plot.canvas.fig.tight_layout()
+			# Legend
+			patches, legend, dummy =  zip(*sorted(zip(patches, legend, sizes), key=lambda x: x[2], reverse=True))
+			self.dockwidget.plot.canvas.ax2.legend(patches, legend, loc = 'center')
+			self.dockwidget.plot.canvas.draw()
+
+		self.area_id = area_id
+
+	def showExportDialog(self):
+		self.exportDialog = ExportDialog()
+		self.exportDialog.show()
+		self.exportDialog.okButton.clicked.connect(self.export)
+		self.exportDialog.okButton.clicked.connect(self.exportDialog.close)
+
+	def export(self):
+		chart_path = r'C:\Users\SEEM20099\Documents\QGYF\PieChart.png' # TODO!!!take path from Erik's dialog for settings 
+		gyf = self.dockwidget.gyfValue.text()
+		self.dockwidget.plot.canvas.fig.savefig(chart_path) 
+		self.pdfCreator = ExportCreator()
+		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id)
 
 	def openCalculationDialog(self):
 		"""Run method that loads and starts the plugin"""
@@ -323,8 +347,6 @@ class QGYF:
 		showClass()
 
 		# Highlight rows in classification table
-		#canvas_clicked = CanvasClick(self.iface.mapCanvas())
-		#self.iface.mapCanvas().setMapTool( canvas_clicked )
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
 
 		# Qualities
@@ -352,9 +374,16 @@ class QGYF:
 
 		# Estimation of GYF
 		# Research area
+		self.dockwidget.calculate.setStyleSheet("color: #006600")
 		self.dockwidget.selectRA.clicked.connect(self.dockwidget.selectArea)
 		createArea = lambda : self.dockwidget.createArea(QSettings().value('dataPath'))
 		self.dockwidget.createRA.clicked.connect(createArea)
+		# GYF
+		self.dockwidget.calculate.clicked.connect(self.calculate)
+		
+		# Export
+		#export = lambda : self.export(gyf)
+		self.dockwidget.report.clicked.connect(self.showExportDialog)
 
 		self.dockwidget.calculate.clicked.connect(self.calculate)
 

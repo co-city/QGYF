@@ -255,6 +255,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     #RESEARCH_AREA
     def okClicked(self, l, path):
+        f = [f for f in l.getFeatures()][0]
+        f['yta'] = f.geometry().area()
+        print (f.geometry().area())
+        l.updateFeature(f)
         l.commitChanges()
         iface.vectorLayerTools().stopEditing(l)
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))

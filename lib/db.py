@@ -57,8 +57,7 @@ class Db:
 		CREATE TABLE research_area (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		namn TEXT,
-		yta DOUBLE,
-		beskrivning TEXT);""")
+		yta DOUBLE);""")
 
 		cur.execute("""SELECT AddGeometryColumn('research_area',
 		'geom', 3006, 'POLYGON', 'XY');""")
