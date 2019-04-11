@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>467</width>
-    <height>305</height>
+    <height>336</height>
    </rect>
   </property>
   <property name="font">
@@ -27,7 +27,7 @@
    <property name="geometry">
     <rect>
      <x>360</x>
-     <y>260</y>
+     <y>290</y>
      <width>81</width>
      <height>31</height>
     </rect>
@@ -41,12 +41,12 @@
     <rect>
      <x>20</x>
      <y>182</y>
-     <width>151</width>
+     <width>181</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>Exportera rapport som:</string>
+    <string>Exportera rapport till mappen:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -150,13 +150,39 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>150</y>
+     <y>152</y>
      <width>351</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="pdfName">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>252</y>
+     <width>351</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_5">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>230</y>
+     <width>141</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Rapports namn</string>
    </property>
   </widget>
  </widget>

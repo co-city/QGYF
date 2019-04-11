@@ -15,7 +15,6 @@ class Diagram:
     def init(self, factor_areas, groups):
             labels = list(set(groups))
             total = sum(factor_areas)
-            factor_areas = np.asarray(factor_areas)
             sizes = []
             for group in labels:
                 ii = [index for (index, g) in enumerate(groups) if g == group]

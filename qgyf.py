@@ -44,6 +44,7 @@ from .lib.map_export import ExportCreator
 #from .lib.canvasClickedEvent import CanvasClick
 
 import os.path
+import numpy as np
 import inspect
 from shutil import copyfile
 
@@ -114,7 +115,7 @@ class QGYF:
 		icon_path = ':/plugins/qgyf/assets/save.png'
 		self.addAction(
 			icon_path,
-			text=self.translate(u'Spara'),
+			text=self.translate(u'Spara databas'),
 			callback=self.save,
 			parent=self.iface.mainWindow())
 
@@ -258,7 +259,6 @@ class QGYF:
 			if layer == 'research_area':
 				self.style.styleResearchArea(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
-				print("Add research area")
 			else:
 				QgsProject.instance().addMapLayer(vlayer, False)
 				classificationGroup.addLayer(vlayer)
@@ -290,10 +290,10 @@ class QGYF:
 
 	def calculate(self):
 		
-		gyf, factor_areas, groups, area_id = self.calculator.calculate()
+		gyf, factor_areas, groups, feature_ids, area_id = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
 
-		if factor_areas:
+		if factor_areas.size != 0:
 			# Plot
 			self.diagram = Diagram()
 			self.dockwidget.plot.canvas.ax.cla()
@@ -307,6 +307,8 @@ class QGYF:
 			self.dockwidget.plot.canvas.draw()
 
 		self.area_id = area_id
+		self.groups = groups
+		self.feature_ids = feature_ids
 
 	def showExportDialog(self):
 		self.exportDialog = ExportDialog()
@@ -315,11 +317,11 @@ class QGYF:
 		self.exportDialog.okButton.clicked.connect(self.exportDialog.close)
 
 	def export(self):
-		chart_path = r'C:\Users\SEEM20099\Documents\QGYF\PieChart.png' # TODO!!!take path from Erik's dialog for settings 
+		chart_path = QSettings().value('dataPath') + '\PieChart.png'
 		gyf = self.dockwidget.gyfValue.text()
 		self.dockwidget.plot.canvas.fig.savefig(chart_path) 
 		self.pdfCreator = ExportCreator()
-		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id)
+		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, self.groups, self.feature_ids)
 
 	def openCalculationDialog(self):
 		"""Run method that loads and starts the plugin"""
@@ -385,7 +387,6 @@ class QGYF:
 		#export = lambda : self.export(gyf)
 		self.dockwidget.report.clicked.connect(self.showExportDialog)
 
-		self.dockwidget.calculate.clicked.connect(self.calculate)
 
 		# Try matplotlib
 		#self.dockwidget.calculate.clicked.connect(self.testMPL)

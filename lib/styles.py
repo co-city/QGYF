@@ -85,7 +85,7 @@ class Style:
         symbol = QgsFillSymbol.createSimple({
             'color':'255,255,255,20',
             'color_border':'204,0,0',
-            'width_border':'1',
+            'width_border':'0.6',
             'style_border':'dash'})
         lyr.renderer().setSymbol(symbol)
         lyr.triggerRepaint()
