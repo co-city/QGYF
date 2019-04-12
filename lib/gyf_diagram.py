@@ -45,4 +45,4 @@ class Diagram:
             outline = {"edgecolor":"white", 'linewidth': 0.8, 'antialiased': True}
             legend = ['{:.1f} % - {}'.format(float(i[0]), i[1]) for i in items]
 
-            return sizes, legend, colors, outline
+            return sizes, legend, colors, outline, total

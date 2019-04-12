@@ -1,3 +1,9 @@
+"""
+---------------------------------------------------------------------------
+map_export.py
+Created on: 2019-04-09 10:20:53
+---------------------------------------------------------------------------
+"""
 
 from PyQt5.QtXml import QDomDocument
 from PyQt5.QtCore import QSettings
@@ -12,7 +18,7 @@ import datetime
 
 class ExportCreator:
         
-    def exportPDF(self, chart_path, gyf, exportDialog, area_id, groups, feature_ids):
+    def exportPDF(self, chart_path, gyf, exportDialog, area_id, groups, feature_ids, total):
         
         # Text from export dialog
         map_title = exportDialog.projectName.text()
@@ -66,6 +72,16 @@ class ExportCreator:
         research_area_lyr = QgsProject.instance().mapLayersByName('Beräkningsområde')[0]
         query = "id = " + str(area_id)
         research_area_lyr.setSubsetString(query)
+        for feature in research_area_lyr.getFeatures():
+            s = feature['yta']
+        print(s)
+        area_info = sip.cast(composition.itemById("area_info"), QgsLayoutItemLabel)
+        items = [['Beräkningsyta: ', str(int(s))], ['Ekoeffektiv yta: ', str(int(total))]]
+        for i in items:
+            text2 += '<font face="tahoma" color="#238973"><b>'+ i[0] + \
+            '</b></font><p style="display:inline;font-family:tahoma; font-size:13.5; font-color:#4d4949; line-height:19px">''' + \
+            i[1] + ' m<sup>2</sup></p><br>'
+        area_info.setText(text2)
         extent = research_area_lyr.extent()
         
         # Map
@@ -106,7 +122,6 @@ class ExportCreator:
         query = "id in ("+ feature_ids +")"
         tableLayout.setFilterFeatures(True)
         tableLayout.setFeatureFilter(query)
-        print(tableLayout.featureFilter())
         tableLayout.update()
 
         # Diagram
@@ -122,9 +137,10 @@ class ExportCreator:
         info = sip.cast(composition.itemById("info1"), QgsLayoutItemLabel)
         info.setText(text)
 
+        # EXPORT!
         QgsLayoutExporter(composition).exportToPdf(output_path + '/' + output_name, QgsLayoutExporter.PdfExportSettings())
         QMessageBox.information(ExportDialog(), 'Rapport', 'Din rapport har skapats! :)')
         
         # Reset map view
         research_area_lyr.setSubsetString('')
-        #QgsProject.instance().removeMapLayer(table)
+        QgsProject.instance().removeMapLayer(table)

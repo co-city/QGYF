@@ -170,11 +170,11 @@ class FileLoader():
 
     if type == "Polygon":
       geom = feature.geometry().fromPolygonXY(feature.geometry().asPolygon())
-      feature.setGeometry(geom);
+      feature.setGeometry(geom)
 
     if type == "Point":
       geom = feature.geometry().fromPointXY(feature.geometry().asPoint())
-      feature.setGeometry(geom);
+      feature.setGeometry(geom)
 
     if type == "Line":
       if self.extension == ".dxf":

@@ -50,14 +50,14 @@ class GyfCalculator:
     index = feature.fields().indexFromName("faktor")
     factor = feature.attributes()[index]
     index2 = feature.fields().indexFromName("grupp")
-    grupp = feature.attributes()[index2]
+    group = feature.attributes()[index2]
     index3 = feature.fields().indexFromName("id")
     feature_id = feature.attributes()[index3]
 
     if with_factor:
-      return intersection.area() * factor, grupp, feature_id
+      return intersection.area() * factor, group, feature_id
     else:
-      return intersection.area()
+      return intersection.area() #, group
 
   def calculate(self):
     """
@@ -98,9 +98,13 @@ class GyfCalculator:
           unique_features.append(feature)
 
       for feature in unique_features:
-        feature_area_sum += self.calculateIntersectionArea(feature, selected_feature, False)
-      
-      
+        area = self.calculateIntersectionArea(feature, selected_feature, False)
+        feature_area_sum += area
+        '''if group_gb == 'Dagvatten- och skyfallshantering':
+          feature_area_blue += area
+        else:
+          feature_area_green += area'''
+        
       for feature in intersecting_features:
         factor_area, group, feature_id = self.calculateIntersectionArea(feature, selected_feature, True)
         feature_area_factor_sum += factor_area
@@ -116,8 +120,6 @@ class GyfCalculator:
       factor_areas = factor_areas[nonzero_indexes]
       groups = groups[nonzero_indexes]
       feature_ids = feature_ids[nonzero_indexes]
-
-      print(factor_areas)
 
       gyf = (feature_area_sum + feature_area_factor_sum) / calculation_area
     
