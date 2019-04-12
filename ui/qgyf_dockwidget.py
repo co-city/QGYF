@@ -176,7 +176,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 attributes.append(f.attributes())
 
         g = self.selectQGroup.currentText()
-        geom = self.selectLayer.currentText()
+        def set_geom(x):
+            return {QgsWkbTypes.Point: 'punkt',
+                    QgsWkbTypes.LineString: 'linje'}.get(x, 'yta')
+        geom = set_geom(layer.wkbType())
 
         if self.selectQ.currentText() != 'Vet inte':
             q = self.selectQ.currentText()
@@ -416,4 +419,23 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.checkKlimat.stateChanged.connect(checkGroup)
         self.checkPoll.stateChanged.connect(checkGroup)
         self.checkHalsa.stateChanged.connect(checkGroup)
+
+    def disableGroup(self, path):
+        if self.tabWidget.currentIndex() == 1:
+            pathLayer = '{}\{}|layername={}'.format(path, QSettings().value('activeDataBase'), 'classification')
+            table = QgsVectorLayer(pathLayer, 'classification', "ogr")
+            features = table.getFeatures()
+            current_groups = []
+            for feature in features:
+                index = feature.fields().indexFromName("grupp")
+                group = feature.attributes()[index]
+                current_groups.append(group)
+            current_groups = list(set(current_groups))
+            checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
+            checkbox_list = [getattr(self, n) for n in checkboxnames]
+            for checkbox in checkbox_list:
+                if checkbox.text() in current_groups:
+                    checkbox.setEnabled(True)
+                else:
+                    checkbox.setEnabled(False)
 

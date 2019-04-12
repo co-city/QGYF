@@ -6,7 +6,6 @@ Created on: 2019-03-25 16:20:53
 """
 import os
 import sys
-sys.path.append(r'C:\Program Files\QGIS 3.4\apps\qgis\python')
 from PyQt5.QtCore import QSettings
 from qgis.utils import spatialite_connect, iface
 from qgis.core import QgsProject, QgsVectorLayer, QgsDataSourceUri

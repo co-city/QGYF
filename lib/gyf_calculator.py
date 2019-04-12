@@ -2,6 +2,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsApplication, QgsWkbTypes
 from PyQt5.QtWidgets import QMessageBox
 from ..ui.welcome import WelcomeDialog
 import processing
+import numpy as np
 
 class GyfCalculator:
   def __init__(self, path):
@@ -15,6 +16,10 @@ class GyfCalculator:
     polygon_layer = QgsProject.instance().mapLayersByName("polygon_class")[0]
     line_layer = QgsProject.instance().mapLayersByName("line_class")[0]
     point_layer = QgsProject.instance().mapLayersByName("point_class")[0]
+    # Clear visualisation filters if they were set
+    polygon_layer.setSubsetString('')
+    line_layer.setSubsetString('')
+    point_layer.setSubsetString('')
 
     return [
       *list(polygon_layer.getFeatures()),
@@ -45,12 +50,14 @@ class GyfCalculator:
     index = feature.fields().indexFromName("faktor")
     factor = feature.attributes()[index]
     index2 = feature.fields().indexFromName("grupp")
-    grupp = feature.attributes()[index2]
+    group = feature.attributes()[index2]
+    index3 = feature.fields().indexFromName("id")
+    feature_id = feature.attributes()[index3]
 
     if with_factor:
-      return intersection.area() * factor, grupp
+      return intersection.area() * factor, group, feature_id
     else:
-      return intersection.area()
+      return intersection.area() #, group
 
   def calculate(self):
     """
@@ -62,6 +69,9 @@ class GyfCalculator:
     gyf = 0
     factor_areas = []
     groups = []
+    feature_ids = []
+    selected_feature = None
+
     if list(selected_features):
       selected_feature = selected_features[0]
       features = self.getFeatures()
@@ -88,19 +98,34 @@ class GyfCalculator:
           unique_features.append(feature)
 
       for feature in unique_features:
-        feature_area_sum += self.calculateIntersectionArea(feature, selected_feature, False)
-      
-      
+        area = self.calculateIntersectionArea(feature, selected_feature, False)
+        feature_area_sum += area
+        '''if group_gb == 'Dagvatten- och skyfallshantering':
+          feature_area_blue += area
+        else:
+          feature_area_green += area'''
+        
       for feature in intersecting_features:
-        factor_area, group = self.calculateIntersectionArea(feature, selected_feature, True)
+        factor_area, group, feature_id = self.calculateIntersectionArea(feature, selected_feature, True)
         feature_area_factor_sum += factor_area
         factor_areas.append(factor_area)
         groups.append(group)
+        feature_ids.append(feature_id)
+
+      # Get rid of features which don't actually intersect the currently selected feature
+      factor_areas = np.asarray(factor_areas)
+      groups = np.asarray(groups)
+      feature_ids = np.asarray(feature_ids)
+      nonzero_indexes = np.where(factor_areas != 0.0)
+      factor_areas = factor_areas[nonzero_indexes]
+      groups = groups[nonzero_indexes]
+      feature_ids = feature_ids[nonzero_indexes]
 
       gyf = (feature_area_sum + feature_area_factor_sum) / calculation_area
     
     else:
       QMessageBox.warning(WelcomeDialog(), 'Inget beräkningsområde', 'Välj beräkningsområde för att beräkna GYF!')
 
+    return gyf, factor_areas, groups, feature_ids, selected_feature
 
-    return gyf, factor_areas, groups, selected_features[0].id()
+    

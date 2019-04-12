@@ -23,7 +23,7 @@
 """
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QApplication, QFileDialog
+from PyQt5.QtWidgets import QAction, QApplication, QFileDialog, QMessageBox
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.gui import QgsFileWidget
 from .resources import *
@@ -44,6 +44,7 @@ from .lib.map_export import ExportCreator
 #from .lib.canvasClickedEvent import CanvasClick
 
 import os.path
+import numpy as np
 import inspect
 from shutil import copyfile
 
@@ -79,6 +80,7 @@ class QGYF:
 		self.toolbar.setObjectName(u'QGYF')
 		self.pluginIsActive = False
 		self.dockwidget = None
+		self.area_id = None
 
 		self.initDatabase(QSettings().value('dataPath'))
 		self.layerSelectorDialog = LayerSelectorDialog()
@@ -114,7 +116,7 @@ class QGYF:
 		icon_path = ':/plugins/qgyf/assets/save.png'
 		self.addAction(
 			icon_path,
-			text=self.translate(u'Spara'),
+			text=self.translate(u'Spara databas'),
 			callback=self.save,
 			parent=self.iface.mainWindow())
 
@@ -225,6 +227,10 @@ class QGYF:
 
 	def loadFile(self):
 		self.fileLoader.loadFile()
+		root = QgsProject.instance().layerTreeRoot()
+		content = [l.name() for l in root.children()]
+		if 'Visualisering' in content:
+			self.dockwidget.disableGroup(QSettings().value('dataPath'))
 
 	def info(self):
 		self.welcome = WelcomeDialog()
@@ -258,7 +264,6 @@ class QGYF:
 			if layer == 'research_area':
 				self.style.styleResearchArea(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
-				print("Add research area")
 			else:
 				QgsProject.instance().addMapLayer(vlayer, False)
 				classificationGroup.addLayer(vlayer)
@@ -289,16 +294,16 @@ class QGYF:
 			self.dbView.init(QSettings().value('dataPath'))
 
 	def calculate(self):
-
-		gyf, factor_areas, groups, area_id = self.calculator.calculate()
+		
+		gyf, factor_areas, groups, feature_ids, area_id = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
 
-		if factor_areas:
+		if factor_areas.size != 0:
 			# Plot
 			self.diagram = Diagram()
 			self.dockwidget.plot.canvas.ax.cla()
 			self.dockwidget.plot.canvas.ax.set_title('Fördelning av kvalitetspoäng')
-			sizes, legend, colors, outline = self.diagram.init(factor_areas, groups)
+			sizes, legend, colors, outline, total = self.diagram.init(factor_areas, groups)
 			patches, text = self.dockwidget.plot.canvas.ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
 			#self.dockwidget.plot.canvas.fig.tight_layout()
 			# Legend
@@ -307,19 +312,25 @@ class QGYF:
 			self.dockwidget.plot.canvas.draw()
 
 		self.area_id = area_id
+		self.groups = groups
+		self.feature_ids = feature_ids
+		self.total = total
 
 	def showExportDialog(self):
-		self.exportDialog = ExportDialog()
-		self.exportDialog.show()
-		self.exportDialog.okButton.clicked.connect(self.export)
-		self.exportDialog.okButton.clicked.connect(self.exportDialog.close)
+		if self.area_id == None:
+			QMessageBox.warning(ExportDialog(), 'Ingen GYF', 'Beräkna GYF först för att exportera resultat!')
+		else:
+			self.exportDialog = ExportDialog()
+			self.exportDialog.show()
+			self.exportDialog.okButton.clicked.connect(self.export)
+			self.exportDialog.okButton.clicked.connect(self.exportDialog.close)
 
 	def export(self):
-		chart_path = r'C:\Users\SEEM20099\Documents\QGYF\PieChart.png' # TODO!!!take path from Erik's dialog for settings
+		chart_path = QSettings().value('dataPath') + '\PieChart.png'
 		gyf = self.dockwidget.gyfValue.text()
 		self.dockwidget.plot.canvas.fig.savefig(chart_path)
 		self.pdfCreator = ExportCreator()
-		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id)
+		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, self.groups, self.feature_ids, self.total)
 
 	def openCalculationDialog(self):
 		"""Run method that loads and starts the plugin"""
@@ -345,6 +356,7 @@ class QGYF:
 		# Classification
 		showClass = lambda : self.dockwidget.showClass(QSettings().value('dataPath'))
 		showClass()
+		self.dockwidget.switchLayerGroups()
 
 		# Qualities
 		self.dockwidget.selectQGroup.clear()
@@ -376,6 +388,8 @@ class QGYF:
 
 		# Visualisation
 		self.dockwidget.tabWidget.currentChanged.connect(self.createDataView)
+		disableGroup = lambda : self.dockwidget.disableGroup(QSettings().value('dataPath'))
+		self.dockwidget.tabWidget.currentChanged.connect(disableGroup)
 		self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
 		self.dockwidget.groupList()
 
@@ -389,13 +403,8 @@ class QGYF:
 		self.dockwidget.calculate.clicked.connect(self.calculate)
 
 		# Export
-		#export = lambda : self.export(gyf)
 		self.dockwidget.report.clicked.connect(self.showExportDialog)
 
-		self.dockwidget.calculate.clicked.connect(self.calculate)
-
-		# Try matplotlib
-		#self.dockwidget.calculate.clicked.connect(self.testMPL)
 
 	def openSettingsDialog(self):
 		self.settings = SettingsDialog()

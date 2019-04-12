@@ -15,7 +15,6 @@ class Diagram:
     def init(self, factor_areas, groups):
             labels = list(set(groups))
             total = sum(factor_areas)
-            factor_areas = np.asarray(factor_areas)
             sizes = []
             for group in labels:
                 ii = [index for (index, g) in enumerate(groups) if g == group]
@@ -46,4 +45,4 @@ class Diagram:
             outline = {"edgecolor":"white", 'linewidth': 0.8, 'antialiased': True}
             legend = ['{:.1f} % - {}'.format(float(i[0]), i[1]) for i in items]
 
-            return sizes, legend, colors, outline
+            return sizes, legend, colors, outline, total
