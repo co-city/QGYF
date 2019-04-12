@@ -289,7 +289,7 @@ class QGYF:
 			self.dbView.init(QSettings().value('dataPath'))
 
 	def calculate(self):
-		
+
 		gyf, factor_areas, groups, area_id = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
 
@@ -315,9 +315,9 @@ class QGYF:
 		self.exportDialog.okButton.clicked.connect(self.exportDialog.close)
 
 	def export(self):
-		chart_path = r'C:\Users\SEEM20099\Documents\QGYF\PieChart.png' # TODO!!!take path from Erik's dialog for settings 
+		chart_path = r'C:\Users\SEEM20099\Documents\QGYF\PieChart.png' # TODO!!!take path from Erik's dialog for settings
 		gyf = self.dockwidget.gyfValue.text()
-		self.dockwidget.plot.canvas.fig.savefig(chart_path) 
+		self.dockwidget.plot.canvas.fig.savefig(chart_path)
 		self.pdfCreator = ExportCreator()
 		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id)
 
@@ -346,22 +346,29 @@ class QGYF:
 		showClass = lambda : self.dockwidget.showClass(QSettings().value('dataPath'))
 		showClass()
 
-		# Highlight rows in classification table
-		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
-
 		# Qualities
 		self.dockwidget.selectQGroup.clear()
 		self.dockwidget.chooseQ(QSettings().value('dataPath'))
+
 		getQ = lambda : self.dockwidget.getQ(QSettings().value('dataPath'))
+
 		self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
 		getF = lambda : self.dockwidget.getF(QSettings().value('dataPath'))
+
 		self.dockwidget.selectQ.currentIndexChanged.connect(getF)
 		setQ = lambda : self.dockwidget.setQ(QSettings().value('dataPath'))
+
 		self.dockwidget.approveButton.clicked.connect(setQ)
 		self.dockwidget.approveButton.clicked.connect(showClass)
 		removeQ = lambda : self.dockwidget.removeQ(QSettings().value('dataPath'))
 		self.dockwidget.removeButton.clicked.connect(removeQ)
-		self.dockwidget.classtable.itemClicked.connect(self.dockwidget.highlightFeatures)
+
+		# Highlight rows in classification table
+		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
+
+		# Highlight features in map
+		# self.dockwidget.classtable.itemClicked.connect(self.dockwidget.highlightFeatures)
+		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
 
 		# Objects
 		self.dockwidget.setLayers()
@@ -380,7 +387,7 @@ class QGYF:
 		self.dockwidget.createRA.clicked.connect(createArea)
 		# GYF
 		self.dockwidget.calculate.clicked.connect(self.calculate)
-		
+
 		# Export
 		#export = lambda : self.export(gyf)
 		self.dockwidget.report.clicked.connect(self.showExportDialog)

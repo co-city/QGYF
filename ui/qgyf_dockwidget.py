@@ -23,18 +23,48 @@
 """
 
 import os
+import threading
 from PyQt5 import QtGui, QtWidgets, uic
 from PyQt5.QtCore import QSettings, pyqtSignal, Qt
-from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
+from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest, QgsWkbTypes
 from qgis.utils import iface, spatialite_connect
 from .saveResearchArea import saveRA
 from ..lib.styles import Style
-
 from .mplwidget import MplWidget
+from functools import wraps
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgyf_dockwidget_base.ui'))
 
+def delay(delay=0.):
+    """
+    Decorator delaying the execution of a function for a while.
+    """
+    def wrap(f):
+        @wraps(f)
+        def delayed(*args, **kwargs):
+            timer = threading.Timer(delay, f, args=args, kwargs=kwargs)
+            timer.start()
+        return delayed
+    return wrap
+
+class Timer():
+
+    toClearTimer = False
+
+    def setTimeout(self, fn, time):
+        isInvokationCancelled = False
+        @delay(time)
+        def some_fn():
+                if (self.toClearTimer is False):
+                    fn()
+                else:
+                    print('Invokation is cleared!')
+        some_fn()
+        return isInvokationCancelled
+
+    def setClearTimer(self):
+        self.toClearTimer = True
 
 class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
@@ -49,6 +79,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # http://doc.qt.io/qt-5/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        self.feature_selection_lock = False
+        self.row_selection_lock = False
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -124,8 +156,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         iface.actionSelect().trigger()
 
         def lyr(x):
-            return {'punkt': 'Punktobjekt',
-                    'linje': 'Linjeobjekt'}.get(x, 'Ytobjekt')
+            return {
+                'punkt': 'Punktobjekt',
+                'linje': 'Linjeobjekt'
+            }.get(x, 'Ytobjekt')
 
         l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))[0]
         iface.setActiveLayer(l)
@@ -206,42 +240,95 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con.close()
         self.showClass(path)
 
+    def chunks(self, l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
+
+    def lookupFeatures(self, rows, layer, geometry_type):
+        features = list(layer.getFeatures())
+        matches = []
+
+        for row in rows:
+            for feature in features:
+                if row[0].text() == geometry_type and int(feature.attribute('id')) == int(row[2].text()):
+                    matches.append(feature)
+
+        return matches
+
+    def resetFeatureSelectionLock(self):
+        self.feature_selection_lock = False
+
+    def resetRowSelectionLock(self):
+        self.row_selection_lock = False
+
     def highlightFeatures(self):
-        items = self.classtable.selectedItems()
-        items = [i.text() for i in items]
 
-        if items[0] == 'yta':
-            lyr = QgsProject.instance().mapLayersByName('Punktobjekt')
-        elif items[0] == 'linje':
-            lyr = QgsProject.instance().mapLayersByName('Linjeobjekt')
-        else:
-            lyr = QgsProject.instance().mapLayersByName('Ytobjekt')
+        if self.row_selection_lock is False:
+            selected_items = self.classtable.selectedItems()
 
-        if lyr:
-            lyr = lyr[0]
-            query = '"id" = ' + items[2]
-            selection = lyr.getFeatures(QgsFeatureRequest().setFilterExpression(query))
-            lyr.selectByIds([k.id() for k in selection])
+            point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')[0]
+            line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')[0]
+            polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')[0]
+
+            self.feature_selection_lock = True
+            timer = Timer()
+            timer.setTimeout(self.resetFeatureSelectionLock, 0.1)
+
+            if len(selected_items) > 0:
+                selected_range = self.classtable.selectedRanges()[0]
+
+                column_count = selected_range.columnCount()
+                selected_rows = list(self.chunks(selected_items, column_count))
+
+                selected_points = self.lookupFeatures(selected_rows, point_layer, 'punkt')
+                selected_lines = self.lookupFeatures(selected_rows, line_layer, 'linje')
+                selected_polygons = self.lookupFeatures(selected_rows, polygon_layer, 'yta')
+
+                point_layer.selectByIds([point.id() for point in selected_points])
+                line_layer.selectByIds([line.id() for line in selected_lines])
+                polygon_layer.selectByIds([polygon.id() for polygon in selected_polygons])
+            else:
+                point_layer.removeSelection()
+                line_layer.removeSelection()
+                polygon_layer.removeSelection()
 
     def highlightRows(self):
-        #iface.mapCanvas().setSelectionColor(QtGui.QColor(0, 0, 255, 127))
-        lyr = iface.activeLayer()
-        self.classtable.clearSelection()
-        self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
-        if self.tabWidget.currentIndex() == 0:
-            if lyr:
-                selected = list(lyr.selectedFeatures())
-                selected = [f.attribute('id') for f in selected]
-                rows = []
-                for i in selected:
-                    items = self.classtable.findItems(str(i), Qt.MatchExactly)
-                    row = [item.row() for item in items]
-                    for r in row:
-                        self.classtable.selectRow(r)
-                        rows.append(r)
-        self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
+        self.row_selection_lock = True
+        timer = Timer()
+        timer.setTimeout(self.resetRowSelectionLock, 0.2)
 
+        if self.feature_selection_lock is False:
+            lyr = iface.activeLayer()
+
+            #self.classtable.clearSelection()
+            self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+
+            if self.tabWidget.currentIndex() == 0:
+                if lyr:
+                    selected = list(lyr.selectedFeatures())
+                    selected = [f.attribute('id') for f in selected]
+                    rows = []
+                    for i in selected:
+                        items = self.classtable.findItems(str(i), Qt.MatchExactly)
+                        row = [item.row() for item in items]
+                        for r in row:
+
+                            geom_name = self.classtable.item(r, 0).text()
+                            feature_id = int(self.classtable.item(r, 2).text())
+
+                            geom_lookup = {
+                                QgsWkbTypes.Polygon: 'yta',
+                                QgsWkbTypes.Point: 'punkt',
+                                QgsWkbTypes.LineString: 'linje'
+                            }
+
+                            if geom_lookup[lyr.wkbType()] == geom_name and i == feature_id:
+                                self.classtable.selectRow(r)
+                                rows.append(r)
+
+            self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
     def switchLayerGroups(self):
         self.style = Style()
@@ -257,7 +344,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def okClicked(self, l, path):
         f = [f for f in l.getFeatures()][0]
         f['yta'] = f.geometry().area()
-        print (f.geometry().area())
         l.updateFeature(f)
         l.commitChanges()
         iface.vectorLayerTools().stopEditing(l)
