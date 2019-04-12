@@ -17,9 +17,9 @@ import sip
 import datetime
 
 class ExportCreator:
-        
+
     def exportPDF(self, chart_path, gyf, exportDialog, area_id, groups, feature_ids, total):
-        
+
         # Text from export dialog
         map_title = exportDialog.projectName.text()
         area_name = exportDialog.areaName.text()
@@ -28,14 +28,14 @@ class ExportCreator:
         author = exportDialog.author.text()
         gyf_version = 'GYF AP 2.0'
         date = datetime.datetime.today().strftime('%Y-%m-%d')
-        
+
         # Get template
         path = os.path.dirname(os.path.realpath(__file__))
         a = path.rfind('\\')
         template_file = open(path[:a] + "/template/qgyf_template1.qpt", encoding="utf-8")
         template_content = template_file.read()
         template_file.close()
-        
+
         document = QDomDocument()
         document.setContent(template_content)
         composition = QgsLayout(QgsProject.instance())
@@ -77,13 +77,14 @@ class ExportCreator:
         print(s)
         area_info = sip.cast(composition.itemById("area_info"), QgsLayoutItemLabel)
         items = [['Beräkningsyta: ', str(int(s))], ['Ekoeffektiv yta: ', str(int(total))]]
+        text2 = ""
         for i in items:
             text2 += '<font face="tahoma" color="#238973"><b>'+ i[0] + \
             '</b></font><p style="display:inline;font-family:tahoma; font-size:13.5; font-color:#4d4949; line-height:19px">''' + \
             i[1] + ' m<sup>2</sup></p><br>'
         area_info.setText(text2)
         extent = research_area_lyr.extent()
-        
+
         # Map
         main_map = sip.cast(composition.itemById("map"), QgsLayoutItemMap)
         main_map.zoomToExtent(extent)
@@ -112,7 +113,7 @@ class ExportCreator:
         table = QgsVectorLayer(uri.uri(), 'classification', 'spatialite')
         if 'classification' not in content:
             QgsProject.instance().addMapLayer(table)
-        
+
         tableLayout = sip.cast(composition.itemById("table"), QgsLayoutFrame)
         tableLayout = tableLayout.multiFrame()
         tableLayout.setVectorLayer(table)
@@ -140,7 +141,7 @@ class ExportCreator:
         # EXPORT!
         QgsLayoutExporter(composition).exportToPdf(output_path + '/' + output_name, QgsLayoutExporter.PdfExportSettings())
         QMessageBox.information(ExportDialog(), 'Rapport', 'Din rapport har skapats! :)')
-        
+
         # Reset map view
         research_area_lyr.setSubsetString('')
         QgsProject.instance().removeMapLayer(table)

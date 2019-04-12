@@ -104,7 +104,7 @@ class GyfCalculator:
           feature_area_blue += area
         else:
           feature_area_green += area'''
-        
+
       for feature in intersecting_features:
         factor_area, group, feature_id = self.calculateIntersectionArea(feature, selected_feature, True)
         feature_area_factor_sum += factor_area
@@ -122,10 +122,12 @@ class GyfCalculator:
       feature_ids = feature_ids[nonzero_indexes]
 
       gyf = (feature_area_sum + feature_area_factor_sum) / calculation_area
-    
+
     else:
       QMessageBox.warning(WelcomeDialog(), 'Inget beräkningsområde', 'Välj beräkningsområde för att beräkna GYF!')
 
+    if type(factor_areas) == list:
+      factor_areas = np.array([])
+
     return gyf, factor_areas, groups, feature_ids, selected_feature
 
-    

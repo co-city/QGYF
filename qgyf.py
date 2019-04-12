@@ -230,7 +230,8 @@ class QGYF:
 		root = QgsProject.instance().layerTreeRoot()
 		content = [l.name() for l in root.children()]
 		if 'Visualisering' in content:
-			self.dockwidget.disableGroup(QSettings().value('dataPath'))
+			if self.dockwidget:
+				self.dockwidget.disableGroup(QSettings().value('dataPath'))
 
 	def info(self):
 		self.welcome = WelcomeDialog()
@@ -294,7 +295,7 @@ class QGYF:
 			self.dbView.init(QSettings().value('dataPath'))
 
 	def calculate(self):
-		
+
 		gyf, factor_areas, groups, feature_ids, area_id = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
 
@@ -358,29 +359,22 @@ class QGYF:
 		showClass()
 		self.dockwidget.switchLayerGroups()
 
+		# Highlight rows in classification table
+		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
+
 		# Qualities
 		self.dockwidget.selectQGroup.clear()
 		self.dockwidget.chooseQ(QSettings().value('dataPath'))
-
 		getQ = lambda : self.dockwidget.getQ(QSettings().value('dataPath'))
-
 		self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
 		getF = lambda : self.dockwidget.getF(QSettings().value('dataPath'))
-
 		self.dockwidget.selectQ.currentIndexChanged.connect(getF)
 		setQ = lambda : self.dockwidget.setQ(QSettings().value('dataPath'))
-
 		self.dockwidget.approveButton.clicked.connect(setQ)
 		self.dockwidget.approveButton.clicked.connect(showClass)
 		removeQ = lambda : self.dockwidget.removeQ(QSettings().value('dataPath'))
 		self.dockwidget.removeButton.clicked.connect(removeQ)
-
-		# Highlight rows in classification table
-		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
-
-		# Highlight features in map
-		# self.dockwidget.classtable.itemClicked.connect(self.dockwidget.highlightFeatures)
-		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
+		self.dockwidget.classtable.itemClicked.connect(self.dockwidget.highlightFeatures)
 
 		# Objects
 		self.dockwidget.setLayers()
@@ -416,4 +410,6 @@ class QGYF:
 		new_path = "{0}{1}".format(path[0], path[1])
 		database = QSettings().value('activeDataBase')
 		path = "{}/{}".format(QSettings().value('dataPath'), database)
-		copyfile(path, new_path)
+		if path and new_path:
+			copyfile(path, new_path)
+
