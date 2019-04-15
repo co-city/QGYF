@@ -34,9 +34,9 @@ from .ui.settings import SettingsDialog
 from .ui.layer_selector import LayerSelectorDialog
 from .ui.export import ExportDialog
 from .lib.db import Db
-from .lib.qualityTable import QualityTab
+from .lib.quality_table import QualityTable
 from .lib.db_view import DbView
-from .lib.fileLoader import FileLoader
+from .lib.file_loader import FileLoader
 from .lib.styles import Style
 from .lib.gyf_calculator import GyfCalculator
 from .lib.gyf_diagram import Diagram
@@ -272,7 +272,7 @@ class QGYF:
 	def initDatabase(self, path):
 		self.db = Db()
 		self.db.create(path)
-		self.quality = QualityTab()
+		self.quality = QualityTable()
 		self.quality.init(path)
 
 	def onClosePlugin(self):

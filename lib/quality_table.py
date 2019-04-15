@@ -9,7 +9,7 @@ import sys
 from qgis.utils import spatialite_connect
 from PyQt5.QtCore import QSettings
 
-class QualityTab:
+class QualityTable:
 
     def init(self, path):
         """ Populate the table "gyf_quality" with values of C/O City's GYF """

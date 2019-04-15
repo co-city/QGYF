@@ -56,10 +56,10 @@ class Timer():
         isInvokationCancelled = False
         @delay(time)
         def some_fn():
-                if (self.toClearTimer is False):
-                    fn()
-                else:
-                    print('Invokation is cleared!')
+            if (self.toClearTimer is False):
+                fn()
+            else:
+                print('Invokation is cleared!')
         some_fn()
         return isInvokationCancelled
 
@@ -312,9 +312,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     self.classtable.selectRow(row)
 
     def highlightRows(self):
-
-        print("Selection changed")
-
         point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')[0]
         line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')[0]
         polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')[0]

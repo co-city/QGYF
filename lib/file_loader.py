@@ -116,7 +116,11 @@ class FileLoader():
           if type == "Polygon":
             self.addFeature(feature, type, polygonLayer, filters, classifications)
         except:
-          print("Load feature error")
+          self.msg = QMessageBox()
+          self.msg.setIcon(QMessageBox.Information)
+          self.msg.setWindowTitle("Importfel")
+          self.msg.setText("Filen innehåller vissa objekt som inte går att importera.")
+          self.msg.show()
 
       pointLayer.commitChanges()
       lineLayer.commitChanges()
@@ -197,7 +201,7 @@ class FileLoader():
     return type
 
   def insertQuality(self, classification, feature):
-    con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))    
+    con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
     cur = con.cursor()
 
     geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
