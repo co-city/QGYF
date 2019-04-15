@@ -408,7 +408,7 @@ class QGYF:
 		self.dockwidget.report.clicked.connect(self.showExportDialog)
 
 	def openSettingsDialog(self):
-		self.settings = SettingsDialog()
+		self.settings = SettingsDialog(None, self)
 		self.settings.show()
 		self.settings.okButton.clicked.connect(self.settings.close)
 

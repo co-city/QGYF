@@ -17,7 +17,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'settings.ui'))
 
 class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, parentWidget=None):
         super(SettingsDialog, self).__init__(parent)
         self.setupUi(self)
         self.dataPath.setText(QSettings().value('dataPath'))
@@ -25,6 +25,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selectPathButton.clicked.connect(self.openFileDialog)
         self.clearDatabaseButton.clicked.connect(self.clearDataBase)
         self.activeDatabase.currentIndexChanged.connect(self.setDatabase)
+        self.parent = parentWidget
 
     def clearDataBase(self):
         db = Db()
@@ -42,6 +43,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
             QSettings().setValue('dataPath', path)
             self.dataPath.setText(QSettings().value('dataPath'))
             self.activeDatabase.clear()
+            self.parent.initDatabase(QSettings().value('dataPath'))
             self.populate()
 
     def setDatabase(self, index):
