@@ -136,11 +136,12 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 t = text[1] + ', faktor = ' + str(text[0])
                 self.textQ.append(t)
             else:
-                i = [self.selectQGroup.currentIndex()]
-                cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
-                text = '<b>Ungerfärligt beräkningsläge för GYF:en!</b><br>' + \
-                    self.selectQGroup.currentText() + ', grov faktor = ' + str(cur.fetchone()[0])
-                self.textQ.append(text)
+                if self.selectQGroup.currentText():
+                    i = [self.selectQGroup.currentIndex()]
+                    cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
+                    text = '<b>Ungerfärligt beräkningsläge för GYF:en!</b><br>' + \
+                        self.selectQGroup.currentText() + ', grov faktor = ' + str(cur.fetchone()[0])
+                    self.textQ.append(text)
 
         cur.close()
         con.close()
