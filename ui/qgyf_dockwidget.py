@@ -296,42 +296,45 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 line_layer.removeSelection()
                 polygon_layer.removeSelection()
 
+    def selectRowByFeatures(self, features, geom_type):
+
+        for feature in features:
+
+            feature_id = feature.attribute("id")
+
+            items = self.classtable.findItems(str(feature_id), Qt.MatchExactly)
+            rows = [item.row() for item in items]
+
+            for row in rows:
+                geom_name = self.classtable.item(row, 0).text()
+                table_fid = int(self.classtable.item(row, 2).text())
+                if geom_type == geom_name and table_fid == feature_id:
+                    self.classtable.selectRow(row)
+
     def highlightRows(self):
+
+        print("Selection changed")
+
+        point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')[0]
+        line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')[0]
+        polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')[0]
+
+        selected_points = point_layer.getSelectedFeatures()
+        selected_lines = line_layer.getSelectedFeatures()
+        selected_polygons = polygon_layer.getSelectedFeatures()
 
         self.row_selection_lock = True
         timer = Timer()
         timer.setTimeout(self.resetRowSelectionLock, 0.2)
 
-        if self.feature_selection_lock is False:
-            lyr = iface.activeLayer()
-
-            #self.classtable.clearSelection()
+        if self.feature_selection_lock is False and self.tabWidget.currentIndex() == 0:
+            self.classtable.clearSelection()
             self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+            self.selectRowByFeatures(selected_points, "punkt")
+            self.selectRowByFeatures(selected_lines, "linje")
+            self.selectRowByFeatures(selected_polygons, "yta")
 
-            if self.tabWidget.currentIndex() == 0:
-                if lyr:
-                    selected = list(lyr.selectedFeatures())
-                    selected = [f.attribute('id') for f in selected]
-                    rows = []
-                    for i in selected:
-                        items = self.classtable.findItems(str(i), Qt.MatchExactly)
-                        row = [item.row() for item in items]
-                        for r in row:
-
-                            geom_name = self.classtable.item(r, 0).text()
-                            feature_id = int(self.classtable.item(r, 2).text())
-
-                            geom_lookup = {
-                                QgsWkbTypes.Polygon: 'yta',
-                                QgsWkbTypes.Point: 'punkt',
-                                QgsWkbTypes.LineString: 'linje'
-                            }
-
-                            if geom_lookup[lyr.wkbType()] == geom_name and i == feature_id:
-                                self.classtable.selectRow(r)
-                                rows.append(r)
-
-            self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
     def switchLayerGroups(self):
         self.style = Style()

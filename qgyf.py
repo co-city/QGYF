@@ -338,20 +338,19 @@ class QGYF:
 		if not self.pluginIsActive:
 			self.pluginIsActive = True
 
-			# dockwidget may not exist if:
-			#    first run of plugin
-			#    removed on close (see self.onClosePlugin method)
-			if self.dockwidget == None:
+		# dockwidget may not exist if:
+		#    first run of plugin
+		#    removed on close (see self.onClosePlugin method)
+		if self.dockwidget == None:
 
-				# Create the dockwidget (after translation) and keep reference
-				self.dockwidget = QGYFDockWidget()
+			# Create the dockwidget (after translation) and keep reference
+			self.dockwidget = QGYFDockWidget()
+			self.iface.removeDockWidget(self.dockwidget)
+			self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
-				# connect to provide cleanup on closing of dockwidget
-				self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+			# connect to provide cleanup on closing of dockwidget
+			self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
-		self.dockwidget = QGYFDockWidget()
-		# show the dockwidget
-		self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 		self.dockwidget.show()
 
 		# Classification
@@ -374,7 +373,7 @@ class QGYF:
 		self.dockwidget.approveButton.clicked.connect(showClass)
 		removeQ = lambda : self.dockwidget.removeQ(QSettings().value('dataPath'))
 		self.dockwidget.removeButton.clicked.connect(removeQ)
-		self.dockwidget.classtable.itemClicked.connect(self.dockwidget.highlightFeatures)
+		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
 
 		# Objects
 		self.dockwidget.setLayers()
@@ -398,7 +397,6 @@ class QGYF:
 
 		# Export
 		self.dockwidget.report.clicked.connect(self.showExportDialog)
-
 
 	def openSettingsDialog(self):
 		self.settings = SettingsDialog()
