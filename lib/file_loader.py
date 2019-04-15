@@ -145,7 +145,10 @@ class FileLoader():
     """
     index = feature.fields().indexFromName(self.filter_attribute)
     layer_name = str(feature.attributes()[index])
-    layer_name = layer_name.encode("windows-1252").decode("utf-8")
+    try:
+      layer_name = layer_name.encode("windows-1252").decode("utf-8")
+    except:
+      layer_name = layer_name
 
     if not filters or any(layer_name in filtr for filtr in filters):
       fields = QgsFields()
@@ -201,7 +204,7 @@ class FileLoader():
     return type
 
   def insertQuality(self, classification, feature):
-    con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))    
+    con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
     cur = con.cursor()
 
     geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
@@ -263,6 +266,9 @@ class FileLoader():
       index = feature.fields().indexFromName(self.filter_attribute)
       layer = feature.attributes()[index]
       if isinstance(layer, str):
-        layer = layer.encode("windows-1252").decode("utf-8")
+        try:
+          layer = layer.encode("windows-1252").decode("utf-8")
+        except:
+          layer = layer
       if layer not in layers:
         layers.append(layer)

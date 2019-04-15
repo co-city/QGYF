@@ -179,7 +179,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     attributes.append(f.attributes() + [round(f.geometry().length(), 1)])
                 else:
                     attributes.append(f.attributes() + [round(f.geometry().area(), 1)])
-        
+
         g = self.selectQGroup.currentText()
         def set_geom(x):
             return {QgsWkbTypes.Point: 'punkt',
@@ -439,11 +439,16 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             for feature in features:
                 index = feature.fields().indexFromName("grupp")
                 group = feature.attributes()[index]
+                try:
+                  group = group.encode("windows-1252").decode("utf-8")
+                except:
+                  group = group
                 current_groups.append(group)
             current_groups = list(set(current_groups))
             checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
             checkbox_list = [getattr(self, n) for n in checkboxnames]
             for checkbox in checkbox_list:
+                print("Test", checkbox.text(), current_groups)
                 if checkbox.text() in current_groups:
                     checkbox.setEnabled(True)
                 else:

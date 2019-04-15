@@ -299,6 +299,7 @@ class QGYF:
 
 		gyf, factor_areas, groups, feature_ids, area_id = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
+		total = 0
 
 		if factor_areas.size != 0:
 			# Plot
