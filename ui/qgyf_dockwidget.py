@@ -169,16 +169,15 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))[0]
         iface.setActiveLayer(l)
 
-    def setQ(self, path):
+    def setQ(self):
 
-        if self.selectQGroup.currentIndex() == 0:
-            return None
-
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
-        cur = con.cursor()
+        path = QSettings().value('dataPath')
 
         layer = iface.activeLayer()
         selected = layer.selectedFeatures()
+        if self.selectQGroup.currentIndex() == 0:
+            return None
+
         attributes = []
         if selected:
             for f in selected:
@@ -195,6 +194,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     QgsWkbTypes.LineString: 'linje'}.get(x, 'yta')
         geom = set_geom(layer.wkbType())
 
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        cur = con.cursor()
+
         if self.selectQ.currentText() != 'Vet inte':
             q = self.selectQ.currentText()
             q = q.split(' ')[0]
@@ -206,7 +208,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         f = cur.fetchone()[0]
 
         data = []
-        for i,obj in enumerate(attributes):
+        for i, obj in enumerate(attributes):
             data.append([None, geom, obj[1], obj[0], g, q, f, obj[-1], round(obj[-1]*f,1)])
 
         cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?,?,?)', data)
@@ -214,27 +216,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con.commit()
         con.close()
 
-    def showClass(self, path):
-        self.classtable.clear()
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
-        cur = con.cursor()
-
-        cur.execute('SELECT * FROM classification')
-        data = cur.fetchall()
-        data = [list(d[1:-2])+[int(d[-2]), int(d[-1]), d[0]] for d in data]
-
-        if data:
-            self.classtable.setSortingEnabled(True)
-            self.classtable.setRowCount(len(data))
-            self.classtable.setColumnCount(len(data[0]))
-            self.classtable.setHorizontalHeaderLabels(["geom", "fil namn", 'id', 'Grupp', 'K', 'F', 'Yta', 'Poäng','uid'])
-            for i, item in enumerate(data):
-                for j, field in enumerate(item):
-                    self.classtable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
-                    self.classtable.horizontalHeader().setSectionResizeMode(j, QtWidgets.QHeaderView.ResizeToContents)
-
-        cur.close()
-        con.close()
+        self.showClass()
 
     def removeQ(self, path):
 
@@ -243,7 +225,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if len(ids) == 9:
             ids = [ids[-1]]
         else:
-            ids = [ids[9*n-1] for n in range(1, int(len(ids)/9 + 1))]
+            ids = [ids[9 * n-1] for n in range(1, int(len(ids) / 9 + 1))]
         ids = [int(i) for i in ids]
 
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
@@ -255,7 +237,33 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur.close()
         con.commit()
         con.close()
-        self.showClass(path)
+        self.showClass()
+
+    def showClass(self):
+        path = QSettings().value('dataPath')
+        self.classtable.clear()
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        cur = con.cursor()
+
+        cur.execute('SELECT * FROM classification')
+        data = cur.fetchall()
+        data = [list(d[1:-2]) + [int(d[-2]), int(d[-1]), d[0]] for d in data]
+
+        self.classtable.setSortingEnabled(True)
+        self.classtable.setColumnCount(9)
+        self.classtable.setHorizontalHeaderLabels(["geom", "filnamn", 'id', 'Grupp', 'K', 'F', 'Yta', 'Poäng','uid'])
+
+        if data:
+            self.classtable.setRowCount(len(data))
+            for i, item in enumerate(data):
+                for j, field in enumerate(item):
+                    self.classtable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
+                    self.classtable.horizontalHeader().setSectionResizeMode(j, QtWidgets.QHeaderView.ResizeToContents)
+        else:
+            self.classtable.setRowCount(0)
+
+        cur.close()
+        con.close()
 
     def chunks(self, l, n):
         """Yield successive n-sized chunks from l."""
@@ -326,6 +334,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     self.classtable.selectRow(row)
 
     def highlightRows(self):
+
         point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')[0]
         line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')[0]
         polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')[0]
@@ -448,10 +457,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             for feature in features:
                 index = feature.fields().indexFromName("grupp")
                 group = feature.attributes()[index]
-                try:
-                  group = group.encode("windows-1252").decode("utf-8")
-                except:
-                  group = group
                 current_groups.append(group)
             current_groups = list(set(current_groups))
             checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
