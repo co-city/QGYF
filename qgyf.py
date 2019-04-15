@@ -92,6 +92,13 @@ class QGYF:
 	def initGui(self):
 		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
 
+		icon_path = ':/plugins/qgyf/assets/load_db.png'
+		self.addAction(
+			icon_path,
+			text=self.translate(u'Ladda databas'),
+			callback=self.load,
+			parent=self.iface.mainWindow())
+
 		icon_path = ':/plugins/qgyf/assets/folder.png'
 		self.addAction(
 			icon_path,
@@ -104,13 +111,6 @@ class QGYF:
 			icon_path,
 			text=self.translate(u'Beräkna grönytefaktor'),
 			callback=self.openCalculationDialog,
-			parent=self.iface.mainWindow())
-
-		icon_path = ':/plugins/qgyf/assets/load_db.png'
-		self.addAction(
-			icon_path,
-			text=self.translate(u'Ladda databas'),
-			callback=self.load,
 			parent=self.iface.mainWindow())
 
 		icon_path = ':/plugins/qgyf/assets/save.png'
@@ -229,7 +229,7 @@ class QGYF:
 		self.fileLoader.loadFile()
 		root = QgsProject.instance().layerTreeRoot()
 		content = [l.name() for l in root.children()]
-		if 'Visualisering' in content:
+		if 'Kvaliteter' in content:
 			if self.dockwidget:
 				self.dockwidget.disableGroup(QSettings().value('dataPath'))
 
@@ -266,6 +266,7 @@ class QGYF:
 				self.style.styleResearchArea(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
 			else:
+				self.style.iniStyle(vlayer)
 				QgsProject.instance().addMapLayer(vlayer, False)
 				classificationGroup.addLayer(vlayer)
 
@@ -309,7 +310,7 @@ class QGYF:
 			#self.dockwidget.plot.canvas.fig.tight_layout()
 			# Legend
 			patches, legend, dummy =  zip(*sorted(zip(patches, legend, sizes), key=lambda x: x[2], reverse=True))
-			self.dockwidget.plot.canvas.ax2.legend(patches, legend, loc = 'center')
+			self.dockwidget.plot.canvas.ax2.legend(patches, legend, loc = 'center', shadow = None, frameon = False)
 			self.dockwidget.plot.canvas.draw()
 
 		self.area_id = area_id
@@ -328,10 +329,17 @@ class QGYF:
 
 	def export(self):
 		chart_path = QSettings().value('dataPath') + '\PieChart.png'
-		gyf = self.dockwidget.gyfValue.text()
 		self.dockwidget.plot.canvas.fig.savefig(chart_path)
+		gyf = self.dockwidget.gyfValue.text()
+		groups = []
+		checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
+		checkbox_list = [getattr(self.dockwidget, n) for n in checkboxnames]
+		for checkbox in checkbox_list:
+			if checkbox.isEnabled() and checkbox.isChecked():
+				groups.append(checkbox.text())
+		groups = [g for g in groups if g in self.groups]
 		self.pdfCreator = ExportCreator()
-		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, self.groups, self.feature_ids, self.total)
+		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, groups, self.feature_ids, self.total)
 
 	def openCalculationDialog(self):
 		"""Run method that loads and starts the plugin"""

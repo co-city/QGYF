@@ -173,8 +173,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         attributes = []
         if selected:
             for f in selected:
-                attributes.append(f.attributes())
-
+                if layer.wkbType() == QgsWkbTypes.Point:
+                    attributes.append(f.attributes() + [25.0])
+                elif layer.wkbType() == QgsWkbTypes.LineString:
+                    attributes.append(f.attributes() + [round(f.geometry().length(), 1)])
+                else:
+                    attributes.append(f.attributes() + [round(f.geometry().area(), 1)])
+        
         g = self.selectQGroup.currentText()
         def set_geom(x):
             return {QgsWkbTypes.Point: 'punkt',
@@ -193,9 +198,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         data = []
         for i,obj in enumerate(attributes):
-            data.append([None, geom, obj[1], obj[0], g, q, f])
+            data.append([None, geom, obj[1], obj[0], g, q, f, obj[-1], round(obj[-1]*f,1)])
 
-        cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?)', data)
+        cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?,?,?)', data)
         cur.close()
         con.commit()
         con.close()
@@ -207,13 +212,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cur.execute('SELECT * FROM classification')
         data = cur.fetchall()
-        data = [list(d[1:])+[d[0]] for d in data]
+        data = [list(d[1:-2])+[int(d[-2]), int(d[-1]), d[0]] for d in data]
 
         if data:
             self.classtable.setSortingEnabled(True)
             self.classtable.setRowCount(len(data))
             self.classtable.setColumnCount(len(data[0]))
-            self.classtable.setHorizontalHeaderLabels(["geom", "fil namn", 'id', 'Grupp', 'K', 'F', 'uid'])
+            self.classtable.setHorizontalHeaderLabels(["geom", "fil namn", 'id', 'Grupp', 'K', 'F', 'Yta', 'Poäng','uid'])
             for i, item in enumerate(data):
                 for j, field in enumerate(item):
                     self.classtable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
@@ -226,10 +231,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         ids = self.classtable.selectedItems()
         ids = [i.text() for i in ids] #i.row()
-        if len(ids) == 7:
+        if len(ids) == 9:
             ids = [ids[-1]]
         else:
-            ids = [ids[7*n-1] for n in range(1, int(len(ids)/7 + 1))]
+            ids = [ids[9*n-1] for n in range(1, int(len(ids)/9 + 1))]
         ids = [int(i) for i in ids]
 
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
@@ -336,10 +341,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def switchLayerGroups(self):
         self.style = Style()
         if self.tabWidget.currentIndex() == 0:
-            self.style.visibility('Visualisering', False)
+            self.style.visibility('Kvaliteter', False)
             self.style.visibility('Klassificering', True)
         else:
-            self.style.visibility('Visualisering', True)
+            self.style.visibility('Kvaliteter', True)
             self.style.visibility('Klassificering', False)
 
 
@@ -396,13 +401,18 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     # Visualization
     def checkGroup(self, checkbox_list):
         views = ['polygon_class', 'line_class', 'point_class']
+        view_names =	{
+		  'point_class': 'Punktkvalitet',
+		  'line_class': 'Linjekvalitet',
+		  'polygon_class': 'Ytkvalitet'
+		}
         for v in views:
-            view = QgsProject.instance().mapLayersByName(v)
+            view = QgsProject.instance().mapLayersByName(view_names[v])
             if view:
                 view = view[0]
                 unchecked_list = [c.text() for c in checkbox_list if not c.isChecked()]
                 unchecked = "', '".join(c for c in unchecked_list)
-                query = "SELECT * FROM " + view.name() + " WHERE grupp not in ('" + unchecked + "')"
+                query = "SELECT * FROM " + v + " WHERE grupp not in ('" + unchecked + "')"
                 view.setSubsetString(query)
 
 

@@ -10,6 +10,7 @@ from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from qgis.utils import iface
 from ..lib.db import Db
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -28,6 +29,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
     def clearDataBase(self):
         db = Db()
         db.clear("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        iface.mapCanvas().refresh()
         self.msg = QMessageBox()
         self.msg.setIcon(QMessageBox.Information)
         self.msg.setWindowTitle("Information")

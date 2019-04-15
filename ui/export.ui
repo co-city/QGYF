@@ -46,7 +46,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Exportera rapport till mappen:</string>
+    <string>Exportera rapporten till mappen:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -59,7 +59,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Beräkningsområdes namn</string>
+    <string>Beräkningsområdets namn</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_3">
@@ -130,7 +130,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Projekts namn</string>
+    <string>Projektets namn</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="areaName">
@@ -182,7 +182,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Rapports namn</string>
+    <string>Rapportens namn</string>
    </property>
   </widget>
  </widget>

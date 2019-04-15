@@ -86,7 +86,9 @@ class Db:
 		id_ini INTEGER NOT NULL,
 		grupp TEXT,
 		kvalitet TEXT,
-		faktor DOUBLE NOT NULL);""")
+		faktor DOUBLE NOT NULL,
+		yta DOUBLE,
+		poang DOUBLE);""")
 
 	def clear(self, path):
 		"""

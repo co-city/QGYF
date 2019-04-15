@@ -117,7 +117,7 @@ class ExportCreator:
         tableLayout = sip.cast(composition.itemById("table"), QgsLayoutFrame)
         tableLayout = tableLayout.multiFrame()
         tableLayout.setVectorLayer(table)
-        tableLayout.setDisplayedFields(['id', 'geometri_typ', 'fil_namn', 'grupp', 'kvalitet', 'faktor'])
+        tableLayout.setDisplayedFields(['id', 'geometri_typ', 'fil_namn', 'grupp', 'kvalitet', 'faktor', 'yta', 'poang'])
         # Filter
         feature_ids = ", ".join(str(i) for i in feature_ids)
         query = "id in ("+ feature_ids +")"
