@@ -31,6 +31,7 @@ class FileLoader():
     self.interface = interface
     self.layerSelectorDialog = layerSelectorDialog
     self.path = path
+    self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
 
   def loadFile(self):
     """
@@ -51,7 +52,6 @@ class FileLoader():
       self.lookupLayers(self.layer.getFeatures(), layers)
       self.layerSelectorDialog.load(layers)
       self.layerSelectorDialog.show()
-      self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
 
     if self.extension == ".shp":
       self.filter_attribute = "typkod"
@@ -59,7 +59,6 @@ class FileLoader():
       attributes = self.lookupAttributes(self.layer)
       self.attributeSelectorDialog.load(attributes)
       self.attributeSelectorDialog.show()
-
       self.attributeSelectorDialog.okButton.clicked.connect(self.shapeAttributeSelected)
 
   def shapeAttributeSelected(self):
@@ -76,7 +75,6 @@ class FileLoader():
       self.lookupLayers(self.layer.getFeatures(), layers)
       self.layerSelectorDialog.load(layers)
       self.layerSelectorDialog.show()
-      self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
 
   def importToMap(self):
 
@@ -102,10 +100,6 @@ class FileLoader():
       lineLayer = QgsProject.instance().mapLayersByName("Linjeobjekt")[0]
       polygonLayer = QgsProject.instance().mapLayersByName("Ytobjekt")[0]
 
-      pointLayer.startEditing()
-      lineLayer.startEditing()
-      polygonLayer.startEditing()
-
       for feature in self.layer.getFeatures():
         try:
           type = self.prepareFeature(feature)
@@ -121,10 +115,6 @@ class FileLoader():
           self.msg.setWindowTitle("Importfel")
           self.msg.setText("Filen innehåller vissa objekt som inte går att importera.")
           self.msg.show()
-
-      pointLayer.commitChanges()
-      lineLayer.commitChanges()
-      polygonLayer.commitChanges()
 
       iface.mapCanvas().zoomToFullExtent()
     except:
@@ -143,8 +133,10 @@ class FileLoader():
     @param {list} filters
     @param {list} classifications
     """
+    layer.startEditing()
     index = feature.fields().indexFromName(self.filter_attribute)
-    layer_name = str(feature.attributes()[index])
+    layer_name = feature.attributes()[index]
+
     try:
       layer_name = layer_name.encode("windows-1252").decode("utf-8")
     except:
@@ -160,12 +152,17 @@ class FileLoader():
       feature.setAttributes([None, self.fileName, layer_name])
       layer.addFeature(feature)
 
+      layer.commitChanges()
+
       if classifications:
         classification = list(filter(lambda classification: classification[0] == layer_name, classifications))
         features = sorted(list(layer.getFeatures()), key=lambda feature: feature.attributes()[feature.fields().indexFromName("id")])
         inserted_feature = features[len(features) - 1]
         if classification:
           self.insertQuality(classification, inserted_feature)
+
+    else:
+      layer.commitChanges()
 
   def prepareFeature(self, feature):
 
@@ -220,7 +217,6 @@ class FileLoader():
 
     #index = feature.fields().indexFromName("id")
     feature_id = feature["id"]
-    print(feature_id)
     quality_name = classification[0][1]
 
     q_list = self.layerSelectorDialog.qualities_list
@@ -242,7 +238,6 @@ class FileLoader():
     if factor != 1:
       data = [None, geometry_type, self.fileName, feature_id, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
       # id, geometri_typ, filnamn, id_ini, grupp, kvalitet, faktor, yta, poäng
-      print(data)
       cur.execute('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
 
     cur.close()

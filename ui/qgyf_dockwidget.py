@@ -456,7 +456,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
             checkbox_list = [getattr(self, n) for n in checkboxnames]
             for checkbox in checkbox_list:
-                print("Test", checkbox.text(), current_groups)
                 if checkbox.text() in current_groups:
                     checkbox.setEnabled(True)
                 else:
