@@ -201,19 +201,23 @@ class FileLoader():
     return type
 
   def insertQuality(self, classification, feature):
-    con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+    con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))    
     cur = con.cursor()
 
     geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
     if (geometry_type == "Point"):
       geometry_type = "punkt"
+      yta = 25.0
     if (geometry_type == "Line"):
       geometry_type = "linje"
+      yta = feature.geometry().length()
     if (geometry_type == "Polygon"):
       geometry_type = "yta"
+      yta = feature.geometry().area()
 
-    index = feature.fields().indexFromName("id")
-    feature_id = feature.attributes()[index]
+    #index = feature.fields().indexFromName("id")
+    feature_id = feature["id"]
+    print(feature_id)
     quality_name = classification[0][1]
 
     q_list = self.layerSelectorDialog.qualities_list
@@ -233,9 +237,10 @@ class FileLoader():
       group_name = r[0][1][0]
 
     if factor != 1:
-      data = [None, geometry_type, self.fileName, feature_id, group_name, quality_name, factor]
-      # id, geometri_typ, filnamn, id_ini, grupp, kvalitet, faktor
-      cur.execute('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?)', data)
+      data = [None, geometry_type, self.fileName, feature_id, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
+      # id, geometri_typ, filnamn, id_ini, grupp, kvalitet, faktor, yta, poäng
+      print(data)
+      cur.execute('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
 
     cur.close()
     con.commit()

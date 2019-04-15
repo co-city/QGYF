@@ -78,19 +78,25 @@ class DbView:
         con.close()
 
         root = QgsProject.instance().layerTreeRoot()
-        mygroup = root.findGroup('Visualisering')
+        mygroup = root.findGroup('Kvaliteter')
         if not mygroup:
-            mygroup = root.insertGroup(1, 'Visualisering')
+            mygroup = root.insertGroup(1, 'Kvaliteter')
 
         self.style = Style()
         self.style.visibility('Klassificering', False)
 
         views = ['point_class', 'line_class', 'polygon_class']
+        view_names =	{
+		  'point_class': 'Punktkvalitet',
+		  'line_class': 'Linjekvalitet',
+		  'polygon_class': 'Ytkvalitet'
+		}
+
         for view in views:
-            lyr = QgsProject.instance().mapLayersByName(view)
+            lyr = QgsProject.instance().mapLayersByName(view_names[view])
             if not lyr:
                 pathLayer = '{}\{}|layername={}'.format(path, QSettings().value('activeDataBase'), view)
-                vlayer = QgsVectorLayer(pathLayer, view, 'ogr')
+                vlayer = QgsVectorLayer(pathLayer, view_names[view], 'ogr')
                 vlayer.setProviderEncoding("utf-8")
                 self.style.oneColor(vlayer)
                 QgsProject.instance().addMapLayer(vlayer, False)

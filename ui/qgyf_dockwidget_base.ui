@@ -488,7 +488,7 @@
        </font>
       </property>
       <property name="toolTip">
-       <string>Rita upp ett avgränsningsområde där du vill beräkna GYF</string>
+       <string>Beräkna GYF</string>
       </property>
       <property name="text">
        <string>Beräkna GYF</string>

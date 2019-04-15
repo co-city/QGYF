@@ -13,9 +13,9 @@ class GyfCalculator:
     Get features from given layers.
     @return {list} features
     """
-    polygon_layer = QgsProject.instance().mapLayersByName("polygon_class")[0]
-    line_layer = QgsProject.instance().mapLayersByName("line_class")[0]
-    point_layer = QgsProject.instance().mapLayersByName("point_class")[0]
+    polygon_layer = QgsProject.instance().mapLayersByName("Ytkvalitet")[0]
+    line_layer = QgsProject.instance().mapLayersByName("Linjekvalitet")[0]
+    point_layer = QgsProject.instance().mapLayersByName("Punktkvalitet")[0]
     # Clear visualisation filters if they were set
     polygon_layer.setSubsetString('')
     line_layer.setSubsetString('')

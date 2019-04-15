@@ -52,10 +52,10 @@ class Style:
             categories2.append(category2)
             categories3.append(category3)
 
-        views = ['point_class', 'line_class', 'polygon_class']
+        views = ['Punktkvalitet', 'Linjekvalitet', 'Ytkvalitet']
         symbols = dict(zip(views, [categories1, categories2, categories3]))
         for v, c in symbols.items():
-            l = QgsProject.instance().mapLayersByName(v) #'polygon_class'
+            l = QgsProject.instance().mapLayersByName(v)
             if l:
                 l = l[0]
                 renderer = QgsCategorizedSymbolRenderer('grupp', c)
@@ -65,17 +65,17 @@ class Style:
     def oneColor(self, lyr):
         if lyr.geometryType() == 2:
             symbol = QgsFillSymbol.createSimple({
-                'color':'0, 153, 51, 50',
-                'color_border':'0, 102, 0, 50',
+                'color':'0, 153, 51, 60',
+                'color_border':'0, 102, 0, 60',
                 'width_border':'0.5'})
         elif lyr.geometryType() == 0:
             symbol = QgsMarkerSymbol.createSimple({
-                'color':'153, 0, 0, 50',
-                'color_border':'128, 0, 0, 50',
+                'color':'0, 153, 51, 60', #'153, 0, 0, 50'
+                'color_border':'0, 102, 0, 60', #'128, 0, 0, 50'
                 'width_border':'0.5'})
         else:
             symbol = QgsLineSymbol.createSimple({
-                'color':'51, 102, 0, 50',
+                'color':'0, 153, 51, 60', #'51, 102, 0, 50'
                 'width':'1.5'})
         lyr.renderer().setSymbol(symbol)
         lyr.triggerRepaint()
@@ -96,4 +96,23 @@ class Style:
         group = root.findGroup(group_name)
         if group:
             group.setItemVisibilityChecked(bool)
+
+    def iniStyle(self, lyr):
+        # Style for initial objects which loads from database
+        if lyr.geometryType() == 2:
+            symbol = QgsFillSymbol.createSimple({
+                'color':'88, 192, 40',
+                'color_border':'77, 73, 73',
+                'width_border':'0.1'})
+        elif lyr.geometryType() == 0:
+            symbol = QgsMarkerSymbol.createSimple({
+                'color':'150, 72, 3', #'153, 0, 0, 50'
+                'color_border':'81, 38, 1', #'128, 0, 0, 50'
+                'width_border':'0.1'})
+        else:
+            symbol = QgsLineSymbol.createSimple({
+                'color':'25, 84, 124', #'51, 102, 0, 50'
+                'width':'1.5'})
+        lyr.renderer().setSymbol(symbol)
+        lyr.triggerRepaint()
 
