@@ -119,6 +119,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con.close()
 
     def getF(self, path):
+
+        if self.selectQGroup.currentIndex() == 0:
+            return None
+
         self.textQ.clear()
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
@@ -165,6 +169,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         iface.setActiveLayer(l)
 
     def setQ(self, path):
+
+        if self.selectQGroup.currentIndex() == 0:
+            return None
+
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 

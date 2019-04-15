@@ -474,7 +474,7 @@
      <widget class="QPushButton" name="calculate">
       <property name="geometry">
        <rect>
-        <x>40</x>
+        <x>10</x>
         <y>90</y>
         <width>111</width>
         <height>31</height>
@@ -541,7 +541,7 @@
        <string>Skapa en PDF rapport</string>
       </property>
       <property name="text">
-       <string>Exportera rapport</string>
+       <string>Spara rapport</string>
       </property>
      </widget>
     </widget>
