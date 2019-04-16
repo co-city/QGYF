@@ -1,7 +1,6 @@
 from qgis.core import QgsProject, QgsVectorLayer, QgsApplication, QgsWkbTypes
 from PyQt5.QtWidgets import QMessageBox
 from ..ui.welcome import WelcomeDialog
-import processing
 import numpy as np
 
 class GyfCalculator:

@@ -40,7 +40,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>11</y>
+     <y>9</y>
      <width>121</width>
      <height>21</height>
     </rect>
@@ -66,7 +66,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>111</y>
+     <y>162</y>
      <width>81</width>
      <height>21</height>
     </rect>
@@ -105,7 +105,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>131</y>
+     <y>184</y>
      <width>161</width>
      <height>22</height>
     </rect>
@@ -135,6 +135,48 @@
    </property>
    <property name="text">
     <string>Töm databas</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>111</y>
+     <width>131</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Koordinatsystem</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="crs">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>136</y>
+     <width>161</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QToolButton" name="selectCRSButton">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>134</y>
+     <width>41</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Välj</string>
    </property>
   </widget>
  </widget>

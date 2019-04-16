@@ -18,6 +18,13 @@ class Db:
 		Initialize tables to store geo-objects (point, line, polygon) and calculations.
 		"""
 
+		if QSettings().value('CRS').authid() != '':
+			crs = QSettings().value('CRS').authid()
+			crs = ''.join(c for c in crs if c.isdigit())
+			print(crs)
+		else:
+			crs = '3006' # SWEREF99 TM is default
+
 		# The InitSpatialMetaData() function must be called immediately after creating a new database,
 		# and before attempting to call any other Spatial SQL function.
 		# The PRAGMA operations speeds up the process.
@@ -33,8 +40,7 @@ class Db:
 		filnamn TEXT,
 		beskrivning TEXT);""")
 
-		cur.execute("""SELECT AddGeometryColumn('point_object', 'geom',
-		3006, 'POINT', 'XY');""")
+		cur.execute("SELECT AddGeometryColumn('point_object', 'geom', " + crs + ", 'POINT', 'XY');")
 
 		cur.execute("""
 		CREATE TABLE line_object (
@@ -42,8 +48,7 @@ class Db:
 		filnamn TEXT,
 		beskrivning TEXT);""")
 
-		cur.execute("""SELECT AddGeometryColumn('line_object', 'geom',
-		3006, 'LINESTRING', 'XY');""")
+		cur.execute("""SELECT AddGeometryColumn('line_object', 'geom', """ + crs + """, 'LINESTRING', 'XY');""")
 
 		cur.execute("""
 		CREATE TABLE polygon_object (
@@ -51,8 +56,7 @@ class Db:
 		filnamn TEXT,
 		beskrivning TEXT);""")
 
-		cur.execute("""SELECT AddGeometryColumn('polygon_object', 'geom',
-		3006, 'POLYGON', 'XY');""")
+		cur.execute("""SELECT AddGeometryColumn('polygon_object', 'geom', """ + crs + """, 'POLYGON', 'XY');""")
 
 		cur.execute("""
 		CREATE TABLE research_area (
@@ -60,9 +64,15 @@ class Db:
 		namn TEXT,
 		yta DOUBLE);""")
 
-		cur.execute("""SELECT AddGeometryColumn('research_area',
-		'geom', 3006, 'POLYGON', 'XY');""")
+		cur.execute("""SELECT AddGeometryColumn('research_area', 'geom', """ + crs + """, 'POLYGON', 'XY');""")
 
+		cur.execute("""CREATE TABLE ground_areas (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            ytklass TEXT,
+            yta DOUBLE);""")
+		
+		cur.execute("""SELECT AddGeometryColumn('ground_areas', 'geom', """ + crs + """, 'POLYGON', 'XY');""")
+		
 		cur.execute("""
 		CREATE TABLE gyf_quality (
 		grupp_id INTEGER NOT NULL,

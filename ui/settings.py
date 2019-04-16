@@ -12,6 +12,7 @@ from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from qgis.utils import iface
 from ..lib.db import Db
+from qgis.gui import QgsProjectionSelectionDialog
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'settings.ui'))
@@ -21,11 +22,13 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         super(SettingsDialog, self).__init__(parent)
         self.setupUi(self)
         self.dataPath.setText(QSettings().value('dataPath'))
+        self.crs.setText(QSettings().value('CRS').description())
         self.populate()
         self.selectPathButton.clicked.connect(self.openFileDialog)
         self.clearDatabaseButton.clicked.connect(self.clearDataBase)
         self.activeDatabase.currentIndexChanged.connect(self.setDatabase)
         self.parent = parentWidget
+        self.selectCRSButton.clicked.connect(self.setCRS)
 
     def clearDataBase(self):
         db = Db()
@@ -43,7 +46,6 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
             QSettings().setValue('dataPath', path)
             self.dataPath.setText(QSettings().value('dataPath'))
             self.activeDatabase.clear()
-            self.parent.initDatabase(QSettings().value('dataPath'))
             self.populate()
 
     def setDatabase(self, index):
@@ -65,3 +67,11 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
                 index += 1
 
         self.setDatabase(activeIndex)
+
+    def setCRS(self):
+        projSelector = QgsProjectionSelectionDialog()
+        projSelector.exec()
+        crs_id = projSelector.crs().authid()
+        if crs_id:
+             QSettings().setValue('CRS', projSelector.crs())
+        self.crs.setText(projSelector.crs().description())

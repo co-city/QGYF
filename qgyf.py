@@ -41,7 +41,6 @@ from .lib.styles import Style
 from .lib.gyf_calculator import GyfCalculator
 from .lib.gyf_diagram import Diagram
 from .lib.map_export import ExportCreator
-#from .lib.canvasClickedEvent import CanvasClick
 
 import os.path
 import numpy as np
@@ -82,12 +81,11 @@ class QGYF:
 		self.dockwidget = None
 		self.area_id = None
 
-		self.initDatabase(QSettings().value('dataPath'))
-		self.initCalculationDialog()
+		#self.initCalculationDialog()
 		self.layerSelectorDialog = LayerSelectorDialog()
 		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, QSettings().value('dataPath'))
 		self.calculator = GyfCalculator(QSettings().value('dataPath'))
-		self.layerSelectorDialog.loadClassifications(QSettings().value('dataPath'))
+		#self.layerSelectorDialog.loadClassifications(QSettings().value('dataPath'))
 		self.showWelcome()
 
 	def initGui(self):
@@ -157,6 +155,7 @@ class QGYF:
 			parent=self.iface.mainWindow())
 
 	def load(self):
+		self.initDatabase(QSettings().value('dataPath'))
 		self.addLayers(QSettings().value('dataPath'), [
 			"research_area",
 			"point_object",
@@ -227,6 +226,7 @@ class QGYF:
 			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
 
 	def loadFile(self):
+		self.layerSelectorDialog.loadClassifications(QSettings().value('dataPath'))
 		self.fileLoader.loadFile()
 		root = QgsProject.instance().layerTreeRoot()
 		content = [l.name() for l in root.children()]
@@ -244,8 +244,7 @@ class QGYF:
 		root = QgsProject.instance().layerTreeRoot()
 		classificationGroup = root.findGroup('Klassificering')
 
-		root.clear()
-
+		#root.clear()
 		# for layer in root.findLayers():
 		# 	if layer.name() == "Beräkningsområde":
 		# 		root.removeChildNode(layer)
@@ -344,6 +343,7 @@ class QGYF:
 		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, groups, self.feature_ids, self.total)
 
 	def openCalculationDialog(self):
+		self.initCalculationDialog()
 		if not self.pluginIsActive:
 			self.pluginIsActive = True
 		self.dockwidget.show()

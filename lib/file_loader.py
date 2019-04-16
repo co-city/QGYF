@@ -11,7 +11,7 @@ from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtCore import QVariant, QSettings
-from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsFields, QgsField, QgsGeometry, QgsPointXY
+from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsFields, QgsField, QgsGeometry, QgsPointXY, QgsRectangle
 from qgis.utils import spatialite_connect, iface
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -115,8 +115,17 @@ class FileLoader():
           self.msg.setWindowTitle("Importfel")
           self.msg.setText("Filen innehåller vissa objekt som inte går att importera.")
           self.msg.show()
-
-      iface.mapCanvas().zoomToFullExtent()
+      
+      # Zoom to features
+      extent = QgsRectangle()
+      extent.setMinimal()
+      root = QgsProject.instance().layerTreeRoot()
+      group = root.findGroup("Klassificering")
+      for child in group.children():
+        extent.combineExtentWith(child.layer().extent())
+      iface.mapCanvas().setExtent(extent)
+      iface.mapCanvas().refresh()
+    
     except:
       self.msg = QMessageBox()
       self.msg.setIcon(QMessageBox.Information)
