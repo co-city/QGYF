@@ -26,7 +26,7 @@ class GyfCalculator:
       *list(point_layer.getFeatures())
     ]
 
-  def calculateIntersectionArea(self, feature, intersector, with_factor):
+  def calculateIntersectionArea(self, feature, intersector):
     """
     Calculate the instersection of two features, and optionally scale with given factor.
     @param {QgsFeature} feature
@@ -46,17 +46,18 @@ class GyfCalculator:
     else:
       intersection = feature.geometry().intersection(intersector.geometry())
 
-    index = feature.fields().indexFromName("faktor")
-    factor = feature.attributes()[index]
-    index2 = feature.fields().indexFromName("grupp")
-    group = feature.attributes()[index2]
-    index3 = feature.fields().indexFromName("id")
-    feature_id = feature.attributes()[index3]
+    factor = feature["faktor"]
+    group = feature["grupp"]
+    feature_id = feature["id"]
 
-    if with_factor:
-      return intersection.area() * factor, group, feature_id
-    else:
-      return intersection.area() #, group
+    return intersection.area() * factor, group, feature_id
+
+  def calculateGroundAreaIntersection(self, intersector):
+    "Calculate the intersection of ground areas and the research area"
+    ground_layer = QgsProject.instance().mapLayersByName("Grundytor")[0]
+    area = list(ground_layer.getFeatures())[0]
+    intersection = area.geometry().intersection(intersector.geometry())
+    return intersection.area()
 
   def calculate(self):
     """
@@ -69,6 +70,7 @@ class GyfCalculator:
     factor_areas = []
     groups = []
     feature_ids = []
+    eco_area = 0
     selected_feature = None
 
     if list(selected_features):
@@ -80,9 +82,6 @@ class GyfCalculator:
       feature_area_factor_sum = 0
 
       intersecting_features = []
-      unique_features = []
-      unique_id = []
-
       for feature in features:
         geom = feature.geometry()
         selected_geometry = selected_feature.geometry()
@@ -92,24 +91,13 @@ class GyfCalculator:
         intersecting_features.append(feature)
 
       for feature in intersecting_features:
-        if not feature.attributes()[1] in unique_id:
-          unique_id.append(feature.attributes()[1])
-          unique_features.append(feature)
-
-      for feature in unique_features:
-        area = self.calculateIntersectionArea(feature, selected_feature, False)
-        feature_area_sum += area
-        '''if group_gb == 'Dagvatten- och skyfallshantering':
-          feature_area_blue += area
-        else:
-          feature_area_green += area'''
-
-      for feature in intersecting_features:
-        factor_area, group, feature_id = self.calculateIntersectionArea(feature, selected_feature, True)
+        factor_area, group, feature_id = self.calculateIntersectionArea(feature, selected_feature)
         feature_area_factor_sum += factor_area
         factor_areas.append(factor_area)
         groups.append(group)
         feature_ids.append(feature_id)
+
+      feature_area_sum = self.calculateGroundAreaIntersection(selected_feature)
 
       # Get rid of features which don't actually intersect the currently selected feature
       factor_areas = np.asarray(factor_areas)
@@ -120,7 +108,8 @@ class GyfCalculator:
       groups = groups[nonzero_indexes]
       feature_ids = feature_ids[nonzero_indexes]
 
-      gyf = (feature_area_sum + feature_area_factor_sum) / calculation_area
+      eco_area = feature_area_sum + feature_area_factor_sum
+      gyf = eco_area / calculation_area
 
     else:
       QMessageBox.warning(WelcomeDialog(), 'Inget beräkningsområde', 'Välj beräkningsområde för att beräkna GYF!')
@@ -128,5 +117,5 @@ class GyfCalculator:
     if type(factor_areas) == list:
       factor_areas = np.array([])
 
-    return gyf, factor_areas, groups, feature_ids, selected_feature
+    return gyf, factor_areas, groups, feature_ids, selected_feature, eco_area
 

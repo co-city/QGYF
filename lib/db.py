@@ -71,7 +71,7 @@ class Db:
             ytklass TEXT,
             yta DOUBLE);""")
 		
-		cur.execute("""SELECT AddGeometryColumn('ground_areas', 'geom', """ + crs + """, 'POLYGON', 'XY');""")
+		cur.execute("""SELECT AddGeometryColumn('ground_areas', 'geom', """ + crs + """, 'MULTIPOLYGON', 'XY');""")
 		
 		cur.execute("""
 		CREATE TABLE gyf_quality (
@@ -113,7 +113,8 @@ class Db:
 			'line_object',
 			'polygon_object',
 			'research_area',
-			'classification'
+			'classification',
+			'ground_areas'
 		]
 
 		for table in tables:

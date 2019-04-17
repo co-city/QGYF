@@ -74,7 +74,6 @@ class ExportCreator:
         research_area_lyr.setSubsetString(query)
         for feature in research_area_lyr.getFeatures():
             s = feature['yta']
-        print(s)
         area_info = sip.cast(composition.itemById("area_info"), QgsLayoutItemLabel)
         items = [['Beräkningsyta: ', str(int(s))], ['Ekoeffektiv yta: ', str(int(total))]]
         text2 = ""
@@ -129,6 +128,11 @@ class ExportCreator:
         chart = sip.cast(composition.itemById("chart"), QgsLayoutItemPicture)
         chart.setPicturePath(chart_path)
         chart.refreshPicture()
+
+        # Diagram
+        chart2 = sip.cast(composition.itemById("chart2"), QgsLayoutItemPicture)
+        chart2.setPicturePath(QSettings().value('dataPath') + '\PieChart2.png')
+        chart2.refreshPicture()
 
         # Metadata
         text = '<p style="font-family:tahoma; font-size:13.5; font-color:#4d4949; line-height:21px">Område: ' + \

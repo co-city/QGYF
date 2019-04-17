@@ -36,6 +36,7 @@ from .ui.export import ExportDialog
 from .lib.db import Db
 from .lib.quality_table import QualityTable
 from .lib.db_view import DbView
+from .lib.ground_areas import GroundAreas
 from .lib.file_loader import FileLoader
 from .lib.styles import Style
 from .lib.gyf_calculator import GyfCalculator
@@ -73,6 +74,8 @@ class QGYF:
 		if not QSettings().value('activeDataBase'):
 			QSettings().setValue('activeDataBase', 'qgyf.sqlite')
 
+		QSettings().setValue('objectCount', 0)
+
 		self.actions = []
 		self.menu = self.translate(u'&QGYF')
 		self.toolbar = self.iface.addToolBar(u'QGYF')
@@ -80,6 +83,7 @@ class QGYF:
 		self.pluginIsActive = False
 		self.dockwidget = None
 		self.area_id = None
+		self.diagram = Diagram()
 
 		#self.initCalculationDialog()
 		self.layerSelectorDialog = LayerSelectorDialog()
@@ -294,19 +298,19 @@ class QGYF:
 		if self.dockwidget.tabWidget.currentIndex() == 1:
 			self.dbView = DbView()
 			self.dbView.init(QSettings().value('dataPath'))
+			self.createGA = GroundAreas()
+			self.createGA.init(QSettings().value('dataPath'))
 
 	def calculate(self):
 
-		gyf, factor_areas, groups, feature_ids, area_id = self.calculator.calculate()
+		gyf, factor_areas, groups, feature_ids, area_id, eco_area = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
-		total = 0
 
 		if factor_areas.size != 0:
 			# Plot
-			self.diagram = Diagram()
 			self.dockwidget.plot.canvas.ax.cla()
 			self.dockwidget.plot.canvas.ax.set_title('Fördelning av kvalitetspoäng')
-			sizes, legend, colors, outline, total = self.diagram.init(factor_areas, groups)
+			sizes, legend, colors, outline = self.diagram.init(factor_areas, groups)
 			patches, text = self.dockwidget.plot.canvas.ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
 			#self.dockwidget.plot.canvas.fig.tight_layout()
 			# Legend
@@ -317,7 +321,7 @@ class QGYF:
 		self.area_id = area_id
 		self.groups = groups
 		self.feature_ids = feature_ids
-		self.total = total
+		self.eco_area = eco_area
 
 	def showExportDialog(self):
 		if self.area_id == None:
@@ -332,6 +336,7 @@ class QGYF:
 		chart_path = QSettings().value('dataPath') + '\PieChart.png'
 		self.dockwidget.plot.canvas.fig.savefig(chart_path)
 		gyf = self.dockwidget.gyfValue.text()
+		self.diagram.ecoAreaPlot(self.eco_area, self.eco_area/float(gyf))
 		groups = []
 		checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
 		checkbox_list = [getattr(self.dockwidget, n) for n in checkboxnames]
@@ -340,7 +345,7 @@ class QGYF:
 				groups.append(checkbox.text())
 		groups = [g for g in groups if g in self.groups]
 		self.pdfCreator = ExportCreator()
-		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, groups, self.feature_ids, self.total)
+		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, groups, self.feature_ids, self.eco_area)
 
 	def openCalculationDialog(self):
 		self.initCalculationDialog()
