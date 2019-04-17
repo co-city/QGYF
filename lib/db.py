@@ -79,7 +79,8 @@ class Db:
 		kvalitet TEXT NOT NULL,
 		faktor DOUBLE NOT NULL,
 		namn TEXT,
-		kort_namn TEXT);
+		kort_namn TEXT,
+		beskrivning TEXT);
 		""")
 
 		cur.execute("""

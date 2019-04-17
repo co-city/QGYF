@@ -131,16 +131,16 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if self.selectQ.currentText() != 'Vet inte':
                 q = self.selectQ.currentText()
                 q = q.split(' ')[0]
-                cur.execute('SELECT faktor,namn FROM gyf_quality WHERE kvalitet = ?', [q])
+                cur.execute('SELECT faktor,namn,beskrivning FROM gyf_quality WHERE kvalitet = ?', [q])
                 text = cur.fetchone()
-                t = text[1] + ', faktor = ' + str(text[0])
+                t = '<h4>' + text[1] + '</h4><b>faktor = ' + str(text[0]) + '</b><br>' + text[2] 
                 self.textQ.append(t)
             else:
                 if self.selectQGroup.currentText():
                     i = [self.selectQGroup.currentIndex()]
                     cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
-                    text = '<b>Ungerfärligt beräkningsläge för GYF:en!</b><br>' + \
-                        self.selectQGroup.currentText() + ', grov faktor = ' + str(cur.fetchone()[0])
+                    text = '<h4>Ungerfärligt beräkningsläge för GYF:en!</h4><b>' + \
+                        self.selectQGroup.currentText() + '</b><br>grov faktor = ' + str(cur.fetchone()[0])
                     self.textQ.append(text)
 
         cur.close()
