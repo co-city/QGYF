@@ -133,14 +133,14 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 q = q.split(' ')[0]
                 cur.execute('SELECT faktor,namn,beskrivning FROM gyf_quality WHERE kvalitet = ?', [q])
                 text = cur.fetchone()
-                t = '<h4>' + text[1] + '</h4><b>faktor = ' + str(text[0]) + '</b><br>' + text[2] 
+                t = '<h4 style="color:#238973">' + text[1] + '</h4>'+ text[2] +'<p style="color:#238973">faktor = ' + str(text[0]) + '</p>'
                 self.textQ.append(t)
             else:
                 if self.selectQGroup.currentText():
                     i = [self.selectQGroup.currentIndex()]
                     cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
-                    text = '<h4>Ungerfärligt beräkningsläge för GYF:en!</h4><b>' + \
-                        self.selectQGroup.currentText() + '</b><br>grov faktor = ' + str(cur.fetchone()[0])
+                    text = '<p style="color:#cc0000">OBS! Ungerfärligt beräkningsläge för GYF:en!</p><h4 style="color:#238973">' + \
+                        self.selectQGroup.currentText() + '</h4>grov faktor = ' + str(cur.fetchone()[0])
                     self.textQ.append(text)
 
         cur.close()

@@ -53,7 +53,7 @@ class Diagram:
                 [0, 0.6, 0, 0.8], # green
                 [0.6, 0.6, 0.6, 0.8], # grey
             ]
-        sizes = [eco_area/total_area, abs(total_area - eco_area)/total_area]
+        sizes = [eco_area*100/total_area, abs(total_area - eco_area)*100/total_area]
         items = [[sizes[i], labels[i]] for i,x in enumerate(sizes)]
         
         outline = {"edgecolor":"white", 'linewidth': 0.8, 'antialiased': True}
