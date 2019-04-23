@@ -23,7 +23,7 @@ class QualityTable:
         ]
 
         text = [
-            "Grön- eller blåyta av hög ekologisk kvalitet som ingår i utpekat landskapssamband. Ytan är både viktig för djur och växters spridning samt utgörs antingen av viktig livsmiljö för skyddsvärda arter eller av kärnområden/värdekärnor som är viktiga för en mångfald av arter. Ytans kvalitet ska upprätthållas över tid. Det ska säkerställas att storleken är tillräcklig och att slitage och störningar inte påverkar kvaliteten negativt. Detta kan göras i exempelvis skötselplan.",
+            "Grön- eller blåyta av hög ekologisk kvalitet som ingår i utpekat landskapssamband.<p>Ytan är både viktig för djur och växters spridning samt utgörs antingen av viktig livsmiljö för skyddsvärda arter eller av kärnområden/värdekärnor som är viktiga för en mångfald av arter. Ytans kvalitet ska upprätthållas över tid. </p><p>Det ska säkerställas att storleken är tillräcklig och att slitage och störningar inte påverkar kvaliteten negativt. Detta kan göras i exempelvis skötselplan.</p>",
             "Grön- eller blåyta utpekad för området som exempelvis viktig livsmiljö eller värdekärna men som är fragmenterad, dvs. är isolerad från landskapssamband.",
             "Grön- eller blåyta av ensartad karaktär som ligger inom ett landskapssamband men inte uppfyller kraven enligt K1/K2. Viktiga för växter och djurs spridning. Även dessa områden kännetecknas av naturliga och självreglerande processer och kan ofta utvecklas mot högre biodiversitet.",
             "Isolerade grön eller blåytor av ensartad karaktär som inte uppfyller kraven i K1/K2. Även dessa områden kännetecknas av naturliga och självreglerande processer och kan ofta utvecklas mot högre biodiversitet.",

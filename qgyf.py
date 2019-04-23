@@ -24,7 +24,7 @@
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QApplication, QFileDialog, QMessageBox
-from qgis.core import QgsProject, QgsVectorLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsCoordinateReferenceSystem
 from qgis.gui import QgsFileWidget
 from .resources import *
 
@@ -73,6 +73,10 @@ class QGYF:
 
 		if not QSettings().value('activeDataBase'):
 			QSettings().setValue('activeDataBase', 'qgyf.sqlite')
+
+		if not QSettings().value('CRS'):
+			crs = QgsCoordinateReferenceSystem("EPSG:3006")
+			QSettings().setValue('CRS', crs)
 
 		QSettings().setValue('objectCount', 0)
 
