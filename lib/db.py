@@ -18,8 +18,8 @@ class Db:
 		Initialize tables to store geo-objects (point, line, polygon) and calculations.
 		"""
 
-		if QSettings().value('CRS').authid() != '':
-			crs = QSettings().value('CRS').authid()
+		if QSettings().value('CRS'):
+			crs = QSettings().value('CRS')
 			crs = ''.join(c for c in crs if c.isdigit())
 			print(crs)
 		else:
@@ -37,6 +37,7 @@ class Db:
 
 		cur.execute("""CREATE TABLE point_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		gid TEXT NOT NULL,
 		filnamn TEXT,
 		beskrivning TEXT);""")
 
@@ -45,6 +46,7 @@ class Db:
 		cur.execute("""
 		CREATE TABLE line_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		gid TEXT NOT NULL,
 		filnamn TEXT,
 		beskrivning TEXT);""")
 
@@ -53,6 +55,7 @@ class Db:
 		cur.execute("""
 		CREATE TABLE polygon_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		gid TEXT NOT NULL,
 		filnamn TEXT,
 		beskrivning TEXT);""")
 
@@ -90,12 +93,12 @@ class Db:
 		faktor DOUBLE NOT NULL);
 		""")
 
+		# id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		cur.execute("""
 		CREATE TABLE classification (
-		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		gid TEXT,
 		geometri_typ TEXT,
 		filnamn TEXT,
-		id_ini INTEGER NOT NULL,
 		grupp TEXT,
 		kvalitet TEXT,
 		faktor DOUBLE NOT NULL,

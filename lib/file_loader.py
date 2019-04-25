@@ -7,6 +7,7 @@ FileLoader class
 '''
 import os
 import sys
+import uuid
 from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
@@ -224,8 +225,7 @@ class FileLoader():
       geometry_type = "yta"
       yta = feature.geometry().area()
 
-    #index = feature.fields().indexFromName("id")
-    feature_id = feature["id"]
+    feature_id = feature["gid"]
     quality_name = classification[0][1]
 
     q_list = self.layerSelectorDialog.qualities_list
@@ -245,9 +245,9 @@ class FileLoader():
       group_name = r[0][1][0]
 
     if factor != 1:
-      data = [None, geometry_type, self.fileName, feature_id, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
-      # id, geometri_typ, filnamn, id_ini, grupp, kvalitet, faktor, yta, poäng
-      cur.execute('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+      data = [feature_id, geometry_type, self.fileName, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
+      # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
+      cur.execute('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?)', data)
 
     cur.close()
     con.commit()

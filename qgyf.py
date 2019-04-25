@@ -89,11 +89,9 @@ class QGYF:
 		self.area_id = None
 		self.diagram = Diagram()
 
-		#self.initCalculationDialog()
 		self.layerSelectorDialog = LayerSelectorDialog()
 		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, QSettings().value('dataPath'))
 		self.calculator = GyfCalculator(QSettings().value('dataPath'))
-		#self.layerSelectorDialog.loadClassifications(QSettings().value('dataPath'))
 		self.showWelcome()
 
 	def initGui(self):

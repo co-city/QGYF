@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from qgis.utils import iface
 from ..lib.db import Db
 from qgis.gui import QgsProjectionSelectionDialog
+from qgis.core import QgsCoordinateReferenceSystem
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'settings.ui'))
@@ -22,7 +23,8 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         super(SettingsDialog, self).__init__(parent)
         self.setupUi(self)
         self.dataPath.setText(QSettings().value('dataPath'))
-        self.crs.setText(QSettings().value('CRS').description())
+        crs = QgsCoordinateReferenceSystem(QSettings().value('CRS'))
+        self.crs.setText(crs.description())
         self.populate()
         self.selectPathButton.clicked.connect(self.openFileDialog)
         self.clearDatabaseButton.clicked.connect(self.clearDataBase)
@@ -73,5 +75,5 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         projSelector.exec()
         crs_id = projSelector.crs().authid()
         if crs_id:
-             QSettings().setValue('CRS', projSelector.crs())
+             QSettings().setValue('CRS', crs_id)
         self.crs.setText(projSelector.crs().description())
