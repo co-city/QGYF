@@ -37,7 +37,7 @@ class Db:
 
 		cur.execute("""CREATE TABLE point_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-		gid TEXT NOT NULL,
+		gid TEXT,
 		filnamn TEXT,
 		beskrivning TEXT);""")
 
@@ -46,7 +46,7 @@ class Db:
 		cur.execute("""
 		CREATE TABLE line_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-		gid TEXT NOT NULL,
+		gid TEXT,
 		filnamn TEXT,
 		beskrivning TEXT);""")
 
@@ -55,7 +55,7 @@ class Db:
 		cur.execute("""
 		CREATE TABLE polygon_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-		gid TEXT NOT NULL,
+		gid TEXT,
 		filnamn TEXT,
 		beskrivning TEXT);""")
 

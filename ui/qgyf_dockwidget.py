@@ -24,9 +24,10 @@
 
 import os
 import threading
+import uuid
 from PyQt5 import QtGui, QtWidgets, uic
 from PyQt5.QtCore import QSettings, pyqtSignal, Qt
-from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest, QgsWkbTypes
+from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest, QgsWkbTypes, NULL
 from qgis.utils import iface, spatialite_connect
 from .saveResearchArea import saveRA
 from ..lib.styles import Style
@@ -169,16 +170,37 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))[0]
         iface.setActiveLayer(l)
 
+    def checkGID(self, layer):
+        path = QSettings().value('dataPath')
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        cur = con.cursor()
+        features = layer.getFeatures()
+        for f in features:
+            if f['gid'] == NULL:
+                if layer.wkbType() == QgsWkbTypes.Point:
+                    cur.execute("UPDATE point_object SET gid = (?) WHERE id = (?)", [str(uuid.uuid4()), f['id']])
+                elif layer.wkbType() == QgsWkbTypes.LineString:
+                    cur.execute("UPDATE line_object SET gid = (?) WHERE id = (?)", [str(uuid.uuid4()), f['id']])
+                else:
+                    cur.execute("UPDATE polygon_object SET gid = (?) WHERE id = (?)", [str(uuid.uuid4()), f['id']])
+        cur.close()
+        con.commit()
+        con.close()
+
+
     def setQ(self):
 
         path = QSettings().value('dataPath')
-
         layer = iface.activeLayer()
+        self.checkGID(layer)
+
         selected = layer.selectedFeatures()
         if self.selectQGroup.currentIndex() == 0:
             return None
 
         attributes = []
+        g = self.selectQGroup.currentText()
+
         if selected:
             for f in selected:
                 if layer.wkbType() == QgsWkbTypes.Point:
@@ -188,7 +210,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 else:
                     attributes.append(f.attributes() + [round(f.geometry().area(), 1)])
 
-        g = self.selectQGroup.currentText()
         def set_geom(x):
             return {QgsWkbTypes.Point: 'punkt',
                     QgsWkbTypes.LineString: 'linje'}.get(x, 'yta')
@@ -209,9 +230,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         data = []
         for i, obj in enumerate(attributes):
-            data.append([None, geom, obj[1], obj[0], g, q, f, obj[-1], round(obj[-1]*f,1)])
+            data.append([obj[1], geom, obj[2], g, q, f, obj[-1], round(obj[-1]*f, 1)])
 
-        cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?,?,?)', data)
+        cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?,?)', data)
         cur.close()
         con.commit()
         con.close()
@@ -219,25 +240,21 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.showClass()
 
     def removeQ(self, path):
+        items = self.classtable.selectedItems()
+        if items:
+            selected_rows = list(set([i.row() for i in items]))
+            ids = [self.classtable.item(i,7).text() for i in selected_rows]
 
-        ids = self.classtable.selectedItems()
-        ids = [i.text() for i in ids] #i.row()
-        if len(ids) == 9:
-            ids = [ids[-1]]
-        else:
-            ids = [ids[9 * n-1] for n in range(1, int(len(ids) / 9 + 1))]
-        ids = [int(i) for i in ids]
+            con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+            cur = con.cursor()
 
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
-        cur = con.cursor()
+            for i in ids:
+                cur.execute('DELETE FROM classification WHERE gid = (?);', [i])
 
-        for i in ids:
-            cur.execute('DELETE FROM classification WHERE id = (?);', [i])
-
-        cur.close()
-        con.commit()
-        con.close()
-        self.showClass()
+            cur.close()
+            con.commit()
+            con.close()
+            self.showClass()
 
     def showClass(self):
         path = QSettings().value('dataPath')
@@ -250,8 +267,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         data = [list(d[1:-2]) + [int(d[-2]), int(d[-1]), d[0]] for d in data]
 
         self.classtable.setSortingEnabled(True)
-        self.classtable.setColumnCount(9)
-        self.classtable.setHorizontalHeaderLabels(["geom", "filnamn", 'id', 'Grupp', 'K', 'F', 'Yta', 'Poäng','uid'])
+        self.classtable.setColumnCount(8)
+        self.classtable.setHorizontalHeaderLabels(["geom", "filnamn", 'Grupp', 'K', 'F', 'Yta', 'Poäng', 'gid'])
 
         if data:
             self.classtable.setRowCount(len(data))
@@ -262,6 +279,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             self.classtable.setRowCount(0)
 
+        self.classtable.setColumnHidden(7, True)
+
         cur.close()
         con.close()
 
@@ -270,13 +289,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         for i in range(0, len(l), n):
             yield l[i:i + n]
 
-    def lookupFeatures(self, rows, layer, geometry_type):
+    def lookupFeatures(self, gids, layer, geometry_type):
         features = list(layer.getFeatures())
         matches = []
 
-        for row in rows:
+        for gid in gids:
             for feature in features:
-                if row[0].text() == geometry_type and int(feature.attribute('id')) == int(row[2].text()):
+                if gid[0] == geometry_type and feature['gid'] == gid[1]:
                     matches.append(feature)
 
         return matches
@@ -300,15 +319,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             timer = Timer()
             timer.setTimeout(self.resetFeatureSelectionLock, 0.1)
 
-            if len(selected_items) > 0:
-                selected_range = self.classtable.selectedRanges()[0]
+            if selected_items:
+                selected_rows = list(set([i.row() for i in selected_items]))
+                gids = [[self.classtable.item(i, 0).text(), self.classtable.item(i, 7).text()] for i in selected_rows]
 
-                column_count = selected_range.columnCount()
-                selected_rows = list(self.chunks(selected_items, column_count))
-
-                selected_points = self.lookupFeatures(selected_rows, point_layer, 'punkt')
-                selected_lines = self.lookupFeatures(selected_rows, line_layer, 'linje')
-                selected_polygons = self.lookupFeatures(selected_rows, polygon_layer, 'yta')
+                selected_points = self.lookupFeatures(gids, point_layer, 'punkt')
+                selected_lines = self.lookupFeatures(gids, line_layer, 'linje')
+                selected_polygons = self.lookupFeatures(gids, polygon_layer, 'yta')
 
                 point_layer.selectByIds([point.id() for point in selected_points])
                 line_layer.selectByIds([line.id() for line in selected_lines])
@@ -321,17 +338,16 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def selectRowByFeatures(self, features, geom_type):
 
         for feature in features:
+            feature_id = feature["gid"]
+            if feature_id != NULL:
+                items = self.classtable.findItems(feature_id, Qt.MatchExactly)
+                rows = [item.row() for item in items]
 
-            feature_id = feature.attribute("id")
-
-            items = self.classtable.findItems(str(feature_id), Qt.MatchExactly)
-            rows = [item.row() for item in items]
-
-            for row in rows:
-                geom_name = self.classtable.item(row, 0).text()
-                table_fid = int(self.classtable.item(row, 2).text())
-                if geom_type == geom_name and table_fid == feature_id:
-                    self.classtable.selectRow(row)
+                for row in rows:
+                    geom_name = self.classtable.item(row, 0).text()
+                    table_gid = self.classtable.item(row, 7).text()
+                    if geom_type == geom_name and table_gid == feature_id:
+                        self.classtable.selectRow(row)
 
     def highlightRows(self):
 

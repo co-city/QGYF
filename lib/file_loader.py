@@ -100,7 +100,10 @@ class FileLoader():
       pointLayer = QgsProject.instance().mapLayersByName("Punktobjekt")[0]
       lineLayer = QgsProject.instance().mapLayersByName("Linjeobjekt")[0]
       polygonLayer = QgsProject.instance().mapLayersByName("Ytobjekt")[0]
-
+      pointLayer.startEditing()
+      lineLayer.startEditing()
+      polygonLayer.startEditing()
+      
       for feature in self.layer.getFeatures():
         try:
           type = self.prepareFeature(feature)
@@ -116,6 +119,10 @@ class FileLoader():
           self.msg.setWindowTitle("Importfel")
           self.msg.setText("Filen innehåller vissa objekt som inte går att importera.")
           self.msg.show()
+
+      pointLayer.commitChanges()
+      lineLayer.commitChanges()
+      polygonLayer.commitChanges()
       
       # Zoom to features
       extent = QgsRectangle()
@@ -143,7 +150,6 @@ class FileLoader():
     @param {list} filters
     @param {list} classifications
     """
-    layer.startEditing()
     index = feature.fields().indexFromName(self.filter_attribute)
     layer_name = feature.attributes()[index]
 
@@ -155,14 +161,13 @@ class FileLoader():
     if not filters or any(layer_name in filtr for filtr in filters):
       fields = QgsFields()
       fields.append(QgsField("id", QVariant.Int, "serial"))
+      fields.append(QgsField("gid", QVariant.String, "text"))
       fields.append(QgsField("filnamn", QVariant.String, "text"))
       fields.append(QgsField("beskrivning", QVariant.String, "text"))
 
       feature.setFields(fields, True)
-      feature.setAttributes([None, self.fileName, layer_name])
+      feature.setAttributes([None, str(uuid.uuid4()), self.fileName, layer_name])
       layer.addFeature(feature)
-
-      layer.commitChanges()
 
       if classifications:
         classification = list(filter(lambda classification: classification[0] == layer_name, classifications))
@@ -170,9 +175,6 @@ class FileLoader():
         inserted_feature = features[len(features) - 1]
         if classification:
           self.insertQuality(classification, inserted_feature)
-
-    else:
-      layer.commitChanges()
 
   def prepareFeature(self, feature):
 

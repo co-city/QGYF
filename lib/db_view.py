@@ -23,16 +23,15 @@ class DbView:
         cur.execute('DROP VIEW IF EXISTS point_class')
 
         cur.execute("""CREATE VIEW polygon_class AS
-            SELECT class.id AS id,
-                class.id_ini AS id_new,
+            SELECT  polygon_object.id AS id,
+                class.gid AS gid,
                 class.geometri_typ,
                 class.grupp AS grupp,
                 class.kvalitet AS kvalitet,
                 class.faktor AS faktor,
-                polygon_object.id AS id_ini,
                 polygon_object.geom AS geom
             FROM polygon_object
-            JOIN classification AS class ON (polygon_object.id = class.id_ini)
+            JOIN classification AS class ON (polygon_object.gid = class.gid)
             WHERE class.geometri_typ = 'yta';""")
 
         cur.execute("""INSERT OR IGNORE INTO views_geometry_columns
@@ -40,16 +39,15 @@ class DbView:
             VALUES ('polygon_class', 'geom', 'id', 'polygon_object', 'geom', 1);""")
 
         cur.execute("""CREATE VIEW line_class AS
-            SELECT class.id AS id,
-                class.id_ini AS id_new,
+            SELECT line_object.id AS id,
+                class.gid AS gid,
                 class.geometri_typ,
                 class.grupp AS grupp,
                 class.kvalitet AS kvalitet,
                 class.faktor AS faktor,
-                line_object.id AS id_ini,
                 line_object.geom AS geom
             FROM line_object
-            JOIN classification AS class ON (line_object.id = class.id_ini)
+            JOIN classification AS class ON (line_object.gid = class.gid)
             WHERE class.geometri_typ = 'linje';""")
 
         cur.execute("""INSERT OR IGNORE INTO views_geometry_columns
@@ -57,16 +55,15 @@ class DbView:
             VALUES ('line_class', 'geom', 'id', 'line_object', 'geom', 1);""")
 
         cur.execute("""CREATE VIEW point_class AS
-            SELECT class.id AS id,
-                class.id_ini AS id_new,
+            SELECT point_object.id AS id,
+                class.gid AS gid,
                 class.geometri_typ,
                 class.grupp AS grupp,
                 class.kvalitet AS kvalitet,
                 class.faktor AS faktor,
-                point_object.id AS id_ini,
                 point_object.geom AS geom
             FROM point_object
-            JOIN classification AS class ON (point_object.id = class.id_ini)
+            JOIN classification AS class ON (point_object.gid = class.gid)
             WHERE class.geometri_typ = 'punkt';""")
 
         cur.execute("""INSERT OR IGNORE INTO views_geometry_columns

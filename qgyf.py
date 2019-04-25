@@ -249,13 +249,18 @@ class QGYF:
 		self.style = Style()
 		root = QgsProject.instance().layerTreeRoot()
 		classificationGroup = root.findGroup('Klassificering')
+		visualizationGroup = root.findGroup('Kvaliteter')
 
 		#root.clear()
-		# for layer in root.findLayers():
-		# 	if layer.name() == "Beräkningsområde":
-		# 		root.removeChildNode(layer)
-		# if classificationGroup:
-		# 	root.removeChildNode(classificationGroup)
+		for layer in root.findLayers():
+			if layer.name() == "Beräkningsområde":
+				root.removeChildNode(layer)
+			elif layer.name() == "Grundytor":
+				root.removeChildNode(layer)
+		if classificationGroup:
+			root.removeChildNode(classificationGroup)
+		if visualizationGroup:
+			root.removeChildNode(visualizationGroup)
 
 		classificationGroup = root.insertGroup(0, 'Klassificering')
 		layerNames =	{
