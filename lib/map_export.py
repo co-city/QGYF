@@ -18,7 +18,7 @@ import datetime
 
 class ExportCreator:
 
-    def exportPDF(self, chart_path, gyf, exportDialog, area_id, groups, feature_ids, total):
+    def exportPDF(self, chart_path, gyf, exportDialog, area_id, groups, feature_gids, total):
 
         # Text from export dialog
         map_title = exportDialog.projectName.text()
@@ -118,8 +118,8 @@ class ExportCreator:
         tableLayout.setVectorLayer(table)
         tableLayout.setDisplayedFields(['id', 'geometri_typ', 'fil_namn', 'grupp', 'kvalitet', 'faktor', 'yta', 'poang'])
         # Filter
-        feature_ids = ", ".join(str(i) for i in feature_ids)
-        query = "id in ("+ feature_ids +")"
+        feature_gids = ", ".join(str(i) for i in feature_gids)
+        query = "gid in ("+ feature_gids +")"
         tableLayout.setFilterFeatures(True)
         tableLayout.setFeatureFilter(query)
         tableLayout.update()

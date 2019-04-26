@@ -96,50 +96,64 @@ class FileLoader():
     self.layerSelectorDialog.close()
 
   def loadFeatures(self, filters, classifications):
-    try:
-      pointLayer = QgsProject.instance().mapLayersByName("Punktobjekt")[0]
-      lineLayer = QgsProject.instance().mapLayersByName("Linjeobjekt")[0]
-      polygonLayer = QgsProject.instance().mapLayersByName("Ytobjekt")[0]
-      pointLayer.startEditing()
-      lineLayer.startEditing()
-      polygonLayer.startEditing()
-      
-      for feature in self.layer.getFeatures():
-        try:
-          type = self.prepareFeature(feature)
-          if type == "Point":
-            self.addFeature(feature, type, pointLayer, filters, classifications)
-          if type == "Line":
-            self.addFeature(feature, type, lineLayer, filters, classifications)
-          if type == "Polygon":
-            self.addFeature(feature, type, polygonLayer, filters, classifications)
-        except:
-          self.msg = QMessageBox()
-          self.msg.setIcon(QMessageBox.Information)
-          self.msg.setWindowTitle("Importfel")
-          self.msg.setText("Filen innehåller vissa objekt som inte går att importera.")
-          self.msg.show()
-
-      pointLayer.commitChanges()
-      lineLayer.commitChanges()
-      polygonLayer.commitChanges()
-      
-      # Zoom to features
-      extent = QgsRectangle()
-      extent.setMinimal()
-      root = QgsProject.instance().layerTreeRoot()
-      group = root.findGroup("Klassificering")
-      for child in group.children():
-        extent.combineExtentWith(child.layer().extent())
-      iface.mapCanvas().setExtent(extent)
-      iface.mapCanvas().refresh()
+    #try:
+    data = []
+    pointLayer = QgsProject.instance().mapLayersByName("Punktobjekt")[0]
+    lineLayer = QgsProject.instance().mapLayersByName("Linjeobjekt")[0]
+    polygonLayer = QgsProject.instance().mapLayersByName("Ytobjekt")[0]
+    pointLayer.startEditing()
+    lineLayer.startEditing()
+    polygonLayer.startEditing()
     
-    except:
+    for feature in self.layer.getFeatures():
+      try:
+        type = self.prepareFeature(feature)
+        if type == "Point":
+          data_point = self.addFeature(feature, type, pointLayer, filters, classifications)
+          data.append(data_point)
+        if type == "Line":
+          data_line = self.addFeature(feature, type, lineLayer, filters, classifications)
+          data.append(data_line)
+        if type == "Polygon":
+          data_polygon = self.addFeature(feature, type, polygonLayer, filters, classifications)
+          data.append(data_polygon)
+      except:
+        self.msg = QMessageBox()
+        self.msg.setIcon(QMessageBox.Information)
+        self.msg.setWindowTitle("Importfel")
+        self.msg.setText("Filen innehåller vissa objekt som inte går att importera.")
+        self.msg.show()
+
+    pointLayer.commitChanges()
+    lineLayer.commitChanges()
+    polygonLayer.commitChanges()
+
+    # Fill classification table
+    data = [d for d in data if d is not None]
+    if data:
+      con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+      cur = con.cursor()
+      cur.executemany('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?)', data)
+      cur.close()
+      con.commit()
+      con.close()
+    
+    # Zoom to features
+    extent = QgsRectangle()
+    extent.setMinimal()
+    root = QgsProject.instance().layerTreeRoot()
+    group = root.findGroup("Klassificering")
+    for child in group.children():
+      extent.combineExtentWith(child.layer().extent())
+    iface.mapCanvas().setExtent(extent)
+    iface.mapCanvas().refresh()
+    
+    '''except:
       self.msg = QMessageBox()
       self.msg.setIcon(QMessageBox.Information)
       self.msg.setWindowTitle("Importfel")
       self.msg.setText("Nödvändiga kartlager saknas. Ladda in databasen på nytt.")
-      self.msg.show()
+      self.msg.show()'''
 
   def addFeature(self, feature, type, layer, filters, classifications):
     """
@@ -152,6 +166,7 @@ class FileLoader():
     """
     index = feature.fields().indexFromName(self.filter_attribute)
     layer_name = feature.attributes()[index]
+    data_feature = None
 
     try:
       layer_name = layer_name.encode("windows-1252").decode("utf-8")
@@ -174,7 +189,9 @@ class FileLoader():
         features = sorted(list(layer.getFeatures()), key=lambda feature: feature.attributes()[feature.fields().indexFromName("id")])
         inserted_feature = features[len(features) - 1]
         if classification:
-          self.insertQuality(classification, inserted_feature)
+          data_feature = self.insertQuality(classification, inserted_feature)
+    
+      return data_feature
 
   def prepareFeature(self, feature):
 
@@ -213,9 +230,7 @@ class FileLoader():
     return type
 
   def insertQuality(self, classification, feature):
-    con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
-    cur = con.cursor()
-
+    data = None
     geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
     if (geometry_type == "Point"):
       geometry_type = "punkt"
@@ -249,11 +264,8 @@ class FileLoader():
     if factor != 1:
       data = [feature_id, geometry_type, self.fileName, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
       # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
-      cur.execute('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?)', data)
 
-    cur.close()
-    con.commit()
-    con.close()
+    return data      
 
   def lookupAttributes(self, layer):
     features = list(layer.getFeatures())

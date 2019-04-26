@@ -48,7 +48,7 @@ class GyfCalculator:
 
     factor = feature["faktor"]
     group = feature["grupp"]
-    feature_id = feature["id"]
+    feature_id = feature["gid"]
 
     return intersection.area() * factor, group, feature_id
 
