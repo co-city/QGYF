@@ -118,8 +118,9 @@ class ExportCreator:
         tableLayout.setVectorLayer(table)
         tableLayout.setDisplayedFields(['id', 'geometri_typ', 'fil_namn', 'grupp', 'kvalitet', 'faktor', 'yta', 'poang'])
         # Filter
-        feature_gids = ", ".join(str(i) for i in feature_gids)
-        query = "gid in ("+ feature_gids +")"
+        feature_gids = "', '".join(i for i in feature_gids)
+        query = "gid in ('"+ feature_gids +"')"
+        print(query)
         tableLayout.setFilterFeatures(True)
         tableLayout.setFeatureFilter(query)
         tableLayout.update()
