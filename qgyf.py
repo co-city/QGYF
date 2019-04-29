@@ -21,10 +21,10 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QVariant
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QApplication, QFileDialog, QMessageBox
-from qgis.core import QgsProject, QgsVectorLayer, QgsCoordinateReferenceSystem
+from qgis.core import QgsProject, QgsVectorLayer, QgsCoordinateReferenceSystem, QgsFields, QgsField
 from qgis.gui import QgsFileWidget
 from .resources import *
 
@@ -46,6 +46,7 @@ from .lib.map_export import ExportCreator
 import os.path
 import numpy as np
 import inspect
+import uuid
 from shutil import copyfile
 
 class QGYF:
@@ -273,6 +274,7 @@ class QGYF:
 		for layer in layers:
 			pathLayer = '{}\{}|layername={}'.format(path, QSettings().value('activeDataBase'), layer)
 			vlayer = QgsVectorLayer(pathLayer, layerNames[layer], "ogr")
+
 			if layer == 'research_area':
 				self.style.styleResearchArea(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
@@ -280,6 +282,12 @@ class QGYF:
 				self.style.iniStyle(vlayer)
 				QgsProject.instance().addMapLayer(vlayer, False)
 				classificationGroup.addLayer(vlayer)
+				vlayer.featureAdded.connect(lambda fid : self.featureAdded(fid, vlayer))
+
+	def featureAdded(self, fid, layer):
+		feature = layer.getFeature(fid)
+		feature["gid"] = str(uuid.uuid4())
+		layer.updateFeature(feature)
 
 	def initDatabase(self, path):
 		self.db = Db()
