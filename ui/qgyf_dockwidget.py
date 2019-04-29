@@ -279,7 +279,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             self.classtable.setRowCount(0)
 
-        #self.classtable.setColumnHidden(7, True)
+        self.classtable.setColumnHidden(7, True)
 
         cur.close()
         con.close()
