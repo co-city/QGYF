@@ -88,7 +88,7 @@ class FileLoader():
         layerName = values[0].strip()
         if (len(values) == 2):
           classifications.append((values[0].strip(), values[1].strip()))
-        filters.append(layerName)
+        filters.append(str(layerName))
       self.loadFeatures(filters, classifications)
     else:
       self.loadFeatures(None, None)
@@ -106,23 +106,21 @@ class FileLoader():
     polygonLayer.startEditing()
     
     for feature in self.layer.getFeatures():
-      try:
-        type = self.prepareFeature(feature)
-        if type == "Point":
-          data_point = self.addFeature(feature, type, pointLayer, filters, classifications)
-          data.append(data_point)
-        if type == "Line":
-          data_line = self.addFeature(feature, type, lineLayer, filters, classifications)
-          data.append(data_line)
-        if type == "Polygon":
-          data_polygon = self.addFeature(feature, type, polygonLayer, filters, classifications)
-          data.append(data_polygon)
-      except:
+      #try:
+      type = self.prepareFeature(feature)
+      if type == "Point":
+        data_feature = self.addFeature(feature, type, pointLayer, filters, classifications)
+      if type == "Line":
+        data_feature = self.addFeature(feature, type, lineLayer, filters, classifications)
+      if type == "Polygon":
+        data_feature = self.addFeature(feature, type, polygonLayer, filters, classifications)
+      data.append(data_feature)
+      '''except:
         self.msg = QMessageBox()
         self.msg.setIcon(QMessageBox.Information)
         self.msg.setWindowTitle("Importfel")
         self.msg.setText("Filen innehåller vissa objekt som inte går att importera.")
-        self.msg.show()
+        self.msg.show()'''
 
     pointLayer.commitChanges()
     lineLayer.commitChanges()
@@ -130,6 +128,7 @@ class FileLoader():
 
     # Fill classification table
     data = [d for d in data if d is not None]
+    print(data)
     if data:
       con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
       cur = con.cursor()
@@ -172,8 +171,8 @@ class FileLoader():
       layer_name = layer_name.encode("windows-1252").decode("utf-8")
     except:
       layer_name = layer_name
-
-    if not filters or any(layer_name in filtr for filtr in filters):
+    
+    if not filters or any(str(layer_name) in filtr for filtr in filters):
       fields = QgsFields()
       fields.append(QgsField("id", QVariant.Int, "serial"))
       fields.append(QgsField("gid", QVariant.String, "text"))
@@ -185,13 +184,11 @@ class FileLoader():
       layer.addFeature(feature)
 
       if classifications:
-        classification = list(filter(lambda classification: classification[0] == layer_name, classifications))
-        features = sorted(list(layer.getFeatures()), key=lambda feature: feature.attributes()[feature.fields().indexFromName("id")])
-        inserted_feature = features[len(features) - 1]
+        classification = list(filter(lambda classification: classification[0] == str(layer_name), classifications))
         if classification:
-          data_feature = self.insertQuality(classification, inserted_feature)
+          data_feature = self.insertQuality(classification, feature)
     
-      return data_feature
+    return data_feature
 
   def prepareFeature(self, feature):
 
@@ -261,10 +258,11 @@ class FileLoader():
       factor = r[0][1][3]
       group_name = r[0][1][0]
 
-    if factor != 1:
+    if factor != -1:
       data = [feature_id, geometry_type, self.fileName, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
       # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
-
+      
+    print('Ini data: ' + str(data))
     return data      
 
   def lookupAttributes(self, layer):
