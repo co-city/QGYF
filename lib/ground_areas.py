@@ -31,7 +31,7 @@ class GroundAreas:
             # Merge all objects together
             cur.execute("""INSERT INTO ground_areas (id, yta, geom) 
                 SELECT NULL, AREA(st_unaryunion(st_collect(geom))), st_unaryunion(st_collect(geom)) as geom FROM 
-                (SELECT NULL, geom FROM polygon_object 
+                (SELECT NULL, geom FROM polygon_object
                 UNION ALL 
                 SELECT NULL, CastToPolygon(ST_Buffer(geom, 0.5)) FROM line_object
                 UNION ALL 

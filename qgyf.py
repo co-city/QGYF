@@ -24,7 +24,7 @@
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QVariant
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QApplication, QFileDialog, QMessageBox
-from qgis.core import QgsProject, QgsVectorLayer, QgsCoordinateReferenceSystem, QgsFields, QgsField
+from qgis.core import QgsProject, QgsVectorLayer, QgsCoordinateReferenceSystem, QgsFields, QgsField, NULL
 from qgis.gui import QgsFileWidget
 from .resources import *
 
@@ -286,8 +286,9 @@ class QGYF:
 
 	def featureAdded(self, fid, layer):
 		feature = layer.getFeature(fid)
-		feature["gid"] = str(uuid.uuid4())
-		layer.updateFeature(feature)
+		if length(feature['fid']) != 36 or feature['fid'] == NULL:
+			feature["gid"] = str(uuid.uuid4())
+			layer.updateFeature(feature)
 
 	def initDatabase(self, path):
 		self.db = Db()
