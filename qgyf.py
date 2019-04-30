@@ -263,7 +263,7 @@ class QGYF:
 		if visualizationGroup:
 			root.removeChildNode(visualizationGroup)
 
-		classificationGroup = root.insertGroup(0, 'Klassificering')
+		classificationGroup = root.insertGroup(0, "Klassificering")
 		layerNames =	{
 		  "point_object": "Punktobjekt",
 		  "line_object": "Linjeobjekt",
@@ -272,21 +272,21 @@ class QGYF:
 		}
 
 		for layer in layers:
-			pathLayer = '{}\{}|layername={}'.format(path, QSettings().value('activeDataBase'), layer)
+			pathLayer = '{}\{}|layername={}'.format(path, QSettings().value("activeDataBase"), layer)
 			vlayer = QgsVectorLayer(pathLayer, layerNames[layer], "ogr")
 
-			if layer == 'research_area':
+			if layer == "research_area":
 				self.style.styleResearchArea(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
 			else:
 				self.style.iniStyle(vlayer)
 				QgsProject.instance().addMapLayer(vlayer, False)
 				classificationGroup.addLayer(vlayer)
-				vlayer.featureAdded.connect(lambda fid : self.featureAdded(fid, vlayer))
+				vlayer.featureAdded.connect(lambda fid, vlayer=vlayer : self.featureAdded(fid, vlayer))
 
 	def featureAdded(self, fid, layer):
 		feature = layer.getFeature(fid)
-		if len(feature['fid']) != 36 or feature['fid'] == NULL:
+		if feature["gid"] == NULL or len(feature["gid"]) != 36:
 			feature["gid"] = str(uuid.uuid4())
 			layer.updateFeature(feature)
 
