@@ -286,7 +286,7 @@ class QGYF:
 
 	def featureAdded(self, fid, layer):
 		feature = layer.getFeature(fid)
-		if length(feature['fid']) != 36 or feature['fid'] == NULL:
+		if len(feature['fid']) != 36 or feature['fid'] == NULL:
 			feature["gid"] = str(uuid.uuid4())
 			layer.updateFeature(feature)
 
