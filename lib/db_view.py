@@ -98,3 +98,5 @@ class DbView:
                 self.style.oneColor(vlayer)
                 QgsProject.instance().addMapLayer(vlayer, False)
                 mygroup.addLayer(vlayer)
+            else:
+                lyr[0].triggerRepaint()

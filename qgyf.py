@@ -77,7 +77,7 @@ class QGYF:
 
 		if not QSettings().value('CRS'):
 			crs = QgsCoordinateReferenceSystem("EPSG:3006")
-			QSettings().setValue('CRS', crs)
+			QSettings().setValue('CRS', crs.authid())
 
 		QSettings().setValue('objectCount', 0)
 
@@ -86,12 +86,12 @@ class QGYF:
 		self.toolbar = self.iface.addToolBar(u'QGYF')
 		self.toolbar.setObjectName(u'QGYF')
 		self.pluginIsActive = False
-		self.dockwidget = None
+		self.dockwidget = QGYFDockWidget()
 		self.area_id = None
 		self.diagram = Diagram()
 
 		self.layerSelectorDialog = LayerSelectorDialog()
-		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, QSettings().value('dataPath'))
+		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.dockwidget, QSettings().value('dataPath'))
 		self.calculator = GyfCalculator(QSettings().value('dataPath'))
 		self.showWelcome()
 
@@ -169,6 +169,8 @@ class QGYF:
 			"line_object",
 			"polygon_object",
 		])
+		if self.dockwidget.isVisible():
+			self.dockwidget.showClass()
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -238,8 +240,9 @@ class QGYF:
 		root = QgsProject.instance().layerTreeRoot()
 		content = [l.name() for l in root.children()]
 		if 'Kvaliteter' in content:
-			if self.dockwidget:
-				self.dockwidget.disableGroup(QSettings().value('dataPath'))
+			self.dockwidget.disableGroup(QSettings().value('dataPath'))
+		if self.dockwidget.isVisible():
+			self.dockwidget.showClass()
 
 	def info(self):
 		self.welcome = WelcomeDialog()
@@ -252,7 +255,6 @@ class QGYF:
 		classificationGroup = root.findGroup('Klassificering')
 		visualizationGroup = root.findGroup('Kvaliteter')
 
-		#root.clear()
 		for layer in root.findLayers():
 			if layer.name() == "Beräkningsområde":
 				root.removeChildNode(layer)
@@ -311,13 +313,14 @@ class QGYF:
 		del self.toolbar
 
 	def createDataView(self):
-		if self.dockwidget.tabWidget.currentIndex() == 1:
+		if self.dockwidget.tabWidget.currentIndex() != 0:
 			self.dbView = DbView()
 			self.dbView.init(QSettings().value('dataPath'))
 			self.createGA = GroundAreas()
 			self.createGA.init(QSettings().value('dataPath'))
 
 	def calculate(self):
+		self.createDataView()
 
 		gyf, factor_areas, groups, feature_ids, area_id, eco_area = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
@@ -371,63 +374,61 @@ class QGYF:
 		self.dockwidget.showClass()
 
 	def initCalculationDialog(self):
-		if self.dockwidget == None:
-			# Create the dockwidget (after translation) and keep reference
-			self.dockwidget = QGYFDockWidget()
-			self.iface.removeDockWidget(self.dockwidget)
-			self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+		# Create the dockwidget (after translation) and keep reference
+		self.iface.removeDockWidget(self.dockwidget)
+		self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
-			# connect to provide cleanup on closing of dockwidget
-			self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+		# connect to provide cleanup on closing of dockwidget
+		self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
-			# Classification
-			self.dockwidget.switchLayerGroups()
+		# Classification
+		self.dockwidget.switchLayerGroups()
 
-			# Highlight rows in classification table
-			self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
+		# Highlight rows in classification table
+		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
 
-			# Qualities
-			self.dockwidget.selectQGroup.clear()
-			self.dockwidget.chooseQ(QSettings().value('dataPath'))
+		# Qualities
+		self.dockwidget.selectQGroup.clear()
+		self.dockwidget.chooseQ(QSettings().value('dataPath'))
 
-			getQ = lambda : self.dockwidget.getQ(QSettings().value('dataPath'))
-			self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
+		getQ = lambda : self.dockwidget.getQ(QSettings().value('dataPath'))
+		self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
 
-			getF = lambda : self.dockwidget.getF(QSettings().value('dataPath'))
-			self.dockwidget.selectQ.currentIndexChanged.connect(getF)
+		getF = lambda : self.dockwidget.getF(QSettings().value('dataPath'))
+		self.dockwidget.selectQ.currentIndexChanged.connect(getF)
 
-			self.dockwidget.approveButton.clicked.connect(self.dockwidget.setQ)
+		self.dockwidget.approveButton.clicked.connect(self.dockwidget.setQ)
 
-			removeQ = lambda : self.dockwidget.removeQ(QSettings().value('dataPath'))
-			self.dockwidget.removeButton.clicked.connect(removeQ)
+		removeQ = lambda : self.dockwidget.removeQ(QSettings().value('dataPath'))
+		self.dockwidget.removeButton.clicked.connect(removeQ)
 
-			self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
+		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
 
-			# Objects
-			self.dockwidget.setLayers()
-			self.dockwidget.selectLayer.currentIndexChanged.connect(self.dockwidget.selectStart)
+		# Objects
+		self.dockwidget.setLayers()
+		self.dockwidget.selectLayer.currentIndexChanged.connect(self.dockwidget.selectStart)
 
-			# Visualisation
-			self.dockwidget.tabWidget.currentChanged.connect(self.createDataView)
-			disableGroup = lambda : self.dockwidget.disableGroup(QSettings().value('dataPath'))
-			self.dockwidget.tabWidget.currentChanged.connect(disableGroup)
-			self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
-			self.dockwidget.groupList()
+		# Visualisation
+		self.dockwidget.tabWidget.currentChanged.connect(self.createDataView)
+		disableGroup = lambda : self.dockwidget.disableGroup(QSettings().value('dataPath'))
+		self.dockwidget.tabWidget.currentChanged.connect(disableGroup)
+		self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
+		self.dockwidget.groupList()
 
-			# Estimation of GYF
-			# Research area
-			self.dockwidget.calculate.setStyleSheet("color: #006600")
-			self.dockwidget.selectRA.clicked.connect(self.dockwidget.selectArea)
-			createArea = lambda : self.dockwidget.createArea(QSettings().value('dataPath'))
-			self.dockwidget.createRA.clicked.connect(createArea)
-			# GYF
-			self.dockwidget.calculate.clicked.connect(self.calculate)
+		# Estimation of GYF
+		# Research area
+		self.dockwidget.calculate.setStyleSheet("color: #006600")
+		self.dockwidget.selectRA.clicked.connect(self.dockwidget.selectArea)
+		createArea = lambda : self.dockwidget.createArea(QSettings().value('dataPath'))
+		self.dockwidget.createRA.clicked.connect(createArea)
+		# GYF
+		self.dockwidget.calculate.clicked.connect(self.calculate)
 
-			# Export
-			self.dockwidget.report.clicked.connect(self.showExportDialog)
+		# Export
+		self.dockwidget.report.clicked.connect(self.showExportDialog)
 
 	def openSettingsDialog(self):
-		self.settings = SettingsDialog(None, self)
+		self.settings = SettingsDialog(self.dockwidget, None, self)
 		self.settings.show()
 		self.settings.okButton.clicked.connect(self.settings.close)
 

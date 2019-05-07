@@ -316,6 +316,22 @@
        <string>Ta bort kvalitet</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="geomButton">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>450</y>
+        <width>41</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Ta bort markerade kvaliteter från tabellen</string>
+      </property>
+      <property name="text">
+       <string>R/H</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="visualize">
      <attribute name="title">

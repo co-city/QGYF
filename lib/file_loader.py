@@ -28,11 +28,12 @@ class AttributeSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
 
 class FileLoader():
 
-  def __init__(self, interface, layerSelectorDialog, path):
+  def __init__(self, interface, layerSelectorDialog, dockwidget, path):
     self.interface = interface
     self.layerSelectorDialog = layerSelectorDialog
     self.path = path
-    self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
+    importToMap = lambda : self.importToMap(dockwidget)
+    self.layerSelectorDialog.okButton.clicked.connect(importToMap)
 
   def loadFile(self):
     """
@@ -77,7 +78,7 @@ class FileLoader():
       self.layerSelectorDialog.load(layers)
       self.layerSelectorDialog.show()
 
-  def importToMap(self):
+  def importToMap(self, dockwidget):
 
     filters = []
     classifications = []
@@ -94,6 +95,8 @@ class FileLoader():
       self.loadFeatures(None, None)
 
     self.layerSelectorDialog.close()
+    if dockwidget:
+      dockwidget.showClass()
 
   def loadFeatures(self, filters, classifications):
     try:

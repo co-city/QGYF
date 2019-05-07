@@ -19,28 +19,30 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'settings.ui'))
 
 class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
-    def __init__(self, parent=None, parentWidget=None):
+    def __init__(self, dockwidget, parent=None, parentWidget=None):
         super(SettingsDialog, self).__init__(parent)
         self.setupUi(self)
+        self.populate()
         self.dataPath.setText(QSettings().value('dataPath'))
         crs = QgsCoordinateReferenceSystem(QSettings().value('CRS'))
         self.crs.setText(crs.description())
-        self.populate()
         self.selectPathButton.clicked.connect(self.openFileDialog)
-        self.clearDatabaseButton.clicked.connect(self.clearDataBase)
+        clearDataBase = lambda : self.clearDataBase(dockwidget)
+        self.clearDatabaseButton.clicked.connect(clearDataBase)
         self.activeDatabase.currentIndexChanged.connect(self.setDatabase)
         self.parent = parentWidget
         self.selectCRSButton.clicked.connect(self.setCRS)
 
-    def clearDataBase(self):
+    def clearDataBase(self, dockwidget):
         db = Db()
         db.clear("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
-        iface.mapCanvas().refresh()
         self.msg = QMessageBox()
         self.msg.setIcon(QMessageBox.Information)
         self.msg.setWindowTitle("Information")
         self.msg.setText("Databasen rensades")
         self.msg.show()
+        dockwidget.showClass()
+        iface.mapCanvas().refreshAllLayers()
 
     def openFileDialog(self):
         path = QFileDialog.getExistingDirectory(self, 'Öppna fil', '', QFileDialog.ShowDirsOnly)
@@ -54,8 +56,12 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.activeDatabase.setCurrentIndex(index)
         if self.activeDatabase.currentText():
             QSettings().setValue('activeDataBase', self.activeDatabase.currentText())
+        else:
+            QSettings().setValue('activeDataBase', 'qgyf.sqlite')
 
     def populate(self):
+        if not os.path.exists(QSettings().value('dataPath')):
+            QSettings().setValue('dataPath', os.getenv('APPDATA') + '\QGYF')
         listOfFiles = os.listdir(QSettings().value('dataPath'))
         pattern = "*.sqlite"
         self.activeDatabase.clear()

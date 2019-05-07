@@ -52,3 +52,5 @@ class GroundAreas:
             self.style.styleGroundAreas(vlayer)
             QgsProject.instance().addMapLayer(vlayer, False)
             root.insertLayer(3, vlayer)
+        else:
+            lyr[0].triggerRepaint()

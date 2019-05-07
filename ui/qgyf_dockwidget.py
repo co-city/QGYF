@@ -113,7 +113,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         i = str(self.selectQGroup.currentIndex())
         cur.execute('SELECT kvalitet, kort_namn FROM gyf_quality WHERE grupp_id = ' + i)
         quality = [j[0] + ' - ' + j[1] for j in cur.fetchall()]
-        quality = quality + ['Vet inte']
+        quality = [''] + quality
         self.selectQ.addItems(quality)
 
         cur.close()
@@ -129,7 +129,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur = con.cursor()
 
         if self.selectQ.count() > 0:
-            if self.selectQ.currentText() != 'Vet inte':
+            if self.selectQ.currentText() != '':
                 q = self.selectQ.currentText()
                 q = q.split(' ')[0]
                 cur.execute('SELECT faktor,namn,beskrivning FROM gyf_quality WHERE kvalitet = ?', [q])
@@ -140,7 +140,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 if self.selectQGroup.currentText():
                     i = [self.selectQGroup.currentIndex()]
                     cur.execute('SELECT faktor FROM gyf_qgroup WHERE id = ?', i)
-                    text = '<p style="color:#cc0000">OBS! Ungerfärligt beräkningsläge för GYF:en!</p><h4 style="color:#238973">' + \
+                    text = '<p style="color:#cc0000">OBS! Ungerfärligt beräkningsläge för GYF:en.<br>Välj kvalitet för att få en noggrannt definierad faktor.</p><h4 style="color:#238973">' + \
                         self.selectQGroup.currentText() + '</h4>grov faktor = ' + str(cur.fetchone()[0])
                     self.textQ.append(text)
 
@@ -167,8 +167,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 'linje': 'Linjeobjekt'
             }.get(x, 'Ytobjekt')
 
-        l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))[0]
-        iface.setActiveLayer(l)
+        l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))
+        if l:
+            iface.setActiveLayer(l[0])
 
     def checkGID(self, layer):
         path = QSettings().value('dataPath')
@@ -218,7 +219,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
-        if self.selectQ.currentText() != 'Vet inte':
+        if self.selectQ.currentText() != '':
             q = self.selectQ.currentText()
             q = q.split(' ')[0]
             cur.execute('SELECT faktor FROM gyf_quality WHERE kvalitet = ?', [q])
@@ -229,10 +230,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         f = cur.fetchone()[0]
 
         data = []
-        for i, obj in enumerate(attributes):
+        for obj in attributes:
+            if obj[2] == NULL:
+                obj[2] = ''
             data.append([obj[1], geom, obj[2], g, q, f, obj[-1], round(obj[-1]*f, 1)])
 
         cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?,?)', data)
+        # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
         cur.close()
         con.commit()
         con.close()
@@ -243,13 +247,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         items = self.classtable.selectedItems()
         if items:
             selected_rows = list(set([i.row() for i in items]))
-            ids = [self.classtable.item(i,7).text() for i in selected_rows]
+            ids = [[self.classtable.item(i,3).text(), self.classtable.item(i,7).text()] for i in selected_rows]
 
             con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
             cur = con.cursor()
 
             for i in ids:
-                cur.execute('DELETE FROM classification WHERE gid = (?);', [i])
+                cur.execute('DELETE FROM classification WHERE kvalitet = (?) AND gid = (?);', i)
 
             cur.close()
             con.commit()
@@ -259,30 +263,33 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def showClass(self):
         path = QSettings().value('dataPath')
         self.classtable.clear()
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
-        cur = con.cursor()
+        root = QgsProject.instance().layerTreeRoot()
+        content = [l.name() for l in root.children()]
+        if 'Klassificering' in content:
+            con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+            cur = con.cursor()
 
-        cur.execute('SELECT * FROM classification')
-        data = cur.fetchall()
-        data = [list(d[1:-2]) + [int(d[-2]), int(d[-1]), d[0]] for d in data]
+            cur.execute('SELECT * FROM classification')
+            data = cur.fetchall()
+            data = [list(d[1:-2]) + [int(d[-2]), int(d[-1]), d[0]] for d in data]
 
-        self.classtable.setSortingEnabled(True)
-        self.classtable.setColumnCount(8)
-        self.classtable.setHorizontalHeaderLabels(["geom", "filnamn", 'Grupp', 'K', 'F', 'Yta', 'Poäng', 'gid'])
+            self.classtable.setSortingEnabled(True)
+            self.classtable.setColumnCount(8)
+            self.classtable.setHorizontalHeaderLabels(["geom", "filnamn", 'Grupp', 'K', 'F', 'Yta', 'Poäng', 'gid'])
 
-        if data:
-            self.classtable.setRowCount(len(data))
-            for i, item in enumerate(data):
-                for j, field in enumerate(item):
-                    self.classtable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
-                    self.classtable.horizontalHeader().setSectionResizeMode(j, QtWidgets.QHeaderView.ResizeToContents)
-        else:
-            self.classtable.setRowCount(0)
+            if data:
+                self.classtable.setRowCount(len(data))
+                for i, item in enumerate(data):
+                    for j, field in enumerate(item):
+                        self.classtable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
+                        self.classtable.horizontalHeader().setSectionResizeMode(j, QtWidgets.QHeaderView.ResizeToContents)
+            else:
+                self.classtable.setRowCount(0)
 
-        self.classtable.setColumnHidden(7, True)
+            self.classtable.setColumnHidden(7, True)
 
-        cur.close()
-        con.close()
+            cur.close()
+            con.close()
 
     def chunks(self, l, n):
         """Yield successive n-sized chunks from l."""
@@ -311,29 +318,36 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if self.row_selection_lock is False:
             selected_items = self.classtable.selectedItems()
 
-            point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')[0]
-            line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')[0]
-            polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')[0]
+            point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')
+            line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')
+            polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')
+            layers = point_layer + line_layer + polygon_layer
 
-            self.feature_selection_lock = True
-            timer = Timer()
-            timer.setTimeout(self.resetFeatureSelectionLock, 0.1)
+            if layers:
 
-            if selected_items:
-                selected_rows = list(set([i.row() for i in selected_items]))
-                gids = [[self.classtable.item(i, 0).text(), self.classtable.item(i, 7).text()] for i in selected_rows]
+                self.feature_selection_lock = True
+                timer = Timer()
+                timer.setTimeout(self.resetFeatureSelectionLock, 0.1)
 
-                selected_points = self.lookupFeatures(gids, point_layer, 'punkt')
-                selected_lines = self.lookupFeatures(gids, line_layer, 'linje')
-                selected_polygons = self.lookupFeatures(gids, polygon_layer, 'yta')
-
-                point_layer.selectByIds([point.id() for point in selected_points])
-                line_layer.selectByIds([line.id() for line in selected_lines])
-                polygon_layer.selectByIds([polygon.id() for polygon in selected_polygons])
-            else:
-                point_layer.removeSelection()
-                line_layer.removeSelection()
-                polygon_layer.removeSelection()
+                if selected_items:
+                    selected_rows = list(set([i.row() for i in selected_items]))
+                    gids = [[self.classtable.item(i, 0).text(), self.classtable.item(i, 7).text()] for i in selected_rows]
+                    if point_layer:
+                        selected_points = self.lookupFeatures(gids, point_layer[0], 'punkt')
+                        point_layer[0].selectByIds([point.id() for point in selected_points])
+                    if line_layer:
+                        selected_lines = self.lookupFeatures(gids, line_layer[0], 'linje')
+                        line_layer[0].selectByIds([line.id() for line in selected_lines])
+                    if polygon_layer:
+                        selected_polygons = self.lookupFeatures(gids, polygon_layer[0], 'yta')
+                        polygon_layer[0].selectByIds([polygon.id() for polygon in selected_polygons])
+                else:
+                    if point_layer:
+                        point_layer[0].removeSelection()
+                    if line_layer:
+                        line_layer[0].removeSelection()
+                    if polygon_layer:
+                        polygon_layer[0].removeSelection()
 
     def selectRowByFeatures(self, features, geom_type):
 
@@ -351,26 +365,35 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def highlightRows(self):
 
-        point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')[0]
-        line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')[0]
-        polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')[0]
+        point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')
+        line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')
+        polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')
+        layers = point_layer + line_layer + polygon_layer
 
-        selected_points = point_layer.getSelectedFeatures()
-        selected_lines = line_layer.getSelectedFeatures()
-        selected_polygons = polygon_layer.getSelectedFeatures()
+        if layers:
+            selected_points = []
+            selected_lines = []
+            selected_polygons = []
 
-        self.row_selection_lock = True
-        timer = Timer()
-        timer.setTimeout(self.resetRowSelectionLock, 0.2)
+            if point_layer:
+                selected_points = point_layer[0].getSelectedFeatures()
+            if line_layer:
+                selected_lines = line_layer[0].getSelectedFeatures()
+            if polygon_layer:
+                selected_polygons = polygon_layer[0].getSelectedFeatures()
 
-        if self.feature_selection_lock is False and self.tabWidget.currentIndex() == 0:
-            self.classtable.clearSelection()
-            self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
-            self.selectRowByFeatures(selected_points, "punkt")
-            self.selectRowByFeatures(selected_lines, "linje")
-            self.selectRowByFeatures(selected_polygons, "yta")
+            self.row_selection_lock = True
+            timer = Timer()
+            timer.setTimeout(self.resetRowSelectionLock, 0.2)
 
-        self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+            if self.feature_selection_lock is False and self.tabWidget.currentIndex() == 0:
+                self.classtable.clearSelection()
+                self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+                self.selectRowByFeatures(selected_points, "punkt")
+                self.selectRowByFeatures(selected_lines, "linje")
+                self.selectRowByFeatures(selected_polygons, "yta")
+
+            self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
     def switchLayerGroups(self):
         self.style = Style()
@@ -383,29 +406,23 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
     #RESEARCH_AREA
-    def okClicked(self, l, path):
-        f = [f for f in l.getFeatures()][0]
-        f['yta'] = f.geometry().area()
-        l.updateFeature(f)
+    def okClicked(self, l):
         l.commitChanges()
         iface.vectorLayerTools().stopEditing(l)
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
-        con.commit()
-        con.close()
         self.window.close()
 
-    def cancelClicked(self, l):
-        f = [f for f in l.getFeatures()][0]
-        l.deleteFeature(f.id())
-        l.triggerRepaint()
+    def cancelClicked(self, fid, l):
+        l.deleteFeature(fid)
+        l.commitChanges()
         iface.vectorLayerTools().stopEditing(l)
+        l.triggerRepaint()
         self.window.close()
 
-    def showSaveDialog(self, l, path):
+    def showSaveDialog(self, fid, l):
         self.window = saveRA()
         self.window.show()
-        ok = lambda : self.okClicked(l, path)
-        cancel = lambda : self.cancelClicked(l)
+        ok = lambda : self.okClicked(l)
+        cancel = lambda : self.cancelClicked(fid, l)
         self.window.okButton.clicked.connect(ok)
         self.window.cancelButton.clicked.connect(cancel)
 
@@ -416,8 +433,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             iface.setActiveLayer(l)
             iface.actionToggleEditing().trigger()
             iface.actionAddFeature().trigger()
-            showSave = lambda : self.showSaveDialog(l, path)
-            l.featureAdded.connect(showSave)
+            l.featureAdded.connect(lambda fid: self.areaAdded(fid, l))
+            l.featureAdded.connect(lambda fid: self.showSaveDialog(fid, l))
+
+    def areaAdded(self, fid, layer):
+        feature = layer.getFeature(fid)
+        feature["yta"] = feature.geometry().area()
+        layer.updateFeature(feature)
 
     def selectArea(self):
         for a in iface.attributesToolBar().actions():
