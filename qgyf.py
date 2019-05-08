@@ -24,7 +24,7 @@
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QVariant
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QApplication, QFileDialog, QMessageBox
-from qgis.core import QgsProject, QgsVectorLayer, QgsCoordinateReferenceSystem, QgsFields, QgsField, NULL
+from qgis.core import QgsProject, QgsVectorLayer, QgsCoordinateReferenceSystem, QgsFields, QgsField, NULL, QgsWkbTypes
 from qgis.gui import QgsFileWidget
 from .resources import *
 
@@ -33,6 +33,7 @@ from .ui.welcome import WelcomeDialog
 from .ui.settings import SettingsDialog
 from .ui.layer_selector import LayerSelectorDialog
 from .ui.export import ExportDialog
+from .ui.radius_height import GeometryDialog
 from .lib.db import Db
 from .lib.quality_table import QualityTable
 from .lib.db_view import DbView
@@ -80,6 +81,7 @@ class QGYF:
 			QSettings().setValue('CRS', crs.authid())
 
 		QSettings().setValue('objectCount', 0)
+		QSettings().setValue('groundArea', 0)
 
 		self.actions = []
 		self.menu = self.translate(u'&QGYF')
@@ -288,8 +290,15 @@ class QGYF:
 
 	def featureAdded(self, fid, layer):
 		feature = layer.getFeature(fid)
+		geom_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
 		if feature["gid"] == NULL or len(feature["gid"]) != 36:
 			feature["gid"] = str(uuid.uuid4())
+			if geom_type == "Polygon":
+				feature["yta"] = feature.geometry().area()
+			elif geom_type == "Point":
+				feature["yta"] = 25.0
+			else:
+				feature["yta"] = feature.geometry().length()
 			layer.updateFeature(feature)
 
 	def initDatabase(self, path):
@@ -403,6 +412,7 @@ class QGYF:
 		self.dockwidget.removeButton.clicked.connect(removeQ)
 
 		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
+		self.dockwidget.geometryButton.clicked.connect(self.openGeometryDialog)
 
 		# Objects
 		self.dockwidget.setLayers()
@@ -426,6 +436,10 @@ class QGYF:
 
 		# Export
 		self.dockwidget.report.clicked.connect(self.showExportDialog)
+
+	def openGeometryDialog(self):
+		self.geometry = GeometryDialog(self.dockwidget, QSettings().value('dataPath'))
+		
 
 	def openSettingsDialog(self):
 		self.settings = SettingsDialog(self.dockwidget, None, self)

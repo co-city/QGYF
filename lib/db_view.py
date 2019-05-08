@@ -29,6 +29,7 @@ class DbView:
                 class.grupp AS grupp,
                 class.kvalitet AS kvalitet,
                 class.faktor AS faktor,
+                polygon_object.yta AS yta,
                 polygon_object.geom AS geom
             FROM polygon_object
             JOIN classification AS class ON (polygon_object.gid = class.gid)
@@ -45,6 +46,7 @@ class DbView:
                 class.grupp AS grupp,
                 class.kvalitet AS kvalitet,
                 class.faktor AS faktor,
+                line_object.yta AS yta,
                 line_object.geom AS geom
             FROM line_object
             JOIN classification AS class ON (line_object.gid = class.gid)
@@ -61,6 +63,7 @@ class DbView:
                 class.grupp AS grupp,
                 class.kvalitet AS kvalitet,
                 class.faktor AS faktor,
+                point_object.yta AS yta,
                 point_object.geom AS geom
             FROM point_object
             JOIN classification AS class ON (point_object.gid = class.gid)

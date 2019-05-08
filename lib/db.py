@@ -35,11 +35,13 @@ class Db:
 		cur.execute("PRAGMA synchronous = FULL;")
 		cur.execute("PRAGMA journal_mode = DELETE;")
 
-		cur.execute("""CREATE TABLE point_object (
+		cur.execute("""
+		CREATE TABLE point_object (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		gid TEXT,
 		filnamn TEXT,
-		beskrivning TEXT);""")
+		beskrivning TEXT,
+		yta DOUBLE);""")
 
 		cur.execute("SELECT AddGeometryColumn('point_object', 'geom', " + crs + ", 'POINT', 'XY');")
 
@@ -48,7 +50,8 @@ class Db:
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		gid TEXT,
 		filnamn TEXT,
-		beskrivning TEXT);""")
+		beskrivning TEXT,
+		yta DOUBLE);""")
 
 		cur.execute("""SELECT AddGeometryColumn('line_object', 'geom', """ + crs + """, 'LINESTRING', 'XY');""")
 
@@ -57,7 +60,8 @@ class Db:
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		gid TEXT,
 		filnamn TEXT,
-		beskrivning TEXT);""")
+		beskrivning TEXT,
+		yta DOUBLE);""")
 
 		cur.execute("""SELECT AddGeometryColumn('polygon_object', 'geom', """ + crs + """, 'POLYGON', 'XY');""")
 

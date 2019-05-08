@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>271</width>
-    <height>154</height>
+    <width>280</width>
+    <height>148</height>
    </rect>
   </property>
   <property name="font">
@@ -17,19 +17,23 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Sätt objekts höjd/radius</string>
+   <string>Sätt ny höjd/yta på objekt</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../resources.qrc">
+    <normaloff>:/plugins/qgyf/assets/leaf.png</normaloff>:/plugins/qgyf/assets/leaf.png</iconset>
   </property>
   <widget class="QRadioButton" name="radiusButton">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>33</x>
      <y>20</y>
-     <width>151</width>
+     <width>190</width>
      <height>17</height>
     </rect>
    </property>
    <property name="text">
-    <string>Radius på punkobjekt</string>
+    <string>Sätt yta på punkobjekt</string>
    </property>
    <property name="checked">
     <bool>true</bool>
@@ -38,32 +42,38 @@
   <widget class="QRadioButton" name="heightButton">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>33</x>
      <y>43</y>
-     <width>131</width>
+     <width>170</width>
      <height>17</height>
     </rect>
    </property>
    <property name="text">
-    <string>Höjd på linjeobjekt</string>
+    <string>Sätt höjd på linjeobjekt</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="valueLine">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>83</x>
      <y>72</y>
-     <width>161</width>
+     <width>160</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+   <property name="clearButtonEnabled">
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>33</x>
      <y>72</y>
-     <width>71</width>
+     <width>70</width>
      <height>20</height>
     </rect>
    </property>
@@ -74,10 +84,10 @@
   <widget class="QPushButton" name="saveButton">
    <property name="geometry">
     <rect>
-     <x>160</x>
+     <x>163</x>
      <y>110</y>
-     <width>81</width>
-     <height>31</height>
+     <width>80</width>
+     <height>24</height>
     </rect>
    </property>
    <property name="text">
@@ -85,6 +95,8 @@
    </property>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources.py"/>
+ </resources>
  <connections/>
 </ui>

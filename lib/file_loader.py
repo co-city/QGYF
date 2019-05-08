@@ -32,8 +32,12 @@ class FileLoader():
     self.interface = interface
     self.layerSelectorDialog = layerSelectorDialog
     self.path = path
-    importToMap = lambda : self.importToMap(dockwidget)
-    self.layerSelectorDialog.okButton.clicked.connect(importToMap)
+    self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
+    self.layerSelectorDialog.okButton.clicked.connect(lambda : self.updateDockwidget(dockwidget))
+    
+  def updateDockwidget(self, dockwidget):
+    if dockwidget:
+      dockwidget.showClass()
 
   def loadFile(self):
     """
@@ -78,7 +82,7 @@ class FileLoader():
       self.layerSelectorDialog.load(layers)
       self.layerSelectorDialog.show()
 
-  def importToMap(self, dockwidget):
+  def importToMap(self):
 
     filters = []
     classifications = []
@@ -95,8 +99,6 @@ class FileLoader():
       self.loadFeatures(None, None)
 
     self.layerSelectorDialog.close()
-    if dockwidget:
-      dockwidget.showClass()
 
   def loadFeatures(self, filters, classifications):
     try:
@@ -112,11 +114,14 @@ class FileLoader():
         try:
           type = self.prepareFeature(feature)
           if type == "Point":
-            data_feature = self.addFeature(feature, type, pointLayer, filters, classifications)
+            area = 25.0
+            data_feature = self.addFeature(feature, type, pointLayer, filters, classifications, area)
           if type == "Line":
-            data_feature = self.addFeature(feature, type, lineLayer, filters, classifications)
+            area = feature.geometry().length()
+            data_feature = self.addFeature(feature, type, lineLayer, filters, classifications, area)
           if type == "Polygon":
-            data_feature = self.addFeature(feature, type, polygonLayer, filters, classifications)
+            area = feature.geometry().area()
+            data_feature = self.addFeature(feature, type, polygonLayer, filters, classifications, area)
           data.append(data_feature)
         except:
           self.msg = QMessageBox()
@@ -156,7 +161,7 @@ class FileLoader():
       self.msg.setText("Nödvändiga kartlager saknas. Ladda in databasen på nytt.")
       self.msg.show()
 
-  def addFeature(self, feature, type, layer, filters, classifications):
+  def addFeature(self, feature, type, layer, filters, classifications, area):
     """
     Convert attributes and add features to input layer.
     @param {QgsFeature} feature
@@ -180,16 +185,17 @@ class FileLoader():
       fields.append(QgsField("gid", QVariant.String, "text"))
       fields.append(QgsField("filnamn", QVariant.String, "text"))
       fields.append(QgsField("beskrivning", QVariant.String, "text"))
+      fields.append(QgsField("yta", QVariant.Double, "double"))
       gid = str(uuid.uuid4())
 
       feature.setFields(fields, True)
-      feature.setAttributes([None, gid, self.fileName, layer_name])
+      feature.setAttributes([None, gid, self.fileName, layer_name, area])
       layer.addFeature(feature)
 
       if classifications:
         classification = list(filter(lambda classification: classification[0] == str(layer_name), classifications))
         if classification:
-          data_feature = self.insertQuality(classification, feature, gid)
+          data_feature = self.insertQuality(classification, feature, gid, area)
     
     return data_feature
 
@@ -229,18 +235,15 @@ class FileLoader():
 
     return type
 
-  def insertQuality(self, classification, feature, gid):
+  def insertQuality(self, classification, feature, gid, yta):
     data = None
     geometry_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
     if (geometry_type == "Point"):
       geometry_type = "punkt"
-      yta = 25.0
     if (geometry_type == "Line"):
       geometry_type = "linje"
-      yta = feature.geometry().length()
     if (geometry_type == "Polygon"):
       geometry_type = "yta"
-      yta = feature.geometry().area()
 
     quality_name = classification[0][1]
 

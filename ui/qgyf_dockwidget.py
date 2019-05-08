@@ -204,13 +204,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         if selected:
             for f in selected:
-                if layer.wkbType() == QgsWkbTypes.Point:
-                    attributes.append(f.attributes() + [25.0])
-                elif layer.wkbType() == QgsWkbTypes.LineString:
-                    attributes.append(f.attributes() + [round(f.geometry().length(), 1)])
-                else:
-                    attributes.append(f.attributes() + [round(f.geometry().area(), 1)])
-
+                attributes.append(f.attributes())
+                
         def set_geom(x):
             return {QgsWkbTypes.Point: 'punkt',
                     QgsWkbTypes.LineString: 'linje'}.get(x, 'yta')
@@ -233,7 +228,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         for obj in attributes:
             if obj[2] == NULL:
                 obj[2] = ''
-            data.append([obj[1], geom, obj[2], g, q, f, obj[-1], round(obj[-1]*f, 1)])
+            data.append([obj[1], geom, obj[2], g, q, f, round(obj[-1], 1), round(obj[-1]*f, 1)])
 
         cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?,?)', data)
         # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng

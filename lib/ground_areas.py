@@ -10,7 +10,6 @@ from PyQt5.QtCore import QSettings
 from qgis.utils import spatialite_connect, iface
 from qgis.core import QgsProject, QgsVectorLayer
 from .styles import Style
-import processing
 
 class GroundAreas:
 
@@ -21,11 +20,18 @@ class GroundAreas:
 
         tables = ['polygon_object', 'line_object', 'point_object']
         count = 0
+        total_area = 0
         for table in tables:
             cur.execute("SELECT COUNT(*) FROM " + table)
             count += cur.fetchone()[0]
+            cur.execute("SELECT SUM(yta) FROM " + table)
+            total_area += int(cur.fetchone()[0])
+            if table == 'line_object':
+                cur.execute("SELECT AREA(ST_Buffer(geom, 0.5)), yta/AREA(ST_Buffer(geom, 0.5)), gid FROM " + table)
+                line_heights = [[j[0], round(j[1], 0), j[2]] for j in cur.fetchall() if round(j[1], 0) != 1]
+
         
-        if count != QSettings().value('objectCount'):
+        if count != QSettings().value('objectCount') or total_area != QSettings().value('groundArea'):
 
             cur.execute("DELETE FROM ground_areas")
             # Merge all objects together
@@ -35,9 +41,18 @@ class GroundAreas:
                 UNION ALL 
                 SELECT NULL, CastToPolygon(ST_Buffer(geom, 0.5)) FROM line_object
                 UNION ALL 
-                SELECT NULL, CastToPolygon(ST_Buffer(geom, 3)) FROM point_object);""") # GROUP BY ytklass
+                SELECT NULL, CastToPolygon(ST_Buffer(geom, POWER(yta/3.14159, 0.5))) FROM point_object);""") # GROUP BY ytklass
 
             QSettings().setValue('objectCount', count)
+            QSettings().setValue('groundArea', total_area)
+
+            if line_heights:
+                minus_area = sum(j[0] for j in line_heights)
+                plus_area = sum(j[0]*j[1] for j in line_heights)
+                cur.execute("SELECT yta from ground_areas;")
+                area = cur.fetchone()[0]
+                area = area - minus_area + plus_area
+                cur.execute("UPDATE ground_areas SET yta = (?);", [area])
 
         con.commit()
         cur.close()

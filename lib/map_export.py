@@ -120,7 +120,6 @@ class ExportCreator:
         # Filter
         feature_gids = "', '".join(i for i in feature_gids)
         query = "gid in ('"+ feature_gids +"')"
-        print(query)
         tableLayout.setFilterFeatures(True)
         tableLayout.setFeatureFilter(query)
         tableLayout.update()
