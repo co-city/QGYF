@@ -44,6 +44,7 @@ from .lib.gyf_calculator import GyfCalculator
 from .lib.gyf_diagram import Diagram
 from .lib.map_export import ExportCreator
 
+import os
 import os.path
 import numpy as np
 import inspect
@@ -135,6 +136,13 @@ class QGYF:
 			callback=self.openSettingsDialog,
 			parent=self.iface.mainWindow())
 
+		icon_path = ':/plugins/qgyf/assets/doc.png'
+		self.addAction(
+			icon_path,
+			text=self.translate(u'Öppna användarmanual'),
+			callback=self.openDoc,
+			parent=self.iface.mainWindow())
+
 		# icon_path = ':/plugins/qgyf/assets/edit_point.png'
 		# self.addAction(
 		# 	icon_path,
@@ -162,6 +170,13 @@ class QGYF:
 			text=self.translate(u'Vissa upp informationsfönstret'),
 			callback=self.info,
 			parent=self.iface.mainWindow())
+
+	def openDoc(self):
+		docPath = self.plugin_dir + r'\\Användarmanual.docx'
+		try:
+			os.startfile(docPath)
+		except:
+			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
 
 	def load(self):
 		self.initDatabase(QSettings().value('dataPath'))
@@ -374,6 +389,13 @@ class QGYF:
 		groups = [g for g in groups if g in self.groups]
 		self.pdfCreator = ExportCreator()
 		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, groups, self.feature_ids, self.eco_area)
+	
+	def pdfGYF(self):
+		docPath = os.path.dirname(os.path.abspath(__file__)) + r'\gyf_ap_20.pdf'
+		try:
+			os.startfile(docPath)
+		except:
+			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
 
 	def openCalculationDialog(self):
 		self.initCalculationDialog()
@@ -397,6 +419,7 @@ class QGYF:
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
 
 		# Qualities
+		self.dockwidget.info.clicked.connect(self.pdfGYF)
 		self.dockwidget.selectQGroup.clear()
 		self.dockwidget.chooseQ(QSettings().value('dataPath'))
 

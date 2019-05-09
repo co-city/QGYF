@@ -12,5 +12,6 @@
         <file>assets/settings.png</file>
         <file>assets/load_db.png</file>
         <file>assets/save.png</file>
+        <file>assets/doc.png</file>
     </qresource>
 </RCC>
