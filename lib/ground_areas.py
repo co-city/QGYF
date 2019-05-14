@@ -10,6 +10,8 @@ from PyQt5.QtCore import QSettings
 from qgis.utils import spatialite_connect, iface
 from qgis.core import QgsProject, QgsVectorLayer
 from .styles import Style
+from ..ui.export import ExportDialog
+from PyQt5.QtWidgets import QMessageBox
 
 class GroundAreas:
 
@@ -21,17 +23,27 @@ class GroundAreas:
         tables = ['polygon_object', 'line_object', 'point_object']
         count = 0
         total_area = 0
+        line_heights = []
         for table in tables:
             cur.execute("SELECT COUNT(*) FROM " + table)
-            count += cur.fetchone()[0]
-            cur.execute("SELECT SUM(yta) FROM " + table)
-            total_area += int(cur.fetchone()[0])
-            if table == 'line_object':
-                cur.execute("SELECT AREA(ST_Buffer(geom, 0.5)), yta/AREA(ST_Buffer(geom, 0.5)), gid FROM " + table)
-                line_heights = [[j[0], round(j[1], 0), j[2]] for j in cur.fetchall() if round(j[1], 0) != 1]
+            c = cur.fetchone()[0]
+            count += c
+            if c != 0:
+                cur.execute("SELECT SUM(yta) FROM " + table)
+                total_area += int(cur.fetchone()[0])
+                print(total_area)
+                if table == 'line_object':
+                    cur.execute("SELECT AREA(ST_Buffer(geom, 0.5)), yta/AREA(ST_Buffer(geom, 0.5)), gid FROM " + table)
+                    line_heights = [[j[0], round(j[1], 0), j[2]] for j in cur.fetchall() if round(j[1], 0) != 1]
 
         
         if count != QSettings().value('objectCount') or total_area != QSettings().value('groundArea'):
+
+            cur.execute("""SELECT gid FROM polygon_object WHERE ST_IsValid(geom) != 1""")
+            failed = cur.fetchall()
+            if failed:
+                QMessageBox.warning(ExportDialog(), 'Fel geometri', 'Din polygon data verkar innehålla objekt med fel geometri (dvs. a bow-tie polygon). Det ska försöka behandlas automatiskt.\nOm det inte går ska lager med grundytor inte byggas upp. I detta fall måste problemet åtgärdas manuellt.\n\nGlobala ID för felobjekt:\n' + str(failed))
+                cur.execute("""UPDATE polygon_object SET geom = ST_MakeValid(geom) WHERE ST_IsValid(geom) != 1""")
 
             cur.execute("DELETE FROM ground_areas")
             # Merge all objects together
