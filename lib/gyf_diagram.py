@@ -48,7 +48,7 @@ class Diagram:
         return sizes, legend, colors, outline
 
     def ecoAreaPlot(self, eco_area, total_area):
-        labels = ['Ekoeffektiv yta', 'Grå yta']
+        labels = ['Grundyta', 'Grå yta']
         colors = [
                 [0, 0.6, 0, 0.8], # green
                 [0.6, 0.6, 0.6, 0.8], # grey
