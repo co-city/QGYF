@@ -28,10 +28,15 @@ class Db:
 		# The InitSpatialMetaData() function must be called immediately after creating a new database,
 		# and before attempting to call any other Spatial SQL function.
 		# The PRAGMA operations speeds up the process.
-		cur.execute("PRAGMA synchronous = NORMAL;")
+		cur.execute("BEGIN;")
+		cur.execute("COMMIT;")
 		cur.execute("PRAGMA synchronous = OFF;")
 		cur.execute("PRAGMA journal_mode = MEMORY;")
+		cur.execute("BEGIN;")
 		cur.execute("SELECT InitSpatialMetaData(0)")
+		cur.execute("COMMIT;")
+		cur.execute("BEGIN;")
+		cur.execute("COMMIT;")
 		cur.execute("PRAGMA synchronous = FULL;")
 		cur.execute("PRAGMA journal_mode = DELETE;")
 
@@ -77,9 +82,9 @@ class Db:
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             ytklass TEXT,
             yta DOUBLE);""")
-		
+
 		cur.execute("""SELECT AddGeometryColumn('ground_areas', 'geom', """ + crs + """, 'MULTIPOLYGON', 'XY');""")
-		
+
 		cur.execute("""
 		CREATE TABLE gyf_quality (
 		grupp_id INTEGER NOT NULL,
