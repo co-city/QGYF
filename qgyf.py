@@ -346,7 +346,7 @@ class QGYF:
 	def calculate(self):
 		self.createDataView()
 
-		gyf, factor_areas, groups, feature_ids, area_id, eco_area = self.calculator.calculate()
+		gyf, factor_areas, groups, feature_ids, area_id, ground_area, eco_area = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
 
 		if factor_areas.size != 0:
@@ -365,6 +365,7 @@ class QGYF:
 		self.groups = groups
 		self.feature_ids = feature_ids
 		self.eco_area = eco_area
+		self.ground_area = ground_area
 
 	def showExportDialog(self):
 		if self.area_id == None:
@@ -379,7 +380,7 @@ class QGYF:
 		chart_path = QSettings().value('dataPath') + '\PieChart.png'
 		self.dockwidget.plot.canvas.fig.savefig(chart_path)
 		gyf = self.dockwidget.gyfValue.text()
-		self.diagram.ecoAreaPlot(self.eco_area, self.eco_area/float(gyf))
+		self.diagram.ecoAreaPlot(self.ground_area, self.eco_area/float(gyf))
 		groups = []
 		checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
 		checkbox_list = [getattr(self.dockwidget, n) for n in checkboxnames]

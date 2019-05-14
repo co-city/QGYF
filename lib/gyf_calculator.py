@@ -149,5 +149,5 @@ class GyfCalculator:
     if type(factor_areas) == list:
       factor_areas = np.array([])
 
-    return gyf, factor_areas, groups, feature_ids, selected_feature, eco_area
+    return gyf, factor_areas, groups, feature_ids, selected_feature, feature_area_sum, eco_area
 
