@@ -1,14 +1,16 @@
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QSettings
-from matplotlib.gridspec import GridSpec
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
+try:
+    from PyQt5 import QtWidgets
+    from PyQt5.QtCore import QSettings
+    from matplotlib.gridspec import GridSpec
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
+    import matplotlib
+    import matplotlib.pyplot as plt
+    matplotlib.use('QT5Agg')
+    import numpy as np  
 
-from ..ui.mplwidget import MplWidget
-
-matplotlib.use('QT5Agg')
+    from ..ui.mplwidget import MplWidget
+except:
+    pass
 
 class Diagram:
 

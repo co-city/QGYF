@@ -193,7 +193,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         path = QSettings().value('dataPath')
         layer = iface.activeLayer()
-        self.checkGID(layer)
+        #self.checkGID(layer)
 
         selected = layer.selectedFeatures()
         if self.selectQGroup.currentIndex() == 0:
@@ -228,8 +228,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         for obj in attributes:
             if obj[2] == NULL:
                 obj[2] = ''
+            if type(obj[-1]) is str:
+                 obj[-1] = float(obj[-1])
             data.append([obj[1], geom, obj[2], g, q, f, round(obj[-1], 1), round(obj[-1]*f, 1)])
-
+    
         cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?,?)', data)
         # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
         cur.close()

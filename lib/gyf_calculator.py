@@ -127,7 +127,7 @@ class GyfCalculator:
             ground_area_lines += ground_area_add
 
         feature_area_sum = self.calculateGroundAreaIntersection(selected_feature, ground_area_lines)
-        print('Ground Area:' + str(feature_area_sum))
+        #print('Ground Area:' + str(feature_area_sum))
 
         # Get rid of features which don't actually intersect the currently selected feature
         factor_areas = np.asarray(factor_areas)

@@ -31,7 +31,7 @@ class GroundAreas:
             if c != 0:
                 cur.execute("SELECT SUM(yta) FROM " + table)
                 total_area += int(cur.fetchone()[0])
-                print(total_area)
+            
                 if table == 'line_object':
                     cur.execute("SELECT AREA(ST_Buffer(geom, 0.5)), yta/AREA(ST_Buffer(geom, 0.5)), gid FROM " + table)
                     line_heights = [[j[0], round(j[1], 0), j[2]] for j in cur.fetchall() if round(j[1], 0) != 1]

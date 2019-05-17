@@ -28,17 +28,22 @@ class Db:
 		# The InitSpatialMetaData() function must be called immediately after creating a new database,
 		# and before attempting to call any other Spatial SQL function.
 		# The PRAGMA operations speeds up the process.
-		cur.execute("BEGIN;")
-		cur.execute("COMMIT;")
-		cur.execute("PRAGMA synchronous = OFF;")
-		cur.execute("PRAGMA journal_mode = MEMORY;")
-		cur.execute("BEGIN;")
-		cur.execute("SELECT InitSpatialMetaData(0)")
-		cur.execute("COMMIT;")
-		cur.execute("BEGIN;")
-		cur.execute("COMMIT;")
-		cur.execute("PRAGMA synchronous = FULL;")
-		cur.execute("PRAGMA journal_mode = DELETE;")
+		try:
+			cur.execute("BEGIN;")
+			cur.execute("COMMIT;")
+			cur.execute("PRAGMA synchronous = OFF;")
+			cur.execute("PRAGMA journal_mode = MEMORY;")
+			cur.execute("BEGIN;")
+			cur.execute("SELECT InitSpatialMetaData(0)")
+			cur.execute("COMMIT;")
+			cur.execute("BEGIN;")
+			cur.execute("COMMIT;")
+			cur.execute("PRAGMA synchronous = FULL;")
+			cur.execute("PRAGMA journal_mode = DELETE;")
+		except:
+			cur.execute("BEGIN;")
+			cur.execute("SELECT InitSpatialMetaData(0)")
+			cur.execute("COMMIT;")
 
 		cur.execute("""
 		CREATE TABLE point_object (

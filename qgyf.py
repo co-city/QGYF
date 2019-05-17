@@ -349,17 +349,20 @@ class QGYF:
 		gyf, factor_areas, groups, feature_ids, area_id, ground_area, eco_area = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
 
-		if factor_areas.size != 0:
-			# Plot
-			self.dockwidget.plot.canvas.ax.cla()
-			self.dockwidget.plot.canvas.ax.set_title('Fördelning av kvalitetspoäng')
-			sizes, legend, colors, outline = self.diagram.init(factor_areas, groups)
-			patches, text = self.dockwidget.plot.canvas.ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
-			#self.dockwidget.plot.canvas.fig.tight_layout()
-			# Legend
-			patches, legend, dummy =  zip(*sorted(zip(patches, legend, sizes), key=lambda x: x[2], reverse=True))
-			self.dockwidget.plot.canvas.ax2.legend(patches, legend, loc = 'center', shadow = None, frameon = False)
-			self.dockwidget.plot.canvas.draw()
+		try:
+			if factor_areas.size != 0:
+				# Plot
+				self.dockwidget.plot.canvas.ax.cla()
+				self.dockwidget.plot.canvas.ax.set_title('Fördelning av kvalitetspoäng')
+				sizes, legend, colors, outline = self.diagram.init(factor_areas, groups)
+				patches, text = self.dockwidget.plot.canvas.ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
+				#self.dockwidget.plot.canvas.fig.tight_layout()
+				# Legend
+				patches, legend, dummy =  zip(*sorted(zip(patches, legend, sizes), key=lambda x: x[2], reverse=True))
+				self.dockwidget.plot.canvas.ax2.legend(patches, legend, loc = 'center', shadow = None, frameon = False)
+				self.dockwidget.plot.canvas.draw()
+		except:
+			pass
 
 		self.area_id = area_id
 		self.groups = groups
@@ -380,7 +383,10 @@ class QGYF:
 		chart_path = QSettings().value('dataPath') + '\PieChart.png'
 		self.dockwidget.plot.canvas.fig.savefig(chart_path)
 		gyf = self.dockwidget.gyfValue.text()
-		self.diagram.ecoAreaPlot(self.ground_area, self.eco_area/float(gyf))
+		try:
+			self.diagram.ecoAreaPlot(self.ground_area, self.eco_area/float(gyf))
+		except:
+			pass
 		groups = []
 		checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
 		checkbox_list = [getattr(self.dockwidget, n) for n in checkboxnames]
@@ -462,7 +468,15 @@ class QGYF:
 		self.dockwidget.report.clicked.connect(self.showExportDialog)
 
 	def openGeometryDialog(self):
-		self.geometry = GeometryDialog(self.dockwidget, QSettings().value('dataPath'))
+		layers = [layer for layer in QgsProject.instance().mapLayers().values()]
+		names = []
+		for l in layers:
+			if l.isEditable():
+				names.append(l.name())
+		if names:	
+			QMessageBox.warning(ExportDialog(), 'Stäng redigeringsläge', 'Spara ändringar och gå ur redigeringsläget för att sätta punktyta/linjehöjd')
+		else:
+			self.geometry = GeometryDialog(self.dockwidget, QSettings().value('dataPath'))
 		
 
 	def openSettingsDialog(self):
