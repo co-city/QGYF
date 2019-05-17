@@ -94,6 +94,7 @@ class GyfCalculator:
     groups = []
     feature_ids = []
     eco_area = 0
+    feature_area_sum = 0
     selected_feature = None
     ground_area_lines = []
 
