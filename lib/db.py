@@ -29,6 +29,7 @@ class Db:
 		# and before attempting to call any other Spatial SQL function.
 		# The PRAGMA operations speeds up the process.
 		try:
+			con.isolation_level = None # Behövs för QGIS 3.2.2 (bugg som har rättas i de senase versioner) men set ut att det sänker prestanda
 			cur.execute("BEGIN;")
 			cur.execute("COMMIT;")
 			cur.execute("PRAGMA synchronous = OFF;")
@@ -41,6 +42,7 @@ class Db:
 			cur.execute("PRAGMA synchronous = FULL;")
 			cur.execute("PRAGMA journal_mode = DELETE;")
 		except:
+			con.isolation_level = None  # Behövs för QGIS 3.2.2. men set ut att det sänker prestanda
 			cur.execute("BEGIN;")
 			cur.execute("SELECT InitSpatialMetaData(0)")
 			cur.execute("COMMIT;")
