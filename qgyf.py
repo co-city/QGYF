@@ -83,6 +83,7 @@ class QGYF:
 
 		QSettings().setValue('objectCount', 0)
 		QSettings().setValue('groundArea', 0)
+		QSettings().setValue('pointsCoord', 0)
 
 		self.actions = []
 		self.menu = self.translate(u'&QGYF')
@@ -302,6 +303,21 @@ class QGYF:
 				QgsProject.instance().addMapLayer(vlayer, False)
 				classificationGroup.addLayer(vlayer)
 				vlayer.featureAdded.connect(lambda fid, vlayer=vlayer : self.featureAdded(fid, vlayer))
+				vlayer.geometryChanged.connect(lambda fid, geom ,vlayer=vlayer : self.geometryModified(fid, geom, vlayer))
+				vlayer.committedGeometriesChanges.connect(self.dockwidget.showClass)
+				vlayer.committedFeaturesRemoved.connect(lambda : self.dockwidget.removeQ(QSettings().value('dataPath')))
+				vlayer.committedFeaturesRemoved.connect(self.dockwidget.showClass)
+
+	def geometryModified(self, fid, geom, layer):
+		feature = layer.getFeature(fid)
+		geom_type = QgsWkbTypes.geometryDisplayString(geom.type())
+		if len(feature["gid"]) == 36:
+			if geom_type == "Polygon":
+				feature["yta"] = feature.geometry().area()
+			elif geom_type == "Line":
+				feature["yta"] = feature.geometry().length()
+			layer.updateFeature(feature)
+			self.dockwidget.updateClassArea(QSettings().value('dataPath'), feature["gid"], feature["yta"])
 
 	def featureAdded(self, fid, layer):
 		feature = layer.getFeature(fid)
@@ -311,7 +327,9 @@ class QGYF:
 			if geom_type == "Polygon":
 				feature["yta"] = feature.geometry().area()
 			elif geom_type == "Point":
-				feature["yta"] = 25.0
+				print(type(feature["yta"]))
+				if type(feature["yta"]) != float:
+					feature["yta"] = 25.0
 			else:
 				feature["yta"] = feature.geometry().length()
 			layer.updateFeature(feature)
@@ -324,9 +342,6 @@ class QGYF:
 
 	def onClosePlugin(self):
 		self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
-		# Remove this statement if dockwidget is to remain
-		# for reuse if plugin is reopened
-		self.pluginIsActive = False
 
 	def unload(self):
 		for action in self.actions:
@@ -342,6 +357,11 @@ class QGYF:
 			self.dbView.init(QSettings().value('dataPath'))
 			self.createGA = GroundAreas()
 			self.createGA.init(QSettings().value('dataPath'))
+			self.createGA.showGA(QSettings().value('dataPath'))
+
+	def updateGA(self):
+		self.createGA = GroundAreas()
+		self.createGA.init(QSettings().value('dataPath'))
 
 	def calculate(self):
 		self.createDataView()
@@ -405,16 +425,15 @@ class QGYF:
 			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
 
 	def openCalculationDialog(self):
-		self.initCalculationDialog()
+		self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 		if not self.pluginIsActive:
 			self.pluginIsActive = True
-		self.dockwidget.show()
-		self.dockwidget.showClass()
+			self.initCalculationDialog()
+			self.dockwidget.show()
+			self.dockwidget.showClass()
+			
 
 	def initCalculationDialog(self):
-		# Create the dockwidget (after translation) and keep reference
-		self.iface.removeDockWidget(self.dockwidget)
-		self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
 		# connect to provide cleanup on closing of dockwidget
 		self.dockwidget.closingPlugin.connect(self.onClosePlugin)

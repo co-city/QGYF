@@ -131,8 +131,9 @@ class ExportCreator:
 
         # Diagram
         chart2 = sip.cast(composition.itemById("chart2"), QgsLayoutItemPicture)
-        chart2.setPicturePath(QSettings().value('dataPath') + '\PieChart2.png')
-        chart2.refreshPicture()
+        if float(gyf) > 0.0:
+            chart2.setPicturePath(QSettings().value('dataPath') + '\PieChart2.png')
+            chart2.refreshPicture()
 
         # Metadata
         text = '<p style="font-family:tahoma; font-size:13.5; font-color:#4d4949; line-height:21px">Område: ' + \

@@ -240,6 +240,19 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         self.showClass()
 
+    def updateClassArea(self, path, gid, yta):
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        cur = con.cursor()
+        cur.execute('SELECT kvalitet, faktor FROM classification WHERE gid = (?);', [gid])
+        factor = [[j[0], j[1]] for j in cur.fetchall()]
+        for f in factor:
+            poang = f[1]*yta
+            cur.execute('UPDATE classification SET yta = (?), poang = (?) WHERE kvalitet = (?) AND gid = (?);', [yta, poang, f[0], gid])
+
+        cur.close()
+        con.commit()
+        con.close()
+
     def removeQ(self, path):
         items = self.classtable.selectedItems()
         if items:

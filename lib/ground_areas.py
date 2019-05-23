@@ -24,6 +24,7 @@ class GroundAreas:
         count = 0
         total_area = 0
         line_heights = []
+        points_x = 0
         for table in tables:
             cur.execute("SELECT COUNT(*) FROM " + table)
             c = cur.fetchone()[0]
@@ -35,9 +36,13 @@ class GroundAreas:
                 if table == 'line_object':
                     cur.execute("SELECT AREA(ST_Buffer(geom, 0.5)), yta/AREA(ST_Buffer(geom, 0.5)), gid FROM " + table)
                     line_heights = [[j[0], round(j[1], 0), j[2]] for j in cur.fetchall() if round(j[1], 0) != 1]
+            
+            if table == 'point_object':
+                cur.execute("SELECT SUM(X(geom)) FROM " + table)
+                points_x += cur.fetchone()[0]
 
         
-        if count != QSettings().value('objectCount') or total_area != QSettings().value('groundArea'):
+        if count != QSettings().value('objectCount') or total_area != QSettings().value('groundArea') or points_x != QSettings().value('pointsCoord'):
 
             cur.execute("""SELECT gid FROM polygon_object WHERE ST_IsValid(geom) != 1""")
             failed = cur.fetchall()
@@ -48,7 +53,7 @@ class GroundAreas:
             cur.execute("DELETE FROM ground_areas")
             # Merge all objects together
             cur.execute("""INSERT INTO ground_areas (id, yta, geom) 
-                SELECT NULL, AREA(st_unaryunion(st_collect(geom))), st_unaryunion(st_collect(geom)) as geom FROM 
+                SELECT NULL, AREA(st_unaryunion(st_collect(geom))), CastToMultiPolygon(st_unaryunion(st_collect(geom))) FROM 
                 (SELECT NULL, geom FROM polygon_object
                 UNION ALL 
                 SELECT NULL, CastToPolygon(ST_Buffer(geom, 0.5)) FROM line_object
@@ -57,6 +62,7 @@ class GroundAreas:
 
             QSettings().setValue('objectCount', count)
             QSettings().setValue('groundArea', total_area)
+            QSettings().setValue('pointsCoord', points_x)
 
             if line_heights:
                 minus_area = sum(j[0] for j in line_heights)
@@ -70,6 +76,7 @@ class GroundAreas:
         cur.close()
         con.close()
 
+    def showGA(self, path):
         self.style = Style()
         root = QgsProject.instance().layerTreeRoot()
         lyr = QgsProject.instance().mapLayersByName('Grundytor')
