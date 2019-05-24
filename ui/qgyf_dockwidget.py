@@ -514,4 +514,5 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     checkbox.setEnabled(True)
                 else:
                     checkbox.setEnabled(False)
+                    checkbox.setChecked(False)
 
