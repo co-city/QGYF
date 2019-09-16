@@ -37,9 +37,9 @@ class GroundAreas:
                     cur.execute("SELECT AREA(ST_Buffer(geom, 0.5)), yta/AREA(ST_Buffer(geom, 0.5)), gid FROM " + table)
                     line_heights = [[j[0], round(j[1], 0), j[2]] for j in cur.fetchall() if round(j[1], 0) != 1]
             
-            if table == 'point_object':
-                cur.execute("SELECT SUM(X(geom)) FROM " + table)
-                points_x += cur.fetchone()[0]
+                if table == 'point_object':
+                    cur.execute("SELECT SUM(X(geom)) FROM " + table)
+                    points_x += cur.fetchone()[0]
 
         
         if count != QSettings().value('objectCount') or total_area != QSettings().value('groundArea') or points_x != QSettings().value('pointsCoord'):
