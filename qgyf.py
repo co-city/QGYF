@@ -513,7 +513,7 @@ class QGYF:
 		self.settings.okButton.clicked.connect(self.settings.close)
 
 	def save(self):
-		path = QFileDialog.getSaveFileName(self.iface.mainWindow(), 'Spara som', '', '*.sqlite')
+		path = QFileDialog.getSaveFileName(self.iface.mainWindow(), 'Spara som', QSettings().value('dataPath'), '*.sqlite')
 		new_path = path[0]
 		database = QSettings().value('activeDataBase')
 		path = "{}/{}".format(QSettings().value('dataPath'), database)
