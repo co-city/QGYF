@@ -34,7 +34,7 @@ class FileLoader():
     self.path = path
     self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
     self.layerSelectorDialog.okButton.clicked.connect(lambda : self.updateDockwidget(dockwidget))
-    
+
   def updateDockwidget(self, dockwidget):
     if dockwidget:
       dockwidget.showClass()
@@ -44,7 +44,7 @@ class FileLoader():
     Load file and add features to input layers of matching type (Point, Line, Polygon).
     @param {QtWidget} interface
     """
-    file = QFileDialog.getOpenFileName(self.interface, 'Öppna fil', '', '*.shp; *.dxf')
+    file = QFileDialog.getOpenFileName(self.interface, 'Öppna fil', QSettings().value('dataPath'), '*.shp; *.dxf')
     filePath = file[0]
 
     self.ignore_mappings = False
@@ -109,7 +109,7 @@ class FileLoader():
       pointLayer.startEditing()
       lineLayer.startEditing()
       polygonLayer.startEditing()
-      
+
       for feature in self.layer.getFeatures():
         try:
           type = self.prepareFeature(feature)
@@ -143,7 +143,7 @@ class FileLoader():
         cur.close()
         con.commit()
         con.close()
-      
+
       # Zoom to features
       extent = QgsRectangle()
       extent.setMinimal()
@@ -153,7 +153,7 @@ class FileLoader():
         extent.combineExtentWith(child.layer().extent())
       iface.mapCanvas().setExtent(extent)
       iface.mapCanvas().refresh()
-    
+
     except:
       self.msg = QMessageBox()
       self.msg.setIcon(QMessageBox.Information)
@@ -178,7 +178,7 @@ class FileLoader():
       layer_name = layer_name.encode("windows-1252").decode("utf-8")
     except:
       layer_name = layer_name
-    
+
     if not filters or any(str(layer_name) in filtr for filtr in filters):
       fields = QgsFields()
       fields.append(QgsField("id", QVariant.Int, "serial"))
@@ -196,7 +196,7 @@ class FileLoader():
         classification = list(filter(lambda classification: classification[0] == str(layer_name), classifications))
         if classification:
           data_feature = self.insertQuality(classification, feature, gid, area)
-    
+
     return data_feature
 
   def prepareFeature(self, feature):
@@ -266,8 +266,8 @@ class FileLoader():
     if factor != -1:
       data = [gid, geometry_type, self.fileName, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
       # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
-      
-    return data      
+
+    return data
 
   def lookupAttributes(self, layer):
     features = list(layer.getFeatures())

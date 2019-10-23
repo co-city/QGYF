@@ -121,6 +121,25 @@ class Db:
 		yta DOUBLE,
 		poang DOUBLE);""")
 
+	def check(self, path):
+		"""
+		Check if the database is initialized
+		"""
+		# Check path to database.
+		if not os.path.isdir(path):
+			os.mkdir(path)
+
+		con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+		cur = con.cursor()
+		cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+
+		result = cur.fetchall()
+
+		cur.close()
+		con.close()
+
+		return result
+
 	def clear(self, path):
 		"""
 		Empty existing tables.
@@ -147,6 +166,9 @@ class Db:
 		con.close()
 
 	def create(self, path):
+		"""
+		Initialize database.
+		"""
 		# Check path to database.
 		if not os.path.isdir(path):
 			os.mkdir(path)

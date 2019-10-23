@@ -39,7 +39,6 @@ class Diagram:
         ]
         symbology = dict(zip(items, cmap))
 
-
         def setColor(x):
             return symbology.get(x)
         colors = [setColor(l) for l in labels]

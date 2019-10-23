@@ -32,18 +32,17 @@ class GroundAreas:
             if c != 0:
                 cur.execute("SELECT SUM(yta) FROM " + table)
                 total_area += int(cur.fetchone()[0])
-            
+
                 if table == 'line_object':
                     cur.execute("SELECT AREA(ST_Buffer(geom, 0.5)), yta/AREA(ST_Buffer(geom, 0.5)), gid FROM " + table)
                     line_heights = [[j[0], round(j[1], 0), j[2]] for j in cur.fetchall() if round(j[1], 0) != 1]
-            
-                if table == 'point_object':
-                    cur.execute("SELECT SUM(X(geom)) FROM " + table)
-                    result = cur.fetchone()
-                    if result and result[0]:
-                        points_x += result[0]
 
-        
+            if table == 'point_object':
+                cur.execute("SELECT SUM(X(geom)) FROM " + table)
+                result = cur.fetchone()
+                if result and result[0]:
+                    points_x += result[0]
+
         if count != QSettings().value('objectCount') or total_area != QSettings().value('groundArea') or points_x != QSettings().value('pointsCoord'):
 
             cur.execute("""SELECT gid FROM polygon_object WHERE ST_IsValid(geom) != 1""")
@@ -54,12 +53,12 @@ class GroundAreas:
 
             cur.execute("DELETE FROM ground_areas")
             # Merge all objects together
-            cur.execute("""INSERT INTO ground_areas (id, yta, geom) 
-                SELECT NULL, AREA(st_unaryunion(st_collect(geom))), CastToMultiPolygon(st_unaryunion(st_collect(geom))) FROM 
+            cur.execute("""INSERT INTO ground_areas (id, yta, geom)
+                SELECT NULL, AREA(st_unaryunion(st_collect(geom))), CastToMultiPolygon(st_unaryunion(st_collect(geom))) FROM
                 (SELECT NULL, geom FROM polygon_object
-                UNION ALL 
+                UNION ALL
                 SELECT NULL, CastToPolygon(ST_Buffer(geom, 0.5)) FROM line_object
-                UNION ALL 
+                UNION ALL
                 SELECT NULL, CastToPolygon(ST_Buffer(geom, POWER(yta/3.14159, 0.5))) FROM point_object);""") # GROUP BY ytklass
 
             QSettings().setValue('objectCount', count)
