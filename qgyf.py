@@ -421,7 +421,7 @@ class QGYF:
 		groups = [g for g in groups if g in self.groups]
 		self.pdfCreator = ExportCreator()
 		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, groups, self.feature_ids, self.eco_area)
-	
+
 	def pdfGYF(self):
 		docPath = os.path.dirname(os.path.abspath(__file__)) + r'\gyf_ap_20.pdf'
 		try:
@@ -430,13 +430,18 @@ class QGYF:
 			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
 
 	def openCalculationDialog(self):
+		
+		db = Db()
+		initialized = db.check(QSettings().value('dataPath'))
+		if not initialized:
+			self.load()
+
 		self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 		if not self.pluginIsActive:
 			self.pluginIsActive = True
 			self.initCalculationDialog()
 			self.dockwidget.show()
 			self.dockwidget.showClass()
-			
 
 	def initCalculationDialog(self):
 
@@ -497,11 +502,10 @@ class QGYF:
 		for l in layers:
 			if l.isEditable():
 				names.append(l.name())
-		if names:	
+		if names:
 			QMessageBox.warning(ExportDialog(), 'Stäng redigeringsläge', 'Spara ändringar och gå ur redigeringsläget för att sätta punktyta/linjehöjd')
 		else:
 			self.geometry = GeometryDialog(self.dockwidget, QSettings().value('dataPath'))
-		
 
 	def openSettingsDialog(self):
 		self.settings = SettingsDialog(self.dockwidget, None, self)
