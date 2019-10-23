@@ -253,6 +253,11 @@ class QGYF:
 			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
 
 	def loadFile(self):
+		db = Db()
+		initialized = db.check(QSettings().value('dataPath'))
+		if not initialized:
+			self.load()
+
 		self.layerSelectorDialog.loadClassifications(QSettings().value('dataPath'))
 		self.fileLoader.loadFile()
 		root = QgsProject.instance().layerTreeRoot()
@@ -505,7 +510,7 @@ class QGYF:
 
 	def save(self):
 		path = QFileDialog.getSaveFileName(self.iface.mainWindow(), 'Spara som', '', '*.sqlite')
-		new_path = "{0}{1}".format(path[0], path[1])
+		new_path = path[0]
 		database = QSettings().value('activeDataBase')
 		path = "{}/{}".format(QSettings().value('dataPath'), database)
 		if path and new_path:

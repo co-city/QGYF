@@ -11,7 +11,7 @@ name=QGYF
 qgisMinimumVersion=3.0
 description=Green Space Factor Calculator
 version=1.1
-author=C/O City
+author=CO City
 email=info@cocity.se
 
 about=QGIS Green Space Factor calculator. Quantum GIS green space factor calculator plugin. The green space factor is a measure to quantify the amount of urban ecosystem services. The factor is the quota between the area of green/blue surface plus the amount of ecosystem service boost devided by the area of hard surface. This plugin helps you with the calculations and implements a model developed by the Swedish foundation C/O city.

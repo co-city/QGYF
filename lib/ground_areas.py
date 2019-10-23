@@ -39,7 +39,9 @@ class GroundAreas:
             
                 if table == 'point_object':
                     cur.execute("SELECT SUM(X(geom)) FROM " + table)
-                    points_x += cur.fetchone()[0]
+                    result = cur.fetchone()
+                    if result and result[0]:
+                        points_x += result[0]
 
         
         if count != QSettings().value('objectCount') or total_area != QSettings().value('groundArea') or points_x != QSettings().value('pointsCoord'):

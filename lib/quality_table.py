@@ -14,7 +14,7 @@ class QualityTable:
     def init(self, path):
         """ Populate the table "gyf_quality" with values of C/O City's GYF """
         group = [
-            [1, 'Biologisk mångdfald', 0.2],
+            [1, 'Biologisk mångfald', 0.2],
             [2, 'Bullerreducering', 0.2],
             [3, 'Dagvatten- och skyfallshantering', 0.2],
             [4, 'Mikroklimatreglering', 0.2],
@@ -23,7 +23,7 @@ class QualityTable:
         ]
 
         text = [
-            # Biologisk mångdfald
+            # Biologisk mångfald
             "Grön- eller blåyta av hög ekologisk kvalitet som ingår i utpekat landskapssamband.<br><br>Ytan är både viktig för djur och växters spridning samt utgörs antingen av viktig livsmiljö för skyddsvärda arter eller av kärnområden/värdekärnor som är viktiga för en mångfald av arter.<br><br>Ytans kvalitet ska upprätthållas över tid. Det ska säkerställas att storleken är tillräcklig och att slitage och störningar inte påverkar kvaliteten negativt. Detta kan göras i exempelvis skötselplan.",
             "Grön- eller blåyta utpekad för området som exempelvis viktig livsmiljö eller värdekärna men som är fragmenterad, dvs. är isolerad från landskapssamband.",
             "Grön- eller blåyta av ensartad karaktär som ligger inom ett landskapssamband men inte uppfyller kraven enligt K1/K2.<br><br>Viktiga för växter och djurs spridning.<br><br>Även dessa områden kännetecknas av naturliga och självreglerande processer och kan ofta utvecklas mot högre biodiversitet.",
@@ -75,7 +75,7 @@ class QualityTable:
         ]
 
         q_f = [
-            # Biologisk mångdfald
+            # Biologisk mångfald
             [1, 'K1',  2.0, 'Bevarad viktig livsmiljö inom landskapssamband', 'Bevarad livsmiljö inom landskapssamband', text[0]],
             [1, 'K2',  0.8, 'Bevarad viktig livsmiljö utanför landskapssamband', 'Bevarad livsmiljö utanför landskapssamband', text[1]],
             [1, 'K3',  0.8, 'Bevarad övrig natur inom landskapssamband', 'Bevarad övrig natur inom landskapssamband', text[2]],

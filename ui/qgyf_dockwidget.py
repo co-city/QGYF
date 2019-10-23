@@ -205,7 +205,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if selected:
             for f in selected:
                 attributes.append(f.attributes())
-                
+ 
         def set_geom(x):
             return {QgsWkbTypes.Point: 'punkt',
                     QgsWkbTypes.LineString: 'linje'}.get(x, 'yta')
@@ -231,7 +231,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if type(obj[-1]) is str:
                  obj[-1] = float(obj[-1])
             data.append([obj[1], geom, obj[2], g, q, f, round(obj[-1], 1), round(obj[-1]*f, 1)])
-    
+
         cur.executemany('INSERT INTO classification VALUES (?,?,?,?,?,?,?,?)', data)
         # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
         cur.close()
@@ -505,6 +505,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             for feature in features:
                 index = feature.fields().indexFromName("grupp")
                 group = feature.attributes()[index]
+                try:
+                  group = group.encode("windows-1252").decode("utf-8")
+                except:
+                  group = group
                 current_groups.append(group)
             current_groups = list(set(current_groups))
             checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']

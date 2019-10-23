@@ -6,7 +6,7 @@ try:
     import matplotlib
     import matplotlib.pyplot as plt
     matplotlib.use('QT5Agg')
-    import numpy as np  
+    import numpy as np
 
     from ..ui.mplwidget import MplWidget
 except:
@@ -23,7 +23,7 @@ class Diagram:
             size = factor_areas[ii].sum()
             sizes.append(size*100/total)
 
-        items = ['Biologisk mångdfald',
+        items = ['Biologisk mångfald',
         'Bullerreducering',
         'Dagvatten- och skyfallshantering',
         'Mikroklimatreglering',
@@ -38,7 +38,8 @@ class Diagram:
             [1, 0.64, 0.97, 0.8], # rose
         ]
         symbology = dict(zip(items, cmap))
-        
+
+
         def setColor(x):
             return symbology.get(x)
         colors = [setColor(l) for l in labels]
@@ -57,10 +58,10 @@ class Diagram:
             ]
         sizes = [eco_area*100/total_area, abs(total_area - eco_area)*100/total_area]
         items = [[sizes[i], labels[i]] for i,x in enumerate(sizes)]
-        
+
         outline = {"edgecolor":"white", 'linewidth': 0.8, 'antialiased': True}
         legend = ['{:.1f} % - {}'.format(float(i[0]), i[1]) for i in items]
-        
+
         # Plot
         gs = GridSpec(4,1)
         ax = plt.subplot(gs[0:3,0])

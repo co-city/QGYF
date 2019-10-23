@@ -367,7 +367,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Biologisk mångdfald</string>
+       <string>Biologisk mångfald</string>
       </property>
       <property name="checkable">
        <bool>true</bool>
