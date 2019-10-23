@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>457</width>
-    <height>947</height>
+    <width>433</width>
+    <height>830</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -15,12 +15,6 @@
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>340</width>
-    <height>860</height>
-   </size>
   </property>
   <property name="font">
    <font>
@@ -45,149 +39,111 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <widget class="QTabWidget" name="tabWidget">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>-3</y>
-      <width>451</width>
-      <height>881</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="font">
-     <font>
-      <weight>50</weight>
-      <bold>false</bold>
-     </font>
-    </property>
-    <property name="toolTip">
-     <string/>
-    </property>
-    <property name="currentIndex">
-     <number>0</number>
-    </property>
-    <widget class="QWidget" name="classify">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="contextMenuPolicy">
-      <enum>Qt::NoContextMenu</enum>
-     </property>
-     <attribute name="title">
-      <string>Klassificera</string>
-     </attribute>
-     <attribute name="toolTip">
-      <string>Här sätter du en kvalitet på objekt</string>
-     </attribute>
-     <widget class="QComboBox" name="selectQGroup">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>23</y>
-        <width>301</width>
-        <height>31</height>
-       </rect>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="enabled">
+       <bool>true</bool>
       </property>
-     </widget>
-     <widget class="QComboBox" name="selectQ">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>80</y>
-        <width>301</width>
-        <height>31</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="approveButton">
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>450</y>
-        <width>111</width>
-        <height>30</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Lägg till kvalitet</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_3">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>2</y>
-        <width>111</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Välj kvalitetsgrupp</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_4">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>101</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Välj kvalitet</string>
-      </property>
-     </widget>
-     <widget class="QTextBrowser" name="textQ">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>230</y>
-        <width>421</width>
-        <height>201</height>
-       </rect>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="font">
        <font>
-        <pointsize>10</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+      <property name="toolTip">
+       <string/>
       </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-      <property name="lineWidth">
+      <property name="currentIndex">
        <number>0</number>
       </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_5">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>130</y>
-        <width>411</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;
+      <widget class="QWidget" name="classify">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::NoContextMenu</enum>
+       </property>
+       <attribute name="title">
+        <string>Klassificera</string>
+       </attribute>
+       <attribute name="toolTip">
+        <string>Här sätter du en kvalitet på objekt</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0" colspan="2">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Välj kvalitetsgrupp</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3" rowspan="2">
+         <widget class="QPushButton" name="info">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Visa upp GYF guide</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>:/plugins/qgyf/assets/info.png</normaloff>:/plugins/qgyf/assets/info.png</iconset>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="3">
+         <widget class="QComboBox" name="selectQGroup">
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Välj kvalitet</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" colspan="3">
+         <widget class="QComboBox" name="selectQ">
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0" colspan="4">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>&lt;html&gt;
 &lt;head&gt;
    &lt;style&gt;
    img {
@@ -201,393 +157,423 @@
    &lt;/p&gt;
 &lt;/body&gt;
 &lt;/html&gt;</string>
-      </property>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="4">
+         <widget class="QTextBrowser" name="textQ">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QComboBox" name="selectLayer">
+          <property name="maximumSize">
+           <size>
+            <width>160</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QPushButton" name="approveButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>160</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Lägg till kvalitet</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="2" colspan="2">
+         <widget class="QPushButton" name="removeButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>160</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>Ta bort markerade kvaliteter från tabellen</string>
+          </property>
+          <property name="text">
+           <string>Ta bort kvalitet</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0" colspan="2">
+         <widget class="QPushButton" name="geometryButton">
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>Sätt yta för punktobjekt/höjd för linjeobjekt</string>
+          </property>
+          <property name="text">
+           <string>Sätt punktyta/linjehöjd</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0" colspan="4">
+         <widget class="QTableWidget" name="classtable">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Tabellen visar objekt med bestämda kvaliteter</string>
+          </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="showDropIndicator" stdset="0">
+           <bool>false</bool>
+          </property>
+          <property name="dragDropOverwriteMode">
+           <bool>false</bool>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>false</bool>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <property name="sortingEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="wordWrap">
+           <bool>false</bool>
+          </property>
+          <attribute name="horizontalHeaderCascadingSectionResizes">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>50</number>
+          </attribute>
+          <attribute name="horizontalHeaderMinimumSectionSize">
+           <number>25</number>
+          </attribute>
+          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderDefaultSectionSize">
+           <number>25</number>
+          </attribute>
+          <attribute name="verticalHeaderMinimumSectionSize">
+           <number>25</number>
+          </attribute>
+         </widget>
+        </item>
+       </layout>
+       <zorder>label_3</zorder>
+       <zorder>selectQGroup</zorder>
+       <zorder>label_4</zorder>
+       <zorder>selectQ</zorder>
+       <zorder>label_5</zorder>
+       <zorder>textQ</zorder>
+       <zorder>selectLayer</zorder>
+       <zorder>approveButton</zorder>
+       <zorder>removeButton</zorder>
+       <zorder>geometryButton</zorder>
+       <zorder>classtable</zorder>
+       <zorder>info</zorder>
+      </widget>
+      <widget class="QWidget" name="visualize">
+       <attribute name="title">
+        <string>Visulisera</string>
+       </attribute>
+       <attribute name="toolTip">
+        <string>Sätt stil på de klassificerade objekten utifrån kvalitet</string>
+       </attribute>
+       <widget class="QCheckBox" name="checkBio">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>40</y>
+          <width>141</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Biologisk mångfald</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="checkBuller">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>65</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Bullerreducering</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="checkVatten">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>90</y>
+          <width>231</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Dagvatten- och skyfallshantering</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="checkKlimat">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>115</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Mikroklimatreglering</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="checkPoll">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>140</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Pollination</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="checkHalsa">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>165</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Rekreation och hälsa</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>171</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Visa kvaliteter per grupp</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="estimate">
+       <attribute name="title">
+        <string>Beräkna</string>
+       </attribute>
+       <attribute name="toolTip">
+        <string>Här beräknas GYF:en utifrån din klassificering</string>
+       </attribute>
+       <widget class="QLabel" name="label_6">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>3</y>
+          <width>151</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Beräkningsområde&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="createRA">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>40</y>
+          <width>75</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string>Rita upp ett avgränsningsområde där du vill beräkna GYF</string>
+        </property>
+        <property name="text">
+         <string>Skapa</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="selectRA">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>40</y>
+          <width>75</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string>Välj ett avgränsningsområde där du vill beräkna GYF</string>
+        </property>
+        <property name="text">
+         <string>Välj</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="calculate">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>90</y>
+          <width>111</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>Beräkna GYF</string>
+        </property>
+        <property name="text">
+         <string>Beräkna GYF</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="gyfValue">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>140</y>
+          <width>131</width>
+          <height>71</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>24</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+       <widget class="MplWidget" name="plot" native="true">
+        <property name="geometry">
+         <rect>
+          <x>9</x>
+          <y>210</y>
+          <width>321</width>
+          <height>431</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+          <pointsize>5</pointsize>
+         </font>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="report">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>690</y>
+          <width>121</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string>Skapa en PDF rapport</string>
+        </property>
+        <property name="text">
+         <string>Spara rapport</string>
+        </property>
+       </widget>
+      </widget>
      </widget>
-     <widget class="QPushButton" name="info">
-      <property name="geometry">
-       <rect>
-        <x>331</x>
-        <y>10</y>
-        <width>31</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>Visa upp GYF guide</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>:/plugins/qgyf/assets/info.png</normaloff>:/plugins/qgyf/assets/info.png</iconset>
-      </property>
-      <property name="flat">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="selectLayer">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>450</y>
-        <width>81</width>
-        <height>30</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QTableWidget" name="classtable">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>530</y>
-        <width>421</width>
-        <height>311</height>
-       </rect>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="toolTip">
-       <string>Tabellen visar objekt med bestämda kvaliteter</string>
-      </property>
-      <property name="lineWidth">
-       <number>0</number>
-      </property>
-      <property name="sizeAdjustPolicy">
-       <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
-      </property>
-      <property name="editTriggers">
-       <set>QAbstractItemView::NoEditTriggers</set>
-      </property>
-      <property name="showDropIndicator" stdset="0">
-       <bool>false</bool>
-      </property>
-      <property name="dragDropOverwriteMode">
-       <bool>false</bool>
-      </property>
-      <property name="alternatingRowColors">
-       <bool>false</bool>
-      </property>
-      <property name="selectionBehavior">
-       <enum>QAbstractItemView::SelectRows</enum>
-      </property>
-      <property name="sortingEnabled">
-       <bool>false</bool>
-      </property>
-      <property name="wordWrap">
-       <bool>false</bool>
-      </property>
-      <attribute name="horizontalHeaderCascadingSectionResizes">
-       <bool>false</bool>
-      </attribute>
-      <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>50</number>
-      </attribute>
-      <attribute name="horizontalHeaderMinimumSectionSize">
-       <number>25</number>
-      </attribute>
-      <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-       <bool>false</bool>
-      </attribute>
-      <attribute name="horizontalHeaderStretchLastSection">
-       <bool>false</bool>
-      </attribute>
-      <attribute name="verticalHeaderDefaultSectionSize">
-       <number>25</number>
-      </attribute>
-      <attribute name="verticalHeaderMinimumSectionSize">
-       <number>25</number>
-      </attribute>
-     </widget>
-     <widget class="QPushButton" name="removeButton">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>450</y>
-        <width>111</width>
-        <height>30</height>
-       </rect>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="toolTip">
-       <string>Ta bort markerade kvaliteter från tabellen</string>
-      </property>
-      <property name="text">
-       <string>Ta bort kvalitet</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="geometryButton">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>490</y>
-        <width>151</width>
-        <height>30</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>Sätt yta för punktobjekt/höjd för linjeobjekt</string>
-      </property>
-      <property name="text">
-       <string>Sätt punktyta/linjehöjd</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="visualize">
-     <attribute name="title">
-      <string>Visulisera</string>
-     </attribute>
-     <attribute name="toolTip">
-      <string>Sätt stil på de klassificerade objekten utifrån kvalitet</string>
-     </attribute>
-     <widget class="QCheckBox" name="checkBio">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>141</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Biologisk mångfald</string>
-      </property>
-      <property name="checkable">
-       <bool>true</bool>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBuller">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>65</y>
-        <width>141</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Bullerreducering</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkVatten">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>90</y>
-        <width>231</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Dagvatten- och skyfallshantering</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkKlimat">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>115</y>
-        <width>141</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Mikroklimatreglering</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkPoll">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>140</y>
-        <width>141</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Pollination</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkHalsa">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>165</y>
-        <width>141</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Rekreation och hälsa</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>171</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Visa kvaliteter per grupp</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="estimate">
-     <attribute name="title">
-      <string>Beräkna</string>
-     </attribute>
-     <attribute name="toolTip">
-      <string>Här beräknas GYF:en utifrån din klassificering</string>
-     </attribute>
-     <widget class="QLabel" name="label_6">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>3</y>
-        <width>151</width>
-        <height>30</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Beräkningsområde&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="createRA">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>75</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>Rita upp ett avgränsningsområde där du vill beräkna GYF</string>
-      </property>
-      <property name="text">
-       <string>Skapa</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="selectRA">
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>40</y>
-        <width>75</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>Välj ett avgränsningsområde där du vill beräkna GYF</string>
-      </property>
-      <property name="text">
-       <string>Välj</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="calculate">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>90</y>
-        <width>111</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="toolTip">
-       <string>Beräkna GYF</string>
-      </property>
-      <property name="text">
-       <string>Beräkna GYF</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="gyfValue">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>140</y>
-        <width>131</width>
-        <height>71</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>24</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-     <widget class="MplWidget" name="plot" native="true">
-      <property name="geometry">
-       <rect>
-        <x>9</x>
-        <y>210</y>
-        <width>321</width>
-        <height>431</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Century Gothic</family>
-        <pointsize>5</pointsize>
-       </font>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="report">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>690</y>
-        <width>121</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>Skapa en PDF rapport</string>
-      </property>
-      <property name="text">
-       <string>Spara rapport</string>
-      </property>
-     </widget>
-    </widget>
-   </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <customwidgets>
