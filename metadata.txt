@@ -10,7 +10,7 @@
 name=QGYF
 qgisMinimumVersion=3.0
 description=Green Space Factor Calculator
-version=1.0
+version=1.1
 author=C/O City
 email=info@cocity.se
 

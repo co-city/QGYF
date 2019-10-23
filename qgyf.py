@@ -173,7 +173,7 @@ class QGYF:
 			parent=self.iface.mainWindow())
 
 	def openDoc(self):
-		docPath = self.plugin_dir + r'\\Användarmanual.docx'
+		docPath = self.plugin_dir + r'\\qgyf_user_guide.pdf'
 		try:
 			os.startfile(docPath)
 		except:
