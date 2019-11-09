@@ -1,0 +1,6 @@
+1	Biologisk mångfald	0.2
+2	Bullerreducering	0.2
+3	Dagvatten- och skyfallshantering	0.2
+4	Mikroklimatreglering	0.2
+5	Pollination	0.8
+6	Rekreation och hälsa	0.3

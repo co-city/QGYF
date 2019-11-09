@@ -32,6 +32,7 @@ from qgis.utils import iface, spatialite_connect
 from .saveResearchArea import saveRA
 from ..lib.styles import Style
 from .mplwidget import MplWidget
+
 from functools import wraps
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -90,6 +91,15 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         """ Functions to classify input data"""
 
     # CLASSIFICATION
+    def showGYFname(self):
+        gyf_version = QSettings().value('model')
+        if gyf_version == r"GYF AP, C/O City":
+            gyf_name = r'GYF för allmän platsmark, C/O City'
+        else:
+            gyf_name = r'GYF för kvartersmark, Stockholm Stad'
+        gyf_name = '<h3 style="color:#238973">' + gyf_name + '</h3>'
+        self.gyfVersion.setText(gyf_name)
+
     def chooseQ(self, path):
         self.selectQGroup.clear()
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))

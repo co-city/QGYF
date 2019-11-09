@@ -78,7 +78,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Vald GYF</string>
+    <string>GYF model</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="dataPath">
@@ -102,7 +102,7 @@
     <rect>
      <x>10</x>
      <y>81</y>
-     <width>161</width>
+     <width>181</width>
      <height>22</height>
     </rect>
    </property>
@@ -112,7 +112,7 @@
     <rect>
      <x>10</x>
      <y>184</y>
-     <width>161</width>
+     <width>181</width>
      <height>22</height>
     </rect>
    </property>
@@ -133,7 +133,7 @@
   <widget class="QPushButton" name="clearDatabaseButton">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>210</x>
      <y>80</y>
      <width>91</width>
      <height>24</height>
@@ -164,7 +164,7 @@
     <rect>
      <x>10</x>
      <y>136</y>
-     <width>161</width>
+     <width>181</width>
      <height>20</height>
     </rect>
    </property>
@@ -175,7 +175,7 @@
   <widget class="QToolButton" name="selectCRSButton">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>210</x>
      <y>134</y>
      <width>41</width>
      <height>24</height>

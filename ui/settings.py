@@ -23,17 +23,44 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         super(SettingsDialog, self).__init__(parent)
         self.setupUi(self)
         self.populate()
+        self.populateGYF()
         self.dataPath.setText(QSettings().value('dataPath'))
         crs = QgsCoordinateReferenceSystem(QSettings().value('CRS'))
         self.crs.setText(crs.description())
         self.selectPathButton.clicked.connect(self.openFileDialog)
-        clearDataBase = lambda : self.clearDataBase(dockwidget)
-        self.clearDatabaseButton.clicked.connect(clearDataBase)
+        self.clearDatabaseButton.clicked.connect(self.clearDataBase)
         self.activeDatabase.currentIndexChanged.connect(self.setDatabase)
         self.parent = parentWidget
         self.selectCRSButton.clicked.connect(self.setCRS)
+        self.currentGyf.currentIndexChanged.connect(self.setGYF)
+        updateDockwidget = lambda : self.updateDockwidget(dockwidget)
+        self.okButton.clicked.connect(updateDockwidget)
 
-    def clearDataBase(self, dockwidget):
+    def populateGYF(self):
+        models = [r'KvartersGYF, Sthm Stad', r'GYF AP, C/O City']
+        activeIndex = 0
+        index = 0
+        for m in models:
+            self.currentGyf.addItem(m)
+            if m == QSettings().value('model'):
+                activeIndex = index
+            index += 1
+
+        self.setGYF(activeIndex)
+
+
+    def setGYF(self, index):
+        self.currentGyf.setCurrentIndex(index)
+        if self.currentGyf.currentText():
+            QSettings().setValue('model', self.currentGyf.currentText())
+        print(QSettings().value('model'))
+
+    def updateDockwidget(self, dockwidget):
+        dockwidget.showGYFname()
+        dockwidget.showClass()
+        
+
+    def clearDataBase(self):
         db = Db()
         db.clear("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         self.msg = QMessageBox()
@@ -41,9 +68,8 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.msg.setWindowTitle("Information")
         self.msg.setText("Databasen rensades")
         self.msg.show()
-        dockwidget.showClass()
         iface.mapCanvas().refreshAllLayers()
-
+        
     def openFileDialog(self):
         path = QFileDialog.getExistingDirectory(self, 'Öppna fil', '', QFileDialog.ShowDirsOnly)
         if path:

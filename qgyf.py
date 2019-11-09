@@ -35,7 +35,7 @@ from .ui.layer_selector import LayerSelectorDialog
 from .ui.export import ExportDialog
 from .ui.radius_height import GeometryDialog
 from .lib.db import Db
-from .lib.quality_table import QualityTable
+from .lib.gyf_tables import QualityTable
 from .lib.db_view import DbView
 from .lib.ground_areas import GroundAreas
 from .lib.file_loader import FileLoader
@@ -80,6 +80,9 @@ class QGYF:
 		if not QSettings().value('CRS'):
 			crs = QgsCoordinateReferenceSystem("EPSG:3006")
 			QSettings().setValue('CRS', crs.authid())
+
+		if not QSettings().value('model'):
+			QSettings().setValue('model', 'KvartersGYF, Sthm Stad')
 
 		QSettings().setValue('objectCount', 0)
 		QSettings().setValue('groundArea', 0)
@@ -174,6 +177,17 @@ class QGYF:
 
 	def openDoc(self):
 		docPath = self.plugin_dir + r'\\qgyf_user_guide.pdf'
+		try:
+			os.startfile(docPath)
+		except:
+			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
+
+	def pdfGYF(self):
+		if QSettings().value('model')== r"GYF AP, C/O City":
+			doc = r'\gyf_ap.pdf'
+		else:
+			doc = r'\kvartersgyf_sthm.pdf'
+		docPath = os.path.dirname(os.path.abspath(__file__)) + r'\gyf_models' + doc
 		try:
 			os.startfile(docPath)
 		except:
@@ -422,13 +436,6 @@ class QGYF:
 		self.pdfCreator = ExportCreator()
 		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, groups, self.feature_ids, self.eco_area)
 
-	def pdfGYF(self):
-		docPath = os.path.dirname(os.path.abspath(__file__)) + r'\gyf_ap_20.pdf'
-		try:
-			os.startfile(docPath)
-		except:
-			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
-
 	def openCalculationDialog(self):
 		
 		db = Db()
@@ -447,6 +454,9 @@ class QGYF:
 
 		# connect to provide cleanup on closing of dockwidget
 		self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+
+		# Show GYF version
+		self.dockwidget.showGYFname()
 
 		# Classification
 		self.dockwidget.switchLayerGroups()
