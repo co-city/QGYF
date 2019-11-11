@@ -35,6 +35,7 @@ from .ui.layer_selector import LayerSelectorDialog
 from .ui.export import ExportDialog
 from .ui.radius_height import GeometryDialog
 from .lib.db import Db
+from .lib.switch_gyf import SwitchGYFs
 from .lib.gyf_tables import QualityTable
 from .lib.db_view import DbView
 from .lib.ground_areas import GroundAreas
@@ -55,7 +56,7 @@ class QGYF:
 
 	def __init__(self, iface):
 		self.iface = iface
-		self.plugin_dir = os.path.dirname(__file__)
+		self.plugin_dir = os.path.dirname(os.path.abspath(__file__))
 
 		locale = QSettings().value('locale/userLocale')[0:2]
 		locale_path = os.path.join(
@@ -96,6 +97,8 @@ class QGYF:
 		self.dockwidget = QGYFDockWidget()
 		self.area_id = None
 		self.diagram = Diagram()
+		self.switch = SwitchGYFs(self.dockwidget, self.plugin_dir)
+		self.gyfModel = self.switch.defineGYF()
 
 		self.layerSelectorDialog = LayerSelectorDialog()
 		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.dockwidget, QSettings().value('dataPath'))
@@ -177,17 +180,6 @@ class QGYF:
 
 	def openDoc(self):
 		docPath = self.plugin_dir + r'\\qgyf_user_guide.pdf'
-		try:
-			os.startfile(docPath)
-		except:
-			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
-
-	def pdfGYF(self):
-		if QSettings().value('model')== r"GYF AP, C/O City":
-			doc = r'\gyf_ap.pdf'
-		else:
-			doc = r'\kvartersgyf_sthm.pdf'
-		docPath = os.path.dirname(os.path.abspath(__file__)) + r'\gyf_models' + doc
 		try:
 			os.startfile(docPath)
 		except:
@@ -357,7 +349,7 @@ class QGYF:
 		self.db = Db()
 		self.db.create(path)
 		self.quality = QualityTable()
-		self.quality.init(path)
+		self.quality.init(path, self.gyfModel)
 
 	def onClosePlugin(self):
 		self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
@@ -450,13 +442,15 @@ class QGYF:
 			self.dockwidget.show()
 			self.dockwidget.showClass()
 
+		print(self.gyfModel)
+
 	def initCalculationDialog(self):
 
 		# connect to provide cleanup on closing of dockwidget
 		self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
 		# Show GYF version
-		self.dockwidget.showGYFname()
+		self.switch.adjustDockwidget(self.gyfModel)
 
 		# Classification
 		self.dockwidget.switchLayerGroups()
@@ -465,7 +459,6 @@ class QGYF:
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
 
 		# Qualities
-		self.dockwidget.info.clicked.connect(self.pdfGYF)
 		self.dockwidget.selectQGroup.clear()
 		self.dockwidget.chooseQ(QSettings().value('dataPath'))
 
@@ -518,7 +511,7 @@ class QGYF:
 			self.geometry = GeometryDialog(self.dockwidget, QSettings().value('dataPath'))
 
 	def openSettingsDialog(self):
-		self.settings = SettingsDialog(self.dockwidget, None, self)
+		self.settings = SettingsDialog(self.dockwidget, self.gyfModel, self.plugin_dir, None, self)
 		self.settings.show()
 		self.settings.okButton.clicked.connect(self.settings.close)
 

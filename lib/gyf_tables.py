@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ---------------------------------------------------------------------------
-CategoryTable.py
+QualityTable.py
 Created on: 2019-03-18 13:30:53
 ---------------------------------------------------------------------------
 """
@@ -12,13 +12,11 @@ from PyQt5.QtCore import QSettings
 
 class QualityTable:
 
-    def init(self, path):
-        """ Populate the table "gyf_quality" with values of C/O City's GYF """
-        inputfile_group = 'gyf_AP_groups.txt'
-        inputfile_quality = 'gyf_AP_qualities.txt'
+    def init(self, path, model):
+        """ Populate the table "gyf_quality" with GYF values """
         
-        group = self.readInputGYF(inputfile_group)
-        q_f   = self.readInputGYF(inputfile_quality)
+        group = self.readInputGYF(model['Input_groups'])
+        q_f   = self.readInputGYF(model['Input_categories'])
 
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()

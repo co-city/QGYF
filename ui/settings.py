@@ -12,6 +12,7 @@ from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from qgis.utils import iface
 from ..lib.db import Db
+from ..lib.switch_gyf import SwitchGYFs
 from qgis.gui import QgsProjectionSelectionDialog
 from qgis.core import QgsCoordinateReferenceSystem
 
@@ -19,9 +20,11 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'settings.ui'))
 
 class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
-    def __init__(self, dockwidget, parent=None, parentWidget=None):
+    def __init__(self, dockwidget, model, plugin_dir, parent=None, parentWidget=None):
         super(SettingsDialog, self).__init__(parent)
         self.setupUi(self)
+        modelGyf = model
+        self.switch = SwitchGYFs(dockwidget, plugin_dir)
         self.populate()
         self.populateGYF()
         self.dataPath.setText(QSettings().value('dataPath'))
@@ -53,10 +56,13 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.currentGyf.setCurrentIndex(index)
         if self.currentGyf.currentText():
             QSettings().setValue('model', self.currentGyf.currentText())
+            global modelGyf
+            modelGyf = self.switch.defineGYF()
         print(QSettings().value('model'))
+        
 
     def updateDockwidget(self, dockwidget):
-        dockwidget.showGYFname()
+        self.switch.adjustDockwidget(modelGyf)
         dockwidget.showClass()
         
 

@@ -91,14 +91,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         """ Functions to classify input data"""
 
     # CLASSIFICATION
-    def showGYFname(self):
-        gyf_version = QSettings().value('model')
-        if gyf_version == r"GYF AP, C/O City":
-            gyf_name = r'GYF för allmän platsmark, C/O City'
-        else:
-            gyf_name = r'GYF för kvartersmark, Stockholm Stad'
-        gyf_name = '<h3 style="color:#238973">' + gyf_name + '</h3>'
-        self.gyfVersion.setText(gyf_name)
 
     def chooseQ(self, path):
         self.selectQGroup.clear()
