@@ -29,7 +29,7 @@ class Db:
 		# and before attempting to call any other Spatial SQL function.
 		# The PRAGMA operations speeds up the process.
 		try:
-			con.isolation_level = None # Behövs för QGIS 3.2.2 (bugg som har rättas i de senase versioner) men set ut att det sänker prestanda
+			con.isolation_level = None # Is necessary for QGIS 3.2.2 (the bug that was fixed in later versions), but results in lower performance
 			cur.execute("BEGIN;")
 			cur.execute("COMMIT;")
 			cur.execute("PRAGMA synchronous = OFF;")
@@ -42,7 +42,7 @@ class Db:
 			cur.execute("PRAGMA synchronous = FULL;")
 			cur.execute("PRAGMA journal_mode = DELETE;")
 		except:
-			con.isolation_level = None  # Behövs för QGIS 3.2.2. men set ut att det sänker prestanda
+			con.isolation_level = None  
 			cur.execute("BEGIN;")
 			cur.execute("SELECT InitSpatialMetaData(0)")
 			cur.execute("COMMIT;")
@@ -139,6 +139,27 @@ class Db:
 		con.close()
 
 		return result
+
+	def checkClass(self, path):
+		"""
+		Check if the classification table is filled
+		"""
+		if not os.path.exists("{}\{}".format(path, QSettings().value('activeDataBase'))):
+			return True
+		else:
+			con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+			cur = con.cursor()
+			cur.execute("SELECT count(*) FROM classification;")
+
+			result = cur.fetchone()
+			cur.close()
+			con.close()
+			
+			print(result[0])
+			if result[0] == 0:
+				return True
+			else:
+				return False
 
 	def clear(self, path):
 		"""

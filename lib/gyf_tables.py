@@ -21,10 +21,10 @@ class QualityTable:
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
         cur.execute("SELECT id FROM gyf_qgroup")
-        if not cur.fetchall():
-            cur.executemany('INSERT OR IGNORE INTO gyf_qgroup VALUES (?,?,?)', group)
-            cur.executemany('INSERT OR IGNORE INTO gyf_quality VALUES (?,?,?,?,?,?)', q_f)
-            con.commit()
+        #if not cur.fetchall():
+        cur.executemany('INSERT OR IGNORE INTO gyf_qgroup VALUES (?,?,?)', group)
+        cur.executemany('INSERT OR IGNORE INTO gyf_quality VALUES (?,?,?,?,?,?)', q_f)
+        con.commit()
         cur.close()
         con.close()
 
