@@ -38,13 +38,11 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         updateDockwidget = lambda : self.updateDockwidget(dockwidget)
         self.db = Db()
         if self.db.checkClass(QSettings().value('dataPath')):
-            print('can change')
             self.currentGyf.setEnabled(True)
             self.currentGyf.currentIndexChanged.connect(self.setGYF)
             self.currentGyf.currentIndexChanged.connect(updateDockwidget)
         else:
             self.currentGyf.setEnabled(False)
-            print('disabled')
 
     def populateGYF(self):
         models = [r'KvartersGYF, Sthm Stad', r'GYF AP, C/O City']

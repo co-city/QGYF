@@ -1,10 +1,10 @@
-1	Delfaktorer grÃ¶nska	0.0
+1	Delfaktorer grönska	0.0
 2	Delfaktorer vatten	0.0
-3	TillÃ¤ggsfaktorer grÃ¶nska/biodiversitet	0.0
-4	TillÃ¤ggsfaktorer grÃ¶nska/rekreativa & sociala vÃ¤rden	0.0
-5	TillÃ¤ggsfaktorer grÃ¶nska/klimat - temperaturreglering	0.0
-6	TillÃ¤ggsfaktorer grÃ¶nska och ljudkvalitet	0.0
-7	TillÃ¤ggsfaktorer vatten/biodiversitet	0.0
-8	TillÃ¤ggsfaktorer vatten/rekreativa & sociala vÃ¤rden	0.0
-9	TillÃ¤ggsfaktorer vatten/klimat - temperaturreglering	0.0
-10	TillÃ¤ggsfaktorer vatten och ljudkvalitet	0.0
+3	Tilläggsfaktorer grönska/biodiversitet	0.0
+4	Tilläggsfaktorer grönska/rekreativa & sociala värden	0.0
+5	Tilläggsfaktorer grönska/klimat - temperaturreglering	0.0
+6	Tilläggsfaktorer grönska och ljudkvalitet	0.0
+7	Tilläggsfaktorer vatten/biodiversitet	0.0
+8	Tilläggsfaktorer vatten/rekreativa & sociala värden	0.0
+9	Tilläggsfaktorer vatten/klimat - temperaturreglering	0.0
+10	Tilläggsfaktorer vatten och ljudkvalitet	0.0

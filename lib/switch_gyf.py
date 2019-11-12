@@ -11,6 +11,7 @@ from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QMessageBox
 
 from ..ui.export import ExportDialog
+from .gyf_tables import QualityTable
 
 
 class SwitchGYFs:
@@ -24,19 +25,25 @@ class SwitchGYFs:
             'Name', 
             'Doc', 
             'Input_groups', 
-            'Input_categories']
+            'Input_categories',
+            'label_G',
+            'label_Q']
 
         gyf_ap = [
             r'GYF för allmän platsmark, C/O City', 
             'gyf_ap.pdf', 
             'gyf_AP_groups.txt', 
-            'gyf_AP_qualities.txt']
+            'gyf_AP_qualities.txt',
+            'Välj kvalitetsgrupp',
+            'Välj kvalitet']
 
         gyf_kvarters = [
             r'GYF för kvartersmark, Stockholm Stad', 
             'kvartersgyf_sthm.pdf', 
             'kvartersgyf_groups.txt', 
-            'kvartersgyf_qualities.txt']
+            'kvartersgyf_qualities.txt',
+            'Välj faktorsgrupp',
+            'Välj faktor']
 
         if QSettings().value('model') == r"GYF AP, C/O City":
             gyf_model = dict(zip(gyf_var, gyf_ap))
@@ -50,6 +57,11 @@ class SwitchGYFs:
         pdfGYF = lambda: self.pdfGYF(model)
         self.dockwidget.info.disconnect()
         self.dockwidget.info.clicked.connect(pdfGYF)
+        QualityTable().init(QSettings().value('dataPath'), model)
+        self.dockwidget.chooseQ(QSettings().value('dataPath'))
+        self.dockwidget.label_G.setText(model['label_G'])
+        self.dockwidget.label_Q.setText(model['label_Q'])
+
         
 
     def showGYFname(self, model):
@@ -58,7 +70,6 @@ class SwitchGYFs:
 
     def pdfGYF(self, model):
         docPath = self.plugin_dir + '/gyf_models/' + model['Doc']
-        print(docPath)
         try:
             os.startfile(docPath)
         except:

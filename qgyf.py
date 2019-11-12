@@ -459,9 +459,10 @@ class QGYF:
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
 
 		# Qualities
-		self.dockwidget.selectQGroup.clear()
+		self.dockwidget.label_G.setText(self.gyfModel['label_G'])
+		self.dockwidget.label_Q.setText(self.gyfModel['label_Q'])
 		self.dockwidget.chooseQ(QSettings().value('dataPath'))
-
+		
 		getQ = lambda : self.dockwidget.getQ(QSettings().value('dataPath'))
 		self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
 
