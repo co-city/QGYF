@@ -109,6 +109,17 @@ class Db:
 		faktor DOUBLE NOT NULL);
 		""")
 
+		cur.execute("""
+		CREATE TABLE gyf_areas (
+		grupp_id INTEGER NOT NULL,
+		grupp TEXT NOT NULL,
+		id TEXT NOT NULL,
+		faktor DOUBLE NOT NULL,
+		namn TEXT,
+		kort_namn TEXT,
+		beskrivning TEXT);
+		""")
+
 		# id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		cur.execute("""
 		CREATE TABLE classification (

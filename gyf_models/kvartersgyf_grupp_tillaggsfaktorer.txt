@@ -1,0 +1,8 @@
+1	Grönska/biodiversitet	0.0
+2	Grönska/rekreativa & sociala värden	0.0
+3	Grönska/klimat - temperaturreglering	0.0
+4	Grönska och ljudkvalitet	0.0
+5	Vatten/biodiversitet	0.0
+6	Vatten/rekreativa & sociala värden	0.0
+7	Vatten/klimat - temperaturreglering	0.0
+8	Vatten och ljudkvalitet	0.0

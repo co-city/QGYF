@@ -15,6 +15,7 @@ class QualityTable:
     def init(self, path, model):
         """ Populate the table "gyf_quality" with GYF values """
         
+        areas = self.readInputGYF(model['Input_ground_areas'])
         group = self.readInputGYF(model['Input_groups'])
         q_f   = self.readInputGYF(model['Input_categories'])
         print(model['Input_groups'])
@@ -30,11 +31,14 @@ class QualityTable:
             print(items)
             print(c_items)
             if not set(items) == set(c_items):
+                cur.execute("DELETE FROM gyf_areas")
                 cur.execute("DELETE FROM gyf_qgroup")
                 cur.execute("DELETE FROM gyf_quality")
+                cur.executemany('INSERT OR IGNORE INTO gyf_areas VALUES (?,?,?,?,?,?,?)', areas)
                 cur.executemany('INSERT OR IGNORE INTO gyf_qgroup VALUES (?,?,?)', group)
                 cur.executemany('INSERT OR IGNORE INTO gyf_quality VALUES (?,?,?,?,?,?)', q_f)
         else:
+            cur.executemany('INSERT OR IGNORE INTO gyf_areas VALUES (?,?,?,?,?,?,?)', areas)
             cur.executemany('INSERT OR IGNORE INTO gyf_qgroup VALUES (?,?,?)', group)
             cur.executemany('INSERT OR IGNORE INTO gyf_quality VALUES (?,?,?,?,?,?)', q_f)
         con.commit()

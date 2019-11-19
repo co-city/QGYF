@@ -26,6 +26,8 @@ class SwitchGYFs:
             'Doc', 
             'Input_groups', 
             'Input_categories',
+            'Input_ground_areas',
+            'Ground_areas_enabled',
             'label_G',
             'label_Q']
 
@@ -34,16 +36,20 @@ class SwitchGYFs:
             'gyf_ap.pdf', 
             'gyf_AP_groups.txt', 
             'gyf_AP_qualities.txt',
+            'gyf_AP_groundareas.txt',
+            0,
             'Välj kvalitetsgrupp',
             'Välj kvalitet']
 
         gyf_kvarters = [
             r'GYF för kvartersmark, Stockholm Stad', 
             'kvartersgyf_sthm.pdf', 
-            'kvartersgyf_groups.txt', 
-            'kvartersgyf_qualities.txt',
-            'Välj faktorsgrupp',
-            'Välj faktor']
+            'kvartersgyf_grupp_tillaggsfaktorer.txt', 
+            'kvartersgyf_tillaggsfaktorer.txt',
+            'kvartersgyf_delfaktorer.txt',
+            1,
+            'Välj grupp för tilläggsfaktorer',
+            'Välj tilläggsfaktor']
 
         if QSettings().value('model') == r"GYF AP, C/O City":
             gyf_model = dict(zip(gyf_var, gyf_ap))
@@ -58,9 +64,10 @@ class SwitchGYFs:
         self.dockwidget.info.disconnect()
         self.dockwidget.info.clicked.connect(pdfGYF)
         QualityTable().init(QSettings().value('dataPath'), model)
-        self.dockwidget.chooseQ(QSettings().value('dataPath'))
+        self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
         self.dockwidget.label_G.setText(model['label_G'])
         self.dockwidget.label_Q.setText(model['label_Q'])
+        self.dockwidget.tabWidget.setTabEnabled(0, model['Ground_areas_enabled'])
 
         
 

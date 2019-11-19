@@ -83,6 +83,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setupUi(self)
         self.feature_selection_lock = False
         self.row_selection_lock = False
+        self.path = QSettings().value('dataPath')
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -90,26 +91,40 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         """ Functions to classify input data"""
 
-    # CLASSIFICATION
+    # GROUND AREAS
 
-    def chooseQ(self, path):
-        self.selectQGroup.clear()
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+    def chooseY(self):
+        self.selectYGroup.clear()
+        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
-
-        self.textQ.clear()
-        self.selectQ.clear()
-        cur.execute('''SELECT grupp FROM gyf_qgroup''')
-        items = [''] + [i[0] for i in cur.fetchall()]
-        self.selectQGroup.addItems(items)
+        cur.execute('''SELECT grupp FROM gyf_areas''')
+        items = [''] + list(set([i[0] for i in cur.fetchall()]))
+        self.selectYGroup.addItems(items)
 
         cur.close()
         con.close()
 
-    def getQ(self, path):
+    # CLASSIFICATION
+
+    def chooseQ(self, table, group_list, q_list, text_area):
+        group_list.clear()
+        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        cur = con.cursor()
+
+        text_area.clear()
+        q_list.clear()
+        cur.execute('SELECT grupp FROM ' + table) #'gyf_qgroup', self.selectQGroup, self.selectQ, self.textQ
+        items = [i[0] for i in cur.fetchall()]
+        items = [''] + sorted(set(items), key=items.index))
+        group_list.addItems(items)
+
+        cur.close()
+        con.close()
+
+    def getQ(self):
         self.selectQ.clear()
         self.textQ.clear()
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         i = str(self.selectQGroup.currentIndex())
@@ -121,13 +136,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur.close()
         con.close()
 
-    def getF(self, path):
+    def getF(self):
 
         if self.selectQGroup.currentIndex() == 0:
             return None
 
         self.textQ.clear()
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         if self.selectQ.count() > 0:
@@ -174,8 +189,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             iface.setActiveLayer(l[0])
 
     def checkGID(self, layer):
-        path = QSettings().value('dataPath')
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
         features = layer.getFeatures()
         for f in features:
@@ -193,7 +207,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def setQ(self):
 
-        path = QSettings().value('dataPath')
         layer = iface.activeLayer()
         #self.checkGID(layer)
 
@@ -213,7 +226,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     QgsWkbTypes.LineString: 'linje'}.get(x, 'yta')
         geom = set_geom(layer.wkbType())
 
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         if self.selectQ.currentText() != '':
@@ -242,8 +255,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         self.showClass()
 
-    def updateClassArea(self, path, gid, yta):
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+    def updateClassArea(self, gid, yta):
+        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
         cur.execute('SELECT kvalitet, faktor FROM classification WHERE gid = (?);', [gid])
         factor = [[j[0], j[1]] for j in cur.fetchall()]
@@ -255,13 +268,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con.commit()
         con.close()
 
-    def removeQ(self, path):
+    def removeQ(self):
         items = self.classtable.selectedItems()
         if items:
             selected_rows = list(set([i.row() for i in items]))
             ids = [[self.classtable.item(i,3).text(), self.classtable.item(i,7).text()] for i in selected_rows]
 
-            con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+            con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
             cur = con.cursor()
 
             for i in ids:
@@ -273,12 +286,11 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.showClass()
 
     def showClass(self):
-        path = QSettings().value('dataPath')
         self.classtable.clear()
         root = QgsProject.instance().layerTreeRoot()
         content = [l.name() for l in root.children()]
         if 'Klassificering' in content:
-            con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+            con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
             cur = con.cursor()
 
             cur.execute('SELECT * FROM classification')
@@ -409,7 +421,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def switchLayerGroups(self):
         self.style = Style()
-        if self.tabWidget.currentIndex() == 0:
+        if self.tabWidget.currentIndex() == 1:
             self.style.visibility('Kvaliteter', False)
             self.style.visibility('Klassificering', True)
         else:
@@ -438,7 +450,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.window.okButton.clicked.connect(ok)
         self.window.cancelButton.clicked.connect(cancel)
 
-    def createArea(self, path):
+    def createArea(self):
         l = QgsProject.instance().mapLayersByName('Beräkningsområde')
         if l:
             l = l[0]
@@ -498,9 +510,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.checkPoll.stateChanged.connect(checkGroup)
         self.checkHalsa.stateChanged.connect(checkGroup)
 
-    def disableGroup(self, path):
+    def disableGroup(self):
         if self.tabWidget.currentIndex() == 1:
-            pathLayer = '{}\{}|layername={}'.format(path, QSettings().value('activeDataBase'), 'classification')
+            pathLayer = '{}\{}|layername={}'.format(self.path, QSettings().value('activeDataBase'), 'classification')
             table = QgsVectorLayer(pathLayer, 'classification', "ogr")
             features = table.getFeatures()
             current_groups = []

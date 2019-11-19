@@ -269,7 +269,7 @@ class QGYF:
 		root = QgsProject.instance().layerTreeRoot()
 		content = [l.name() for l in root.children()]
 		if 'Kvaliteter' in content:
-			self.dockwidget.disableGroup(QSettings().value('dataPath'))
+			self.dockwidget.disableGroup()
 		if self.dockwidget.isVisible():
 			self.dockwidget.showClass()
 
@@ -461,18 +461,14 @@ class QGYF:
 		# Qualities
 		self.dockwidget.label_G.setText(self.gyfModel['label_G'])
 		self.dockwidget.label_Q.setText(self.gyfModel['label_Q'])
-		self.dockwidget.chooseQ(QSettings().value('dataPath'))
-		
-		getQ = lambda : self.dockwidget.getQ(QSettings().value('dataPath'))
-		self.dockwidget.selectQGroup.currentIndexChanged.connect(getQ)
+		self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
+		self.dockwidget.chooseQ('gyf_areas', self.dockwidget.selectYGroup, self.dockwidget.selectY, self.dockwidget.textY)
 
-		getF = lambda : self.dockwidget.getF(QSettings().value('dataPath'))
-		self.dockwidget.selectQ.currentIndexChanged.connect(getF)
+		self.dockwidget.selectQGroup.currentIndexChanged.connect(self.dockwidget.getQ)
+		self.dockwidget.selectQ.currentIndexChanged.connect(self.dockwidget.getF)
 
 		self.dockwidget.approveButton.clicked.connect(self.dockwidget.setQ)
-
-		removeQ = lambda : self.dockwidget.removeQ(QSettings().value('dataPath'))
-		self.dockwidget.removeButton.clicked.connect(removeQ)
+		self.dockwidget.removeButton.clicked.connect(self.dockwidget.removeQ)
 
 		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
 		self.dockwidget.geometryButton.clicked.connect(self.openGeometryDialog)
@@ -483,8 +479,7 @@ class QGYF:
 
 		# Visualisation
 		self.dockwidget.tabWidget.currentChanged.connect(self.createDataView)
-		disableGroup = lambda : self.dockwidget.disableGroup(QSettings().value('dataPath'))
-		self.dockwidget.tabWidget.currentChanged.connect(disableGroup)
+		self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.disableGroup)
 		self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
 		self.dockwidget.groupList()
 
@@ -492,8 +487,7 @@ class QGYF:
 		# Research area
 		self.dockwidget.calculate.setStyleSheet("color: #006600")
 		self.dockwidget.selectRA.clicked.connect(self.dockwidget.selectArea)
-		createArea = lambda : self.dockwidget.createArea(QSettings().value('dataPath'))
-		self.dockwidget.createRA.clicked.connect(createArea)
+		self.dockwidget.createRA.clicked.connect(self.dockwidget.createArea)
 		# GYF
 		self.dockwidget.calculate.clicked.connect(self.calculate)
 
