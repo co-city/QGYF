@@ -15,5 +15,6 @@
         <file>assets/load_db.png</file>
         <file>assets/save.png</file>
         <file>assets/doc.png</file>
+        <file>assets/pencil.png</file>
     </qresource>
 </RCC>

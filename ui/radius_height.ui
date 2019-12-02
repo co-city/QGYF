@@ -13,87 +13,79 @@
   <property name="font">
    <font>
     <family>Tahoma</family>
-    <pointsize>10</pointsize>
+    <pointsize>9</pointsize>
    </font>
   </property>
   <property name="windowTitle">
    <string>Sätt ny höjd/yta på objekt</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources.qrc">
+   <iconset>
     <normaloff>:/plugins/qgyf/assets/leaf.png</normaloff>:/plugins/qgyf/assets/leaf.png</iconset>
   </property>
-  <widget class="QRadioButton" name="radiusButton">
-   <property name="geometry">
-    <rect>
-     <x>33</x>
-     <y>20</y>
-     <width>190</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Sätt yta på punkobjekt</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="heightButton">
-   <property name="geometry">
-    <rect>
-     <x>33</x>
-     <y>43</y>
-     <width>170</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Sätt höjd på linjeobjekt</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="valueLine">
-   <property name="geometry">
-    <rect>
-     <x>83</x>
-     <y>72</y>
-     <width>160</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-   </property>
-   <property name="clearButtonEnabled">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>33</x>
-     <y>72</y>
-     <width>70</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Värde:</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="saveButton">
-   <property name="geometry">
-    <rect>
-     <x>163</x>
-     <y>110</y>
-     <width>80</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Sätt värde</string>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="spacing">
+      <number>8</number>
+     </property>
+     <item>
+      <widget class="QRadioButton" name="radiusButton">
+       <property name="text">
+        <string>Sätt yta på punkobjekt</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="heightButton">
+       <property name="text">
+        <string>Sätt höjd på linjeobjekt</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Värde:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="valueLine">
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>Sätt värde</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <resources>
   <include location="../resources.py"/>

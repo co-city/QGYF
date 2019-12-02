@@ -15,9 +15,9 @@ from PyQt5.QtWidgets import QMessageBox
 
 class GroundAreas:
 
-    def init(self, path):
+    def initAP(self):
 
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         tables = ['polygon_object', 'line_object', 'point_object']
@@ -77,12 +77,22 @@ class GroundAreas:
         cur.close()
         con.close()
 
-    def showGA(self, path):
+    def mergeGA(self, data, crs):
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        cur = con.cursor()
+        cur.executemany('INSERT INTO ground_areas VALUES (?,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ' + crs + ')))', data)
+
+        con.commit()
+        cur.close()
+        con.close()
+
+
+    def showGA(self):
         self.style = Style()
         root = QgsProject.instance().layerTreeRoot()
         lyr = QgsProject.instance().mapLayersByName('Grundytor')
         if not lyr:
-            pathLayer = '{}\{}|layername={}'.format(path, QSettings().value('activeDataBase'), 'ground_areas')
+            pathLayer = '{}\{}|layername={}'.format(QSettings().value('dataPath'), QSettings().value('activeDataBase'), 'ground_areas')
             vlayer = QgsVectorLayer(pathLayer, 'Grundytor', 'ogr')
             self.style.styleGroundAreas(vlayer)
             QgsProject.instance().addMapLayer(vlayer, False)

@@ -19,7 +19,7 @@
   <property name="font">
    <font>
     <family>Tahoma</family>
-    <pointsize>10</pointsize>
+    <pointsize>9</pointsize>
    </font>
   </property>
   <property name="windowIcon">
@@ -38,6 +38,11 @@
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
    </property>
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
@@ -88,8 +93,18 @@
        <number>0</number>
       </property>
       <widget class="QWidget" name="groundareas">
+       <property name="toolTip">
+        <string extracomment="Här kan du klassificera dina grundytor"/>
+       </property>
+       <attribute name="icon">
+        <iconset>
+         <normaloff>:/plugins/qgyf/assets/pencil.png</normaloff>:/plugins/qgyf/assets/pencil.png</iconset>
+       </attribute>
        <attribute name="title">
-        <string>Sätta grundytor</string>
+        <string>Grundytor</string>
+       </attribute>
+       <attribute name="toolTip">
+        <string>Här klassificerar du grundytor</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
@@ -147,7 +162,7 @@
             </item>
            </layout>
           </item>
-          <item>
+          <item alignment="Qt::AlignBottom">
            <widget class="QLabel" name="label_YG">
             <property name="text">
              <string>Välj grupp</string>
@@ -162,12 +177,18 @@
               <height>16777215</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <stylestrategy>PreferDefault</stylestrategy>
+             </font>
+            </property>
             <property name="sizeAdjustPolicy">
              <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
             </property>
            </widget>
           </item>
-          <item>
+          <item alignment="Qt::AlignBottom">
            <widget class="QLabel" name="label_YQ">
             <property name="text">
              <string>Välj delfaktor</string>
@@ -338,7 +359,7 @@
            </layout>
           </item>
           <item>
-           <widget class="QTableWidget" name="classtable_del">
+           <widget class="QTableWidget" name="areasTable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -346,7 +367,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>Tabellen visar objekt med bestämda kvaliteter</string>
+             <string>Tabellen visar grundytor med bestämda delfaktorer</string>
             </property>
             <property name="lineWidth">
              <number>0</number>
@@ -409,9 +430,18 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
        <property name="contextMenuPolicy">
         <enum>Qt::NoContextMenu</enum>
        </property>
+       <attribute name="icon">
+        <iconset>
+         <normaloff>:/plugins/qgyf/assets/pencil.png</normaloff>:/plugins/qgyf/assets/pencil.png</iconset>
+       </attribute>
        <attribute name="title">
         <string>Klassificera</string>
        </attribute>
@@ -475,7 +505,7 @@
         <item>
          <widget class="QLabel" name="label_G">
           <property name="text">
-           <string>Välj kvalitetsgrupp</string>
+           <string>Välj grupp</string>
           </property>
          </widget>
         </item>
@@ -821,7 +851,7 @@
          <rect>
           <x>10</x>
           <y>10</y>
-          <width>191</width>
+          <width>281</width>
           <height>17</height>
          </rect>
         </property>

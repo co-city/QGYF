@@ -86,9 +86,12 @@ class Db:
 		cur.execute("""SELECT AddGeometryColumn('research_area', 'geom', """ + crs + """, 'POLYGON', 'XY');""")
 
 		cur.execute("""CREATE TABLE ground_areas (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            ytklass TEXT,
-            yta DOUBLE);""")
+		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		ytgrupp TEXT,
+		ytklass TEXT,
+		faktor DOUBLE NOT NULL,
+		yta DOUBLE,
+		poang DOUBLE);""")
 
 		cur.execute("""SELECT AddGeometryColumn('ground_areas', 'geom', """ + crs + """, 'MULTIPOLYGON', 'XY');""")
 
@@ -113,7 +116,7 @@ class Db:
 		CREATE TABLE gyf_areas (
 		grupp_id INTEGER NOT NULL,
 		grupp TEXT NOT NULL,
-		id TEXT NOT NULL,
+		kvalitet TEXT NOT NULL,
 		faktor DOUBLE NOT NULL,
 		namn TEXT,
 		kort_namn TEXT,

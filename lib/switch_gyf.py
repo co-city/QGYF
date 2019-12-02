@@ -28,8 +28,8 @@ class SwitchGYFs:
             'Input_categories',
             'Input_ground_areas',
             'Ground_areas_enabled',
-            'label_G',
-            'label_Q']
+            'Tabs_labels',
+            'Klass_items']
 
         gyf_ap = [
             r'GYF för allmän platsmark, C/O City', 
@@ -38,8 +38,8 @@ class SwitchGYFs:
             'gyf_AP_qualities.txt',
             'gyf_AP_groundareas.txt',
             0,
-            'Välj kvalitetsgrupp',
-            'Välj kvalitet']
+            ['Grundytor','Klassificera', 'Visualisera', 'Beräkna'],
+            ['yteklass', 'kvalitet']]
 
         gyf_kvarters = [
             r'GYF för kvartersmark, Stockholm Stad', 
@@ -48,8 +48,8 @@ class SwitchGYFs:
             'kvartersgyf_tillaggsfaktorer.txt',
             'kvartersgyf_delfaktorer.txt',
             1,
-            'Välj grupp för tilläggsfaktorer',
-            'Välj tilläggsfaktor']
+            ['Delfaktorer','Tilläggsfaktorer', 'Visualisera', 'Beräkna'],
+            ['delfaktor', 'tilläggsfaktor']]
 
         if QSettings().value('model') == r"GYF AP, C/O City":
             gyf_model = dict(zip(gyf_var, gyf_ap))
@@ -59,21 +59,38 @@ class SwitchGYFs:
         return gyf_model
 
     def adjustDockwidget(self, model):
+        ### GYF Name
         self.showGYFname(model)
         pdfGYF = lambda: self.pdfGYF(model)
+        ### GYF Documentation
         self.dockwidget.info.disconnect()
         self.dockwidget.info.clicked.connect(pdfGYF)
+        self.dockwidget.info_2.disconnect()
+        self.dockwidget.info_2.clicked.connect(pdfGYF)
+        ### Gound areas - enabled/disabled
+        self.dockwidget.tabWidget.setTabEnabled(0, model['Ground_areas_enabled'])
+        ### Import GYF model
         QualityTable().init(QSettings().value('dataPath'), model)
         self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
-        self.dockwidget.label_G.setText(model['label_G'])
-        self.dockwidget.label_Q.setText(model['label_Q'])
-        self.dockwidget.tabWidget.setTabEnabled(0, model['Ground_areas_enabled'])
-
         
-
+        ### Labels
+        for n, t in enumerate(model['Tabs_labels']):
+            self.dockwidget.tabWidget.setTabText(n,t)
+        
+        # Tab1
+        self.dockwidget.label_YQ.setText('Välj ' + model['Klass_items'][0])
+        self.dockwidget.approveButton_2.setText('Lägg till ' + model['Klass_items'][0])
+        self.dockwidget.removeButton_2.setText('Ta bort ' + model['Klass_items'][0])
+        # Tab2
+        self.dockwidget.label_G.setText('Välj grupp för ' + model['Klass_items'][1])
+        self.dockwidget.label_Q.setText('Välj ' + model['Klass_items'][1])
+        self.dockwidget.approveButton.setText('Lägg till ' + model['Klass_items'][1])
+        self.dockwidget.removeButton.setText('Ta bort ' + model['Klass_items'][1])
+        
     def showGYFname(self, model):
         gyf_name = '<h3 style="color:#238973">' + model['Name'] + '</h3>'
         self.dockwidget.gyfVersion.setText(gyf_name)
+        self.dockwidget.gyfVersion_2.setText(gyf_name)
 
     def pdfGYF(self, model):
         docPath = self.plugin_dir + '/gyf_models/' + model['Doc']

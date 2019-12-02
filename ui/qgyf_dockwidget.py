@@ -84,6 +84,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.feature_selection_lock = False
         self.row_selection_lock = False
         self.path = QSettings().value('dataPath')
+        self.crs = ''.join(c for c in QSettings().value('CRS') if c.isdigit())
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -92,14 +93,99 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         """ Functions to classify input data"""
 
     # GROUND AREAS
+    def getFY(self):
+        if self.selectYGroup.currentIndex() == 0:
+            return None
 
-    def chooseY(self):
-        self.selectYGroup.clear()
+        self.textY.clear()
         con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
-        cur.execute('''SELECT grupp FROM gyf_areas''')
-        items = [''] + list(set([i[0] for i in cur.fetchall()]))
-        self.selectYGroup.addItems(items)
+
+        if self.selectY.count() > 0:
+            if self.selectY.currentText() != '':
+                q = self.selectY.currentText()
+                q = q.split(' ')[0]
+                cur.execute('SELECT faktor,namn,beskrivning FROM gyf_areas WHERE kvalitet = ?', [q])
+                text = cur.fetchone()
+                t = '<h4 style="color:#238973">' + text[1] + '</h4>'+ text[2] +'<p style="color:#238973">faktor = ' + str(text[0]) + '</p>'
+                self.textY.append(t)
+
+        cur.close()
+        con.close()
+
+    def setY(self, model):
+        layer = iface.activeLayer()
+        if not layer:
+            return None
+
+        selected = layer.selectedFeatures()
+        if self.selectY.currentIndex() == 0 or self.selectYGroup.currentIndex() == 0:
+            return None
+
+        attributes = []
+        geom = []
+        
+        g = self.selectYGroup.currentText()
+        q = self.selectY.currentText()
+        q = q.split(' ')[0]
+
+        if selected:
+            for f in selected:
+                geom.append(f.geometry().asWkt())
+                attributes.append(f.attributes())
+        
+        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        cur = con.cursor()
+        cur.execute('SELECT faktor FROM gyf_areas WHERE kvalitet = ?', [q])
+        f = cur.fetchone()[0]
+
+        data = []
+        for i, obj in enumerate(attributes):
+            if type(obj[-1]) is str:
+                 obj[-1] = float(obj[-1])      
+            data.append([g, q, f, round(obj[-1], 1), round(obj[-1]*f, 1), geom[i]])
+        
+        if layer.wkbType() == QgsWkbTypes.Polygon:
+            cur.executemany('''INSERT INTO ground_areas VALUES 
+                (NULL,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ''' + self.crs + ''')))''', data)
+        elif layer.wkbType() == QgsWkbTypes.LineString:
+            cur.executemany('''INSERT INTO ground_areas VALUES 
+                (NULL,?,?,?,?,?, CastToMultiPolygon(ST_Buffer(GeomFromText(?, ''' + self.crs + '''), 0.5)))''', data)
+        else:
+            data = [d + [d[3]] for d in data]
+            cur.executemany('''INSERT INTO ground_areas VALUES 
+                (NULL,?,?,?,?,?, CastToMultiPolygon(ST_Buffer(GeomFromText(?, ''' + self.crs + '''), POWER(?/3.14159, 0.5))))''', data)
+                
+        cur.close()
+        con.commit()
+        con.close()
+
+        self.showAreas(model)
+
+    def showAreas(self, model):
+        self.areasTable.clear()
+        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        cur = con.cursor()
+
+        cur.execute('SELECT * FROM ground_areas')
+        data = cur.fetchall()
+        #id, grupp,	ytklass, faktor, yta, poang
+        data = [list(d[1:-1]) + [d[0]] for d in data]
+
+        self.areasTable.setSortingEnabled(True)
+        self.areasTable.setColumnCount(6)
+        self.areasTable.setHorizontalHeaderLabels(['grupp', model['Klass_items'][0], 'F', 'yta', 'poäng', 'idd'])
+
+        if data:
+            self.areasTable.setRowCount(len(data))
+            for i, item in enumerate(data):
+                for j, field in enumerate(item):
+                    self.areasTable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
+                    self.areasTable.horizontalHeader().setSectionResizeMode(j, QtWidgets.QHeaderView.ResizeToContents)
+        else:
+            self.areasTable.setRowCount(0)
+
+        self.areasTable.setColumnHidden(5, True)
 
         cur.close()
         con.close()
@@ -107,31 +193,33 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     # CLASSIFICATION
 
     def chooseQ(self, table, group_list, q_list, text_area):
+        #group_list.setStyleSheet("QListView::item {height:90px;}")
+        #q_list.setStyleSheet("QListView::item {height:90px;}")
         group_list.clear()
         con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         text_area.clear()
         q_list.clear()
-        cur.execute('SELECT grupp FROM ' + table) #'gyf_qgroup', self.selectQGroup, self.selectQ, self.textQ
+        cur.execute('SELECT grupp FROM ' + table)
         items = [i[0] for i in cur.fetchall()]
-        items = [''] + sorted(set(items), key=items.index))
+        items = [''] + sorted(set(items), key=items.index)
         group_list.addItems(items)
 
         cur.close()
         con.close()
 
-    def getQ(self):
-        self.selectQ.clear()
-        self.textQ.clear()
+    def getQ(self, table, group_list, q_list, text_area):
+        q_list.clear() # 'gyf_quality', self.selectQGroup, self.selectQ, self.textQ
+        text_area.clear()
         con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
-        i = str(self.selectQGroup.currentIndex())
-        cur.execute('SELECT kvalitet, kort_namn FROM gyf_quality WHERE grupp_id = ' + i)
+        i = str(group_list.currentIndex())
+        cur.execute('SELECT kvalitet, kort_namn FROM ' +  table + ' WHERE grupp_id = ' + i)
         quality = [j[0] + ' - ' + j[1] for j in cur.fetchall()]
         quality = [''] + quality
-        self.selectQ.addItems(quality)
+        q_list.addItems(quality)
 
         cur.close()
         con.close()
@@ -164,12 +252,12 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur.close()
         con.close()
 
-    def setLayers(self):
-        self.selectLayer.clear()
+    def setLayers(self, button):
+        button.clear()
         items = ['', 'punkt', 'linje', 'yta']
-        self.selectLayer.addItems(items)
+        button.addItems(items)
 
-    def selectStart(self):
+    def selectStart(self, comboBox):
         # Start object selection for QGYF
         for a in iface.attributesToolBar().actions():
             if a.objectName() == 'mActionDeselectAll':
@@ -184,7 +272,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 'linje': 'Linjeobjekt'
             }.get(x, 'Ytobjekt')
 
-        l = QgsProject.instance().mapLayersByName(lyr(self.selectLayer.currentText()))
+        l = QgsProject.instance().mapLayersByName(lyr(comboBox.currentText()))
         if l:
             iface.setActiveLayer(l[0])
 
@@ -208,6 +296,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def setQ(self):
 
         layer = iface.activeLayer()
+        if not layer:
+            return None
         #self.checkGID(layer)
 
         selected = layer.selectedFeatures()

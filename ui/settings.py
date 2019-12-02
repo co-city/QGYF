@@ -63,7 +63,6 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
             QSettings().setValue('model', self.currentGyf.currentText())
             global modelGyf
             modelGyf = self.switch.defineGYF()
-        print(QSettings().value('model'))
         
 
     def updateDockwidget(self, dockwidget):

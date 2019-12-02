@@ -18,7 +18,6 @@ class QualityTable:
         areas = self.readInputGYF(model['Input_ground_areas'])
         group = self.readInputGYF(model['Input_groups'])
         q_f   = self.readInputGYF(model['Input_categories'])
-        print(model['Input_groups'])
 
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
         cur = con.cursor()
@@ -28,8 +27,6 @@ class QualityTable:
             items = [i[0] for i in cur.fetchall()]
             c_items = [i[1] for i in group]
             # Load another GYF
-            print(items)
-            print(c_items)
             if not set(items) == set(c_items):
                 cur.execute("DELETE FROM gyf_areas")
                 cur.execute("DELETE FROM gyf_qgroup")

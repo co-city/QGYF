@@ -97,6 +97,7 @@ class QGYF:
 		self.dockwidget = QGYFDockWidget()
 		self.area_id = None
 		self.diagram = Diagram()
+		self.createGA = GroundAreas()
 		self.switch = SwitchGYFs(self.dockwidget, self.plugin_dir)
 		self.gyfModel = self.switch.defineGYF()
 
@@ -118,7 +119,7 @@ class QGYF:
 		icon_path = ':/plugins/qgyf/assets/folder.png'
 		self.addAction(
 			icon_path,
-			text=self.translate(u'Ladda lager'),
+			text=self.translate(u'Importera data'),
 			callback=self.loadFile,
 			parent=self.iface.mainWindow())
 
@@ -338,7 +339,6 @@ class QGYF:
 			if geom_type == "Polygon":
 				feature["yta"] = feature.geometry().area()
 			elif geom_type == "Point":
-				print(type(feature["yta"]))
 				if type(feature["yta"]) != float:
 					feature["yta"] = 25.0
 			else:
@@ -363,35 +363,24 @@ class QGYF:
 		del self.toolbar
 
 	def createDataView(self):
-		if self.dockwidget.tabWidget.currentIndex() != 0:
+		if self.dockwidget.tabWidget.currentIndex() > 1:
 			self.dbView = DbView()
 			self.dbView.init(QSettings().value('dataPath'))
-			self.createGA = GroundAreas()
-			self.createGA.init(QSettings().value('dataPath'))
-			self.createGA.showGA(QSettings().value('dataPath'))
+			self.createGA.initAP()
+			self.createGA.showGA()
 
 	def updateGA(self):
-		self.createGA = GroundAreas()
-		self.createGA.init(QSettings().value('dataPath'))
+		self.createGA.initAP(QSettings().value('dataPath'))
 
 	def calculate(self):
 		self.createDataView()
 
 		gyf, factor_areas, groups, feature_ids, area_id, ground_area, eco_area = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
-
+		# Plot
 		try:
 			if factor_areas.size != 0:
-				# Plot
-				self.dockwidget.plot.canvas.ax.cla()
-				self.dockwidget.plot.canvas.ax.set_title('Fördelning av kvalitetspoäng')
-				sizes, legend, colors, outline = self.diagram.init(factor_areas, groups)
-				patches, text = self.dockwidget.plot.canvas.ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
-				#self.dockwidget.plot.canvas.fig.tight_layout()
-				# Legend
-				patches, legend, dummy =  zip(*sorted(zip(patches, legend, sizes), key=lambda x: x[2], reverse=True))
-				self.dockwidget.plot.canvas.ax2.legend(patches, legend, loc = 'center', shadow = None, frameon = False)
-				self.dockwidget.plot.canvas.draw()
+				self.diagram.piePlot(self.dockwidget, factor_areas, groups)
 		except:
 			pass
 
@@ -459,23 +448,29 @@ class QGYF:
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
 
 		# Qualities
-		self.dockwidget.label_G.setText(self.gyfModel['label_G'])
-		self.dockwidget.label_Q.setText(self.gyfModel['label_Q'])
 		self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
 		self.dockwidget.chooseQ('gyf_areas', self.dockwidget.selectYGroup, self.dockwidget.selectY, self.dockwidget.textY)
 
-		self.dockwidget.selectQGroup.currentIndexChanged.connect(self.dockwidget.getQ)
+		get_qualities = lambda : self.dockwidget.getQ('gyf_quality', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
+		self.dockwidget.selectQGroup.currentIndexChanged.connect(get_qualities)
 		self.dockwidget.selectQ.currentIndexChanged.connect(self.dockwidget.getF)
+		get_delfactors = lambda : self.dockwidget.getQ('gyf_areas', self.dockwidget.selectYGroup, self.dockwidget.selectY, self.dockwidget.textY)
+		self.dockwidget.selectYGroup.currentIndexChanged.connect(get_delfactors)
+		self.dockwidget.selectY.currentIndexChanged.connect(self.dockwidget.getFY)
 
 		self.dockwidget.approveButton.clicked.connect(self.dockwidget.setQ)
 		self.dockwidget.removeButton.clicked.connect(self.dockwidget.removeQ)
+		self.dockwidget.approveButton_2.clicked.connect(lambda : self.dockwidget.setY(self.gyfModel))
+		#self.dockwidget.removeButton.clicked.connect(self.dockwidget.removeQ)
 
 		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
 		self.dockwidget.geometryButton.clicked.connect(self.openGeometryDialog)
 
 		# Objects
-		self.dockwidget.setLayers()
-		self.dockwidget.selectLayer.currentIndexChanged.connect(self.dockwidget.selectStart)
+		self.dockwidget.setLayers(self.dockwidget.selectLayer)
+		self.dockwidget.setLayers(self.dockwidget.selectLayer_2)
+		self.dockwidget.selectLayer.currentIndexChanged.connect(lambda : self.dockwidget.selectStart(self.dockwidget.selectLayer))
+		self.dockwidget.selectLayer_2.currentIndexChanged.connect(lambda : self.dockwidget.selectStart(self.dockwidget.selectLayer_2))
 
 		# Visualisation
 		self.dockwidget.tabWidget.currentChanged.connect(self.createDataView)
