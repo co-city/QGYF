@@ -117,6 +117,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         layer = iface.activeLayer()
         if not layer:
             return None
+            QtWidgets.QMessageBox.warning(self, 'Inget lager är aktivt', '''Aktivera ''' \
+                        '''lager i lagerslistan till vänster för att sätta delfaktor på objekt från detta lager. ''')
 
         selected = layer.selectedFeatures()
         if self.selectY.currentIndex() == 0 or self.selectYGroup.currentIndex() == 0:
@@ -124,15 +126,38 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         attributes = []
         geom = []
+        pathLayer = '{}\{}|layername={}'.format(QSettings().value("dataPath"), QSettings().value("activeDataBase"), 'ground_areas')
+        ground_layer = QgsVectorLayer(pathLayer, 'Grundytor', "ogr")
         
         g = self.selectYGroup.currentText()
         q = self.selectY.currentText()
         q = q.split(' ')[0]
 
+        removed = []
+        if selected:
+            for f in selected:
+                cc = []
+                ground_features = ground_layer.getFeatures()
+                for fg in ground_features:
+                    c = f.geometry().intersects(fg.geometry())
+                    cc.append(c)
+                print('I see ' + str(cc))
+                if True in cc:
+                    removed.append(f)
+
+        if removed:
+            QtWidgets.QMessageBox.warning(self, 'Det går inte att sätta delfaktor!', '''Delfaktor ''' \
+                        '''kan inte uppdelas till ett eller flera valda objekt för att objektet redan ligger på den bestämda grundytan. ''' \
+                        '''Ta bort grundytan från tabellen för att kunna sätta delfaktor på nytt.''')
+            for f in removed:
+                selected.remove(f)
+
         if selected:
             for f in selected:
                 geom.append(f.geometry().asWkt())
                 attributes.append(f.attributes())
+        else:
+            return None
         
         con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
@@ -146,21 +171,58 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             data.append([g, q, f, round(obj[-1], 1), round(obj[-1]*f, 1), geom[i]])
         
         if layer.wkbType() == QgsWkbTypes.Polygon:
-            cur.executemany('''INSERT INTO ground_areas VALUES 
+            cur.executemany('''INSERT INTO ga_template VALUES 
                 (NULL,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ''' + self.crs + ''')))''', data)
         elif layer.wkbType() == QgsWkbTypes.LineString:
-            cur.executemany('''INSERT INTO ground_areas VALUES 
+            cur.executemany('''INSERT INTO ga_template VALUES 
                 (NULL,?,?,?,?,?, CastToMultiPolygon(ST_Buffer(GeomFromText(?, ''' + self.crs + '''), 0.5)))''', data)
         else:
             data = [d + [d[3]] for d in data]
-            cur.executemany('''INSERT INTO ground_areas VALUES 
+            cur.executemany('''INSERT INTO ga_template VALUES 
                 (NULL,?,?,?,?,?, CastToMultiPolygon(ST_Buffer(GeomFromText(?, ''' + self.crs + '''), POWER(?/3.14159, 0.5))))''', data)
+
+
+        cur.execute("DELETE FROM ground_areas")
+        cur.execute('''INSERT INTO ground_areas (id, ytgrupp, ytklass, faktor, yta, poang, geom)
+            SELECT  NULL, ytgrupp, ytklass, faktor, SUM(yta), SUM(poang), 
+            CastToMultiPolygon(ST_Union(geom)) AS geom FROM ga_template 
+            GROUP BY ytklass''')
+        cur.execute('''SELECT RecoverGeometryColumn('ground_areas', 'geom',  ''' + self.crs + ''', 'MULTIPOLYGON', 'XY')''')
+        cur.execute("DELETE FROM ga_template")
+        cur.execute('''INSERT INTO ga_template SELECT * FROM ground_areas''')
+
                 
         cur.close()
         con.commit()
         con.close()
 
         self.showAreas(model)
+        ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
+        if ground_layer:
+            ground_layer[0].triggerRepaint()
+
+    def removeY(self, model):
+        items = self.areasTable.selectedItems()
+        if items:
+            selected_rows = list(set([i.row() for i in items]))
+            ids = [[self.areasTable.item(i,5).text()] for i in selected_rows]
+            print(ids)
+
+            con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+            cur = con.cursor()
+
+            for i in ids:
+                cur.execute('DELETE FROM ground_areas WHERE id = (?);', i)
+            cur.execute("DELETE FROM ga_template")
+            cur.execute('''INSERT INTO ga_template SELECT * FROM ground_areas''')
+
+            cur.close()
+            con.commit()
+            con.close()
+            self.showAreas(model)
+            ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
+            if ground_layer:
+                ground_layer[0].triggerRepaint()
 
     def showAreas(self, model):
         self.areasTable.clear()
@@ -189,6 +251,61 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cur.close()
         con.close()
+
+    def highlightAreas(self):
+
+        if self.row_selection_lock is False:
+            selected_items = self.areasTable.selectedItems()
+
+            ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
+            if ground_layer:
+                self.feature_selection_lock = True
+                timer = Timer()
+                timer.setTimeout(self.resetFeatureSelectionLock, 0.1)
+
+                if selected_items:
+                    selected_rows = list(set([i.row() for i in selected_items]))
+                    ids = [self.classtable.item(i, 5).text() for i in selected_rows]
+                    features = list(ground_layer.getFeatures())
+                    matches = []
+                    for idd in ids:
+                        for feature in features:
+                            if feature['id'] == idd:
+                                matches.append(feature)
+                    ground_layer[0].selectByIds([f.id() for f in matches])
+                else:
+                    ground_layer[0].removeSelection()
+
+
+    def selectRowByAreas(self, areas):
+
+        for f in areas:
+            idd = f["id"]
+            if idd != NULL:
+                items = self.areasTable.findItems(idd, Qt.MatchExactly)
+                rows = [item.row() for item in items]
+
+                for row in rows:
+                    table_id = self.classtable.item(row, 5).text()
+                    if table_gid == idd:
+                        self.areasTable.selectRow(row)
+
+    def highlightRowsAreas(self):
+        ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
+        if ground_layer:
+            selected = ground_layer[0].getSelectedFeatures()
+
+            self.row_selection_lock = True
+            timer = Timer()
+            timer.setTimeout(self.resetRowSelectionLock, 0.2)
+
+            if self.feature_selection_lock is False and self.tabWidget.currentIndex() == 0:
+                self.areasTable.clearSelection()
+                self.areasTable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+                self.selectRowByAreas(selected)
+
+
+            self.areasTable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
     # CLASSIFICATION
 
@@ -225,7 +342,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con.close()
 
     def getF(self):
-
         if self.selectQGroup.currentIndex() == 0:
             return None
 
@@ -500,7 +616,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             timer = Timer()
             timer.setTimeout(self.resetRowSelectionLock, 0.2)
 
-            if self.feature_selection_lock is False and self.tabWidget.currentIndex() == 0:
+            if self.feature_selection_lock is False and self.tabWidget.currentIndex() == 1:
                 self.classtable.clearSelection()
                 self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
                 self.selectRowByFeatures(selected_points, "punkt")

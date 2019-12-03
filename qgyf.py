@@ -190,12 +190,14 @@ class QGYF:
 		self.initDatabase(QSettings().value('dataPath'))
 		self.addLayers(QSettings().value('dataPath'), [
 			"research_area",
+			"ground_areas",
 			"point_object",
 			"line_object",
 			"polygon_object",
 		])
 		if self.dockwidget.isVisible():
 			self.dockwidget.showClass()
+			self.dockwidget.showAreas(self.gyfModel)
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -273,6 +275,7 @@ class QGYF:
 			self.dockwidget.disableGroup()
 		if self.dockwidget.isVisible():
 			self.dockwidget.showClass()
+			self.dockwidget.showAreas(self.gyfModel)
 
 	def info(self):
 		self.welcome = WelcomeDialog()
@@ -300,7 +303,8 @@ class QGYF:
 		  "point_object": "Punktobjekt",
 		  "line_object": "Linjeobjekt",
 		  "polygon_object": "Ytobjekt",
-		  "research_area": "Beräkningsområde"
+		  "research_area": "Beräkningsområde",
+		  "ground_areas": "Grundytor"
 		}
 
 		for layer in layers:
@@ -310,6 +314,9 @@ class QGYF:
 			if layer == "research_area":
 				self.style.styleResearchArea(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
+			elif layer == "ground_areas":
+				self.style.styleGroundAreas(vlayer)
+				QgsProject.instance().addMapLayer(vlayer)
 			else:
 				self.style.iniStyle(vlayer)
 				QgsProject.instance().addMapLayer(vlayer, False)
@@ -317,7 +324,7 @@ class QGYF:
 				vlayer.featureAdded.connect(lambda fid, vlayer=vlayer : self.featureAdded(fid, vlayer))
 				vlayer.geometryChanged.connect(lambda fid, geom ,vlayer=vlayer : self.geometryModified(fid, geom, vlayer))
 				vlayer.committedGeometriesChanges.connect(self.dockwidget.showClass)
-				vlayer.committedFeaturesRemoved.connect(lambda : self.dockwidget.removeQ(QSettings().value('dataPath')))
+				vlayer.committedFeaturesRemoved.connect(self.dockwidget.removeQ)
 				vlayer.committedFeaturesRemoved.connect(self.dockwidget.showClass)
 
 	def geometryModified(self, fid, geom, layer):
@@ -430,6 +437,7 @@ class QGYF:
 			self.initCalculationDialog()
 			self.dockwidget.show()
 			self.dockwidget.showClass()
+			self.dockwidget.showAreas(self.gyfModel)
 
 		print(self.gyfModel)
 
@@ -461,7 +469,7 @@ class QGYF:
 		self.dockwidget.approveButton.clicked.connect(self.dockwidget.setQ)
 		self.dockwidget.removeButton.clicked.connect(self.dockwidget.removeQ)
 		self.dockwidget.approveButton_2.clicked.connect(lambda : self.dockwidget.setY(self.gyfModel))
-		#self.dockwidget.removeButton.clicked.connect(self.dockwidget.removeQ)
+		self.dockwidget.removeButton_2.clicked.connect(lambda : self.dockwidget.removeY(self.gyfModel))
 
 		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
 		self.dockwidget.geometryButton.clicked.connect(self.openGeometryDialog)

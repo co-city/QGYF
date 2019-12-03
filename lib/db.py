@@ -95,6 +95,16 @@ class Db:
 
 		cur.execute("""SELECT AddGeometryColumn('ground_areas', 'geom', """ + crs + """, 'MULTIPOLYGON', 'XY');""")
 
+		cur.execute("""CREATE TABLE ga_template (
+		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		ytgrupp TEXT,
+		ytklass TEXT,
+		faktor DOUBLE NOT NULL,
+		yta DOUBLE,
+		poang DOUBLE);""")
+
+		cur.execute("""SELECT AddGeometryColumn('ga_template', 'geom', """ + crs + """, 'MULTIPOLYGON', 'XY');""")
+
 		cur.execute("""
 		CREATE TABLE gyf_quality (
 		grupp_id INTEGER NOT NULL,
