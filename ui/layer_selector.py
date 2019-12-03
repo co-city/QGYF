@@ -19,9 +19,13 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'layer_selector.ui'))
 
 class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
-    def __init__(self, parent=None):
+    def __init__(self, model_gyf, parent=None):
         super(LayerSelectorDialog, self).__init__(parent)
         self.setupUi(self)
+
+        self.tabWidget.setTabEnabled(0, model_gyf['Ground_areas_enabled'])
+        for n, t in enumerate(model_gyf['Klass_items']):
+            self.tabWidget.setTabText(n,t)
 
         self.addButton.clicked.connect(self.addToImport)
         self.removeButton.clicked.connect(self.removeFromImport)
@@ -86,6 +90,7 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def loadClassifications(self, path):
         classifications_list = self.classifications
+        areas_list = self.classifications_2
         con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
 
         cur = con.cursor()
@@ -115,6 +120,29 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
                     model.appendRow(item)
 
         classifications_list.setModel(model)
+
+        cur.execute("""SELECT DISTINCT grupp, kvalitet, namn, faktor FROM gyf_areas""")
+
+        areas = cur.fetchall()
+        self.areas_list = list(enumerate(areas, 0))
+        model2 = QStandardItemModel(areas_list)
+
+        for i, fields in self.areas_list:
+            if i == 0:
+                item = QStandardItem(self.areas_list[i][1][0])
+                model2.appendRow(item)
+
+            item = QStandardItem(fields[1] + ", " + fields[2])
+            model2.appendRow(item)
+
+            if (i < len(self.areas_list) - 1):
+                if self.areas_list[i][1][0] != self.areas_list[i + 1][1][0]:
+                    item = QStandardItem("")
+                    model2.appendRow(item)
+                    item = QStandardItem(self.areas_list[i + 1][1][0])
+                    model2.appendRow(item)
+
+        areas_list.setModel(model2)
 
         cur.close()
         con.close()

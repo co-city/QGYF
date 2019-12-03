@@ -101,7 +101,7 @@ class QGYF:
 		self.switch = SwitchGYFs(self.dockwidget, self.plugin_dir)
 		self.gyfModel = self.switch.defineGYF()
 
-		self.layerSelectorDialog = LayerSelectorDialog()
+		self.layerSelectorDialog = LayerSelectorDialog(self.gyfModel)
 		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.dockwidget, QSettings().value('dataPath'))
 		self.calculator = GyfCalculator(QSettings().value('dataPath'))
 		self.showWelcome()
@@ -454,6 +454,7 @@ class QGYF:
 
 		# Highlight rows in classification table
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
+		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRowsAreas)
 
 		# Qualities
 		self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
@@ -472,6 +473,7 @@ class QGYF:
 		self.dockwidget.removeButton_2.clicked.connect(lambda : self.dockwidget.removeY(self.gyfModel))
 
 		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
+		self.dockwidget.areasTable.itemSelectionChanged.connect(self.dockwidget.highlightAreas)
 		self.dockwidget.geometryButton.clicked.connect(self.openGeometryDialog)
 
 		# Objects

@@ -253,7 +253,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con.close()
 
     def highlightAreas(self):
-
         if self.row_selection_lock is False:
             selected_items = self.areasTable.selectedItems()
 
@@ -265,12 +264,12 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
                 if selected_items:
                     selected_rows = list(set([i.row() for i in selected_items]))
-                    ids = [self.classtable.item(i, 5).text() for i in selected_rows]
-                    features = list(ground_layer.getFeatures())
+                    ids = [self.areasTable.item(i, 5).text() for i in selected_rows]
+                    features = list(ground_layer[0].getFeatures())
                     matches = []
                     for idd in ids:
                         for feature in features:
-                            if feature['id'] == idd:
+                            if feature['id'] == int(idd):
                                 matches.append(feature)
                     ground_layer[0].selectByIds([f.id() for f in matches])
                 else:
@@ -278,17 +277,15 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
     def selectRowByAreas(self, areas):
-
         for f in areas:
             idd = f["id"]
-            if idd != NULL:
-                items = self.areasTable.findItems(idd, Qt.MatchExactly)
-                rows = [item.row() for item in items]
+            items = self.areasTable.findItems(str(idd), Qt.MatchExactly)
+            rows = [item.row() for item in items]
 
-                for row in rows:
-                    table_id = self.classtable.item(row, 5).text()
-                    if table_gid == idd:
-                        self.areasTable.selectRow(row)
+            for row in rows:
+                table_id = self.areasTable.item(row, 5).text()
+                if table_id == str(idd):
+                    self.areasTable.selectRow(row)
 
     def highlightRowsAreas(self):
         ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
@@ -303,7 +300,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.areasTable.clearSelection()
                 self.areasTable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
                 self.selectRowByAreas(selected)
-
 
             self.areasTable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
