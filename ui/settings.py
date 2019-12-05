@@ -10,8 +10,9 @@ from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from qgis.utils import iface
+from qgis.utils import iface, spatialite_connect
 from ..lib.db import Db
+from ..lib.gyf_tables import QualityTable
 from ..lib.switch_gyf import SwitchGYFs
 from qgis.gui import QgsProjectionSelectionDialog
 from qgis.core import QgsCoordinateReferenceSystem
@@ -37,6 +38,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selectCRSButton.clicked.connect(self.setCRS)
         updateDockwidget = lambda : self.updateDockwidget(dockwidget)
         self.db = Db()
+        self.quality = QualityTable()
         if self.db.checkClass(QSettings().value('dataPath')):
             self.currentGyf.setEnabled(True)
             self.currentGyf.currentIndexChanged.connect(self.setGYF)
@@ -91,6 +93,10 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.activeDatabase.setCurrentIndex(index)
         if self.activeDatabase.currentText():
             QSettings().setValue('activeDataBase', self.activeDatabase.currentText())
+            crs_id = self.getCRS(QSettings().value('activeDataBase'))
+            QSettings().setValue('CRS', str(crs_id))
+            crs = QgsCoordinateReferenceSystem(crs_id)
+            self.crs.setText(crs.description())
         else:
             QSettings().setValue('activeDataBase', 'qgyf.sqlite')
 
@@ -111,10 +117,43 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.setDatabase(activeIndex)
 
-    def setCRS(self):
+    def defineCRS(self):
         projSelector = QgsProjectionSelectionDialog()
         projSelector.exec()
         crs_id = projSelector.crs().authid()
         if crs_id:
-             QSettings().setValue('CRS', crs_id)
+            QSettings().setValue('CRS', crs_id)
         self.crs.setText(projSelector.crs().description())
+
+    def setCRS(self):
+        if os.path.exists(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase")):
+            if not self.db.checkObjects(QSettings().value('dataPath')):
+                QMessageBox.warning(self, 'Koordinatsystem kan inte ändras', '''Den aktiva databasen ''' \
+                        '''innehåller data. Töm databasen för att sätta ett nytt koordinatsystem.''')
+            else:
+                try:
+                    self.defineCRS()
+                    os.remove(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase"))
+                    self.db.create(QSettings().value('dataPath'))               
+                    self.quality.init(path, modelGyf)
+                except:
+                    QMessageBox.information(self, 'Koordinatsystem kan inte ändras', '''Det går inte att ändra på koordinatsystem ''' \
+                        '''för att databasen används i nuvarande QGIS projekt. Ta bort alla lager som tillhör till QGYF databas ''' \
+                        '''från projektet och prova på nytt.''')
+        else:
+            self.defineCRS()
+
+    def getCRS(self, db):
+        if os.path.exists(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase")):
+            con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), db))
+            cur = con.cursor()
+
+            cur.execute('SELECT srid FROM geometry_columns;')
+            c = cur.fetchone()[0]
+
+            cur.close()
+            con.close()
+            return c
+
+
+        

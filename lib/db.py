@@ -145,6 +145,8 @@ class Db:
 		yta DOUBLE,
 		poang DOUBLE);""")
 
+		cur.execute("""SELECT InitSpatialMetaData();""")
+
 	def check(self, path):
 		"""
 		Check if the database is initialized
@@ -184,6 +186,31 @@ class Db:
 				return True
 			else:
 				return False
+
+	def checkObjects(self, path):
+		"""
+		Check if the db contains data
+		"""
+		if not os.path.exists("{}\{}".format(path, QSettings().value('activeDataBase'))):
+			return True
+		else:
+			con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+			cur = con.cursor()
+			tables = ['ground_areas', 'polygon_object', 'line_object', 'point_object']
+			count = 0
+			for t in tables:
+				cur.execute("SELECT count(*) FROM " + t)
+				result = cur.fetchone()[0]
+				count += result
+			cur.close()
+			con.close()
+			print(count)
+			if count == 0:
+				return True
+			else:
+				return False
+
+
 
 	def clear(self, path):
 		"""

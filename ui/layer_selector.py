@@ -27,7 +27,8 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
         for n, t in enumerate(model_gyf['Klass_items']):
             self.tabWidget.setTabText(n,t)
 
-        self.addButton.clicked.connect(self.addToImport)
+        self.addButton.clicked.connect(lambda : self.addToImport(self.classifications_2, 0))
+        self.tabWidget.currentChanged.connect(self.switchImport)
         self.removeButton.clicked.connect(self.removeFromImport)
         self.layerAbort.clicked.connect(self.abortLayerSelection)
         self.qualityAbort.clicked.connect(self.abortQualitySelection)
@@ -36,6 +37,15 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
         self.importItems.setModel(self.importsModel)
         self.addedMappings = []
         self.addedLayers = []
+
+    def switchImport(self):
+        self.abortQualitySelection()
+        if self.tabWidget.currentIndex() == 0:
+            self.addButton.disconnect()
+            self.addButton.clicked.connect(lambda : self.addToImport(self.classifications_2, 0))
+        else:
+            self.addButton.disconnect()
+            self.addButton.clicked.connect(lambda : self.addToImport(self.classifications, 1))
 
     def closeEvent(self, event):
         self.reset()
@@ -51,24 +61,22 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def abortQualitySelection(self):
         self.classifications.selectionModel().clear()
+        self.classifications_2.selectionModel().clear()
 
     def removeFromImport(self):
         import_indexes = self.importItems.selectedIndexes()
         if len(import_indexes) > 0:
             data = import_indexes[0].data()
             row = import_indexes[0].row()
-            values = data.split(">")
-            layer = values[0].strip()
 
             self.importsModel.removeRows(row, 1)
-            self.addedLayers.remove(layer)
+            self.addedLayers.remove(data)
             self.addedMappings.remove(data)
 
-    def addToImport(self):
-        classifications_list = self.classifications
+    def addToImport(self, items_list, n):
         layers_list = self.layers
 
-        classification_indexes = classifications_list.selectedIndexes()
+        classification_indexes = items_list.selectedIndexes()
         classification = None
         for index in classification_indexes:
             classification = index.data().split(",")[0]
@@ -80,13 +88,21 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
 
         if layer:
             if classification:
-                item = layer + " > " + classification
+                item = layer + " > " + self.tabWidget.tabText(n) + ' : ' + classification
             else:
                 item = layer
-            if not any(layer in addedLayer for addedLayer in self.addedLayers):
-                self.addedLayers.append(layer)
-                self.addedMappings.append(item)
-                self.importsModel.appendRow(QStandardItem(item))
+            if self.classifications_2.selectedIndexes():
+                check = layer + " > " + self.tabWidget.tabText(0)
+                if not any(check in addedLayer for addedLayer in self.addedLayers):
+                    self.addedLayers.append(item)
+                    self.addedMappings.append(item)
+                    self.importsModel.appendRow(QStandardItem(item))
+            else:
+                if not any(item == addedLayer for addedLayer in self.addedLayers):
+                    self.addedLayers.append(item)
+                    self.addedMappings.append(item)
+                    self.importsModel.appendRow(QStandardItem(item))
+                
 
     def loadClassifications(self, path):
         classifications_list = self.classifications

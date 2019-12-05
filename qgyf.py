@@ -75,12 +75,11 @@ class QGYF:
 			if not os.path.exists(QSettings().value('dataPath')):
 				os.makedirs(QSettings().value('dataPath'))
 
-		if not QSettings().value('activeDataBase'):
-			QSettings().setValue('activeDataBase', 'qgyf.sqlite')
-
 		if not QSettings().value('CRS'):
-			crs = QgsCoordinateReferenceSystem("EPSG:3006")
-			QSettings().setValue('CRS', crs.authid())
+			QSettings().setValue('CRS', None)
+
+		if not QSettings().value('activeDataBase'):
+			QSettings().setValue('activeDataBase', None)
 
 		if not QSettings().value('model'):
 			QSettings().setValue('model', 'KvartersGYF, Sthm Stad')
@@ -88,6 +87,8 @@ class QGYF:
 		QSettings().setValue('objectCount', 0)
 		QSettings().setValue('groundArea', 0)
 		QSettings().setValue('pointsCoord', 0)
+
+		QgsProject.instance().projectSaved.connect(self.projectSettings)
 
 		self.actions = []
 		self.menu = self.translate(u'&QGYF')
@@ -102,7 +103,8 @@ class QGYF:
 		self.gyfModel = self.switch.defineGYF()
 
 		self.layerSelectorDialog = LayerSelectorDialog(self.gyfModel)
-		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.dockwidget, QSettings().value('dataPath'))
+		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.dockwidget, 
+		QSettings().value('dataPath'), self.gyfModel)
 		self.calculator = GyfCalculator(QSettings().value('dataPath'))
 		self.showWelcome()
 
@@ -187,17 +189,21 @@ class QGYF:
 			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
 
 	def load(self):
-		self.initDatabase(QSettings().value('dataPath'))
-		self.addLayers(QSettings().value('dataPath'), [
-			"research_area",
-			"ground_areas",
-			"point_object",
-			"line_object",
-			"polygon_object",
-		])
-		if self.dockwidget.isVisible():
-			self.dockwidget.showClass()
-			self.dockwidget.showAreas(self.gyfModel)
+		if QSettings().value('CRS'):
+			self.initDatabase(QSettings().value('dataPath'))
+			self.addLayers(QSettings().value('dataPath'), [
+				"research_area",
+				"ground_areas",
+				"point_object",
+				"line_object",
+				"polygon_object",
+			])
+			if self.dockwidget.isVisible():
+				self.dockwidget.showClass()
+				self.dockwidget.showAreas(self.gyfModel)
+		else:
+			QMessageBox.warning(ExportDialog(), 'Inget definierat koordinatsystem', 
+			'Du får sätta koordinatsystem i inställningar för att kunna skapa och ladda databas.')
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -522,4 +528,11 @@ class QGYF:
 		path = "{}/{}".format(QSettings().value('dataPath'), database)
 		if path and new_path:
 			copyfile(path, new_path)
+
+	def projectSettings(self):
+		QgsProject.instance().writeEntry("QGYF", "dataPath", QSettings().value('dataPath'))
+		QgsProject.instance().writeEntry("QGYF", 'activeDataBase',  QSettings().value('activeDataBase'))
+		QgsProject.instance().writeEntry("QGYF", "CRS", QSettings().value('CRS'))
+		QgsProject.instance().writeEntry("QGYF", "model", QSettings().value('model'))
+
 

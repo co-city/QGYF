@@ -75,7 +75,7 @@ class ExportCreator:
         for feature in research_area_lyr.getFeatures():
             s = feature['yta']
         area_info = sip.cast(composition.itemById("area_info"), QgsLayoutItemLabel)
-        items = [['Beräkningsyta: ', str(int(s))], ['Ekoeffektiv yta: ', str(int(total))]]
+        items = [['Beräkningsyta: ', str(int(float(s)))], ['Ekoeffektiv yta: ', str(int(float(total)))]]
         text2 = ""
         for i in items:
             text2 += '<font face="tahoma" color="#238973"><b>'+ i[0] + \

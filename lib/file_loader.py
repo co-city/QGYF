@@ -7,6 +7,7 @@ FileLoader class
 '''
 import os
 import sys
+import re
 import uuid
 from PyQt5 import uic
 from PyQt5 import QtWidgets
@@ -28,16 +29,17 @@ class AttributeSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
 
 class FileLoader():
 
-  def __init__(self, interface, layerSelectorDialog, dockwidget, path):
+  def __init__(self, interface, layerSelectorDialog, dockwidget, path, model):
     self.interface = interface
     self.layerSelectorDialog = layerSelectorDialog
     self.path = path
     self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
-    self.layerSelectorDialog.okButton.clicked.connect(lambda : self.updateDockwidget(dockwidget))
+    self.layerSelectorDialog.okButton.clicked.connect(lambda : self.updateDockwidget(dockwidget, model))
 
-  def updateDockwidget(self, dockwidget):
+  def updateDockwidget(self, dockwidget, model):
     if dockwidget:
-      dockwidget.showClass()
+      self.dockwidget.showClass()
+      self.dockwidget.showAreas(model)
 
   def loadFile(self):
     """
@@ -85,20 +87,26 @@ class FileLoader():
   def importToMap(self):
 
     filters = []
+    areas = []
     classifications = []
 
     if not self.ignore_mappings:
       for mapping in self.layerSelectorDialog.addedMappings:
-        values = mapping.split(">")
+        values = re.split(' > |, : ', mapping)
         layerName = values[0].strip()
-        if (len(values) == 2):
-          classifications.append((values[0].strip(), values[1].strip()))
+        if (len(values) == 3):
+          if values[1].strip() == self.layerSelectorDialog.tabWidget.tabText(0):
+            areas.append((values[0].strip(), values[2].strip()))
+          else:
+            classifications.append((values[0].strip(), values[2].strip()))
         filters.append(str(layerName))
       self.loadFeatures(filters, classifications)
     else:
       self.loadFeatures(None, None)
 
     self.layerSelectorDialog.close()
+
+  def loadAreas(self, areas):
 
   def loadFeatures(self, filters, classifications):
     try:
