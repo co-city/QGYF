@@ -117,13 +117,24 @@ class Style:
         lyr.triggerRepaint()
 
     def styleGroundAreas(self, lyr):
-        symbol = QgsFillSymbol.createSimple({
-            'style': 'f_diagonal',
-            'color':'11,84,37,100',
-            'color_border': '11,84,37,255',
-            'width_border':'0.0',
-            'style_border': 'dot',
-            })
-        lyr.renderer().setSymbol(symbol)
+        groups = ['Gr?nska', 'Vatten'] # '11,84,37,100'
+        colors = [('f_diagonal', '0,102,0,150', '0,102,0,255'), ('b_diagonal', '0,43,128,150', '0,43,128,255')]
+        symbology = dict(zip(groups, colors))
+        categories = []
+        for groups, (g, c1, c2) in symbology.items():
+            symbol = QgsFillSymbol.createSimple({
+                'style': g,
+                'color': c1,
+                'color_border': c2,
+                'width_border':'0.1',
+                'style_border': 'dot',
+                })
+            category = QgsRendererCategory(groups, symbol, groups)
+            categories.append(category)
+        
+        renderer = QgsCategorizedSymbolRenderer('ytgrupp', categories)
+        lyr.setRenderer(renderer)
         lyr.triggerRepaint()
+
+
 

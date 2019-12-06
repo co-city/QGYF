@@ -19,9 +19,7 @@ class Db:
 		"""
 
 		if QSettings().value('CRS'):
-			crs = QSettings().value('CRS')
-			crs = ''.join(c for c in crs if c.isdigit())
-			print(crs)
+			crs = str(QSettings().value('CRS'))
 		else:
 			crs = '3006' # SWEREF99 TM is default
 

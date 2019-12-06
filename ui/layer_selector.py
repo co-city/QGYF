@@ -23,7 +23,6 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
         super(LayerSelectorDialog, self).__init__(parent)
         self.setupUi(self)
 
-        self.tabWidget.setTabEnabled(0, model_gyf['Ground_areas_enabled'])
         for n, t in enumerate(model_gyf['Klass_items']):
             self.tabWidget.setTabText(n,t)
 
@@ -89,19 +88,23 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
         if layer:
             if classification:
                 item = layer + " > " + self.tabWidget.tabText(n) + ' : ' + classification
+                digit_check = list(filter(str.isdigit, classification))
             else:
                 item = layer
-            if self.classifications_2.selectedIndexes():
-                check = layer + " > " + self.tabWidget.tabText(0)
-                if not any(check in addedLayer for addedLayer in self.addedLayers):
-                    self.addedLayers.append(item)
-                    self.addedMappings.append(item)
-                    self.importsModel.appendRow(QStandardItem(item))
-            else:
-                if not any(item == addedLayer for addedLayer in self.addedLayers):
-                    self.addedLayers.append(item)
-                    self.addedMappings.append(item)
-                    self.importsModel.appendRow(QStandardItem(item))
+                digit_check = 1
+            if digit_check or (self.classifications.selectedIndexes() and QSettings().value('model') == r"GYF AP, C/O City"):
+
+                if self.classifications_2.selectedIndexes():
+                    check = layer + " > " + self.tabWidget.tabText(0)
+                    if not any(check in addedLayer for addedLayer in self.addedLayers):
+                        self.addedLayers.append(item)
+                        self.addedMappings.append(item)
+                        self.importsModel.appendRow(QStandardItem(item))
+                else:
+                    if not any(item == addedLayer for addedLayer in self.addedLayers):
+                        self.addedLayers.append(item)
+                        self.addedMappings.append(item)
+                        self.importsModel.appendRow(QStandardItem(item))
                 
 
     def loadClassifications(self, path):

@@ -42,7 +42,8 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         if self.db.checkClass(QSettings().value('dataPath')):
             self.currentGyf.setEnabled(True)
             self.currentGyf.currentIndexChanged.connect(self.setGYF)
-            self.currentGyf.currentIndexChanged.connect(updateDockwidget)
+            if dockwidget.isVisible():
+                self.currentGyf.currentIndexChanged.connect(updateDockwidget)
         else:
             self.currentGyf.setEnabled(False)
 
@@ -94,7 +95,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         if self.activeDatabase.currentText():
             QSettings().setValue('activeDataBase', self.activeDatabase.currentText())
             crs_id = self.getCRS(QSettings().value('activeDataBase'))
-            QSettings().setValue('CRS', str(crs_id))
+            QSettings().setValue('CRS', crs_id)
             crs = QgsCoordinateReferenceSystem(crs_id)
             self.crs.setText(crs.description())
         else:

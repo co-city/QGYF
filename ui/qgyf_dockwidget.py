@@ -85,7 +85,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.row_selection_lock = False
         self.path = QSettings().value('dataPath')
         if QSettings().value('CRS'):
-            self.crs = ''.join(c for c in QSettings().value('CRS') if c.isdigit())
+            self.crs = str(QSettings().value('CRS'))
 
     def closeEvent(self, event):
         self.closingPlugin.emit()

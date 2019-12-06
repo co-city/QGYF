@@ -38,8 +38,8 @@ class FileLoader():
 
   def updateDockwidget(self, dockwidget, model):
     if dockwidget:
-      self.dockwidget.showClass()
-      self.dockwidget.showAreas(model)
+      dockwidget.showClass()
+      dockwidget.showAreas(model)
 
   def loadFile(self):
     """
@@ -92,7 +92,7 @@ class FileLoader():
 
     if not self.ignore_mappings:
       for mapping in self.layerSelectorDialog.addedMappings:
-        values = re.split(' > |, : ', mapping)
+        values = re.split(' > | : ', mapping)
         layerName = values[0].strip()
         if (len(values) == 3):
           if values[1].strip() == self.layerSelectorDialog.tabWidget.tabText(0):
@@ -100,13 +100,69 @@ class FileLoader():
           else:
             classifications.append((values[0].strip(), values[2].strip()))
         filters.append(str(layerName))
+      filters = list(set(filters))
+      print('Filters: ' + str(filters))
+      print('Classifications: ' + str(classifications))
+      print('Areas: ' + str(areas))
       self.loadFeatures(filters, classifications)
+      if areas:
+        self.loadAreas(areas)
     else:
       self.loadFeatures(None, None)
 
     self.layerSelectorDialog.close()
-
+    
   def loadAreas(self, areas):
+    try:
+      lyr = QgsProject.instance().mapLayersByName('Grundytor')[0]
+      lyr.startEditing()
+
+      for feature in self.layer.getFeatures():
+        try:
+          type = self.prepareFeature(feature)
+          if type == "Point":
+            area = 25.0
+            radius = round((area/3.14159)**0.5, 2)
+            geom = feature.geometry().buffer(radius, 20)
+            feature.setGeometry(geom)
+          if type == "Line":
+            area = feature.geometry().length()
+            geom = feature.geometry().buffer(0.5, 20)
+            feature.setGeometry(geom)
+          if type == "Polygon":
+            area = feature.geometry().area()
+          
+          a_list = self.layerSelectorDialog.areas_list
+          index = feature.fields().indexFromName(self.filter_attribute)
+          layer_name = feature.attributes()[index]
+          try:
+            layer_name = layer_name.encode("windows-1252").decode("utf-8")
+          except:
+            layer_name = layer_name
+
+          if any(str(layer_name) in filtr for filtr in areas):
+            f = 0.0
+            group_name = None
+            k = [i[1] for i in areas if i[0] == str(layer_name)][0]
+            k, group_name, f = self.findQuality(a_list, k)
+
+            fields = QgsFields()
+            fields.append(QgsField("id", QVariant.Int, "serial"))
+            fields.append(QgsField("ytgrupp", QVariant.String, "text"))
+            fields.append(QgsField("ytklass", QVariant.String, "text"))
+            fields.append(QgsField("faktor", QVariant.String, "double"))
+            fields.append(QgsField("yta", QVariant.Double, "double"))
+            fields.append(QgsField("poang", QVariant.Double, "double"))
+
+            feature.setFields(fields, True)
+            feature.setAttributes([None, group_name, k, f, round(area, 1), round(area*f, 1)])
+            lyr.addFeature(feature)
+        except:
+          QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Filen innehåller vissa objekt som inte går att importera.''')
+
+      lyr.commitChanges()
+    except:
+      QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Nödvändiga kartlager saknas. Ladda in databasen på nytt.''')
 
   def loadFeatures(self, filters, classifications):
     try:
@@ -132,18 +188,18 @@ class FileLoader():
             data_feature = self.addFeature(feature, type, polygonLayer, filters, classifications, area)
           data.append(data_feature)
         except:
-          self.msg = QMessageBox()
-          self.msg.setIcon(QMessageBox.Information)
-          self.msg.setWindowTitle("Importfel")
-          self.msg.setText("Filen innehåller vissa objekt som inte går att importera.")
-          self.msg.show()
+          QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Filen innehåller vissa objekt som inte går att importera.''')
 
       pointLayer.commitChanges()
       lineLayer.commitChanges()
       polygonLayer.commitChanges()
 
       # Fill classification table
+      print('This is my data: ' + str(data))
       data = [d for d in data if d is not None]
+      data = [item for sublist in data for item in sublist]
+      data = [d for d in data if d is not None]
+      
       if data:
         con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
@@ -163,11 +219,7 @@ class FileLoader():
       iface.mapCanvas().refresh()
 
     except:
-      self.msg = QMessageBox()
-      self.msg.setIcon(QMessageBox.Information)
-      self.msg.setWindowTitle("Importfel")
-      self.msg.setText("Nödvändiga kartlager saknas. Ladda in databasen på nytt.")
-      self.msg.show()
+      QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Nödvändiga kartlager saknas. Ladda in databasen på nytt.''')
 
   def addFeature(self, feature, type, layer, filters, classifications, area):
     """
@@ -203,7 +255,9 @@ class FileLoader():
       if classifications:
         classification = list(filter(lambda classification: classification[0] == str(layer_name), classifications))
         if classification:
-          data_feature = self.insertQuality(classification, feature, gid, area)
+          data_feature = []
+          for cl in classification:
+            data_feature.append(self.insertQuality(cl, feature, gid, area))
 
     return data_feature
 
@@ -253,12 +307,21 @@ class FileLoader():
     if (geometry_type == "Polygon"):
       geometry_type = "yta"
 
-    quality_name = classification[0][1]
+      quality_name = classification[1]
 
-    q_list = self.layerSelectorDialog.qualities_list
-    factor = -1
-    group_name = None
+      q_list = self.layerSelectorDialog.qualities_list
+      factor = -1
+      group_name = None
 
+      quality_name, group_name, factor = self.findQuality(q_list, quality_name)
+
+      if factor != -1:
+        data = [gid, geometry_type, self.fileName, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
+        # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
+
+    return data
+
+  def findQuality(self, q_list, quality_name):
     # try to find mathing quality
     r = list(filter(lambda q: q[1][1] == quality_name, q_list))
     if len(r) == 0:
@@ -267,15 +330,12 @@ class FileLoader():
       if len(r) > 0:
         factor = r[0][1][4]
         group_name = r[0][1][0]
+        quality_name = ''
     else:
       factor = r[0][1][3]
       group_name = r[0][1][0]
-
-    if factor != -1:
-      data = [gid, geometry_type, self.fileName, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
-      # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
-
-    return data
+      quality_name = quality_name
+    return quality_name, group_name, factor
 
   def lookupAttributes(self, layer):
     features = list(layer.getFeatures())

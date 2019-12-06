@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 from ..ui.export import ExportDialog
 from .gyf_tables import QualityTable
+from .db import Db
 
 
 class SwitchGYFs:
@@ -55,6 +56,8 @@ class SwitchGYFs:
             gyf_model = dict(zip(gyf_var, gyf_ap))
         else:
             gyf_model = dict(zip(gyf_var, gyf_kvarters))
+
+        QualityTable().init(QSettings().value('dataPath'), gyf_model)
         
         return gyf_model
 
@@ -70,7 +73,6 @@ class SwitchGYFs:
         ### Gound areas - enabled/disabled
         self.dockwidget.tabWidget.setTabEnabled(0, model['Ground_areas_enabled'])
         ### Import GYF model
-        QualityTable().init(QSettings().value('dataPath'), model)
         self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
         
         ### Labels
