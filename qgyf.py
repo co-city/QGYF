@@ -203,7 +203,7 @@ class QGYF:
 				self.dockwidget.showAreas(self.gyfModel)
 		else:
 			QMessageBox.warning(ExportDialog(), 'Inget definierat koordinatsystem', 
-			'Du får sätta koordinatsystem i inställningar för att kunna skapa och ladda databas.')
+			'Sätt koordinatsystem i inställningar för att kunna skapa och ladda databas.')
 
 	def translate(self, message):
 		"""Get the translation for a string using Qt translation API.
@@ -379,8 +379,9 @@ class QGYF:
 		if self.dockwidget.tabWidget.currentIndex() > 1:
 			self.dbView = DbView()
 			self.dbView.init(QSettings().value('dataPath'))
-			self.createGA.initAP()
-			self.createGA.showGA()
+			if not self.gyfModel['Ground_areas_enabled']:
+				self.createGA.initAP()
+				self.createGA.showGA()
 
 	def updateGA(self):
 		self.createGA.initAP(QSettings().value('dataPath'))
@@ -391,11 +392,13 @@ class QGYF:
 		gyf, factor_areas, groups, feature_ids, area_id, ground_area, eco_area = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
 		# Plot
-		try:
-			if factor_areas.size != 0:
-				self.diagram.piePlot(self.dockwidget, factor_areas, groups)
-		except:
-			pass
+		#try:
+		if factor_areas.size != 0 and self.gyfModel['Name']==r'GYF för allmän platsmark, C/O City':
+			self.diagram.piePlot(self.dockwidget, factor_areas, groups)
+		else:
+			self.diagram.balancePlot(self.dockwidget)
+		#except:
+		#	pass
 
 		self.area_id = area_id
 		self.groups = groups

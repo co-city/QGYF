@@ -223,7 +223,8 @@ class Db:
 			'polygon_object',
 			'research_area',
 			'classification',
-			'ground_areas'
+			'ground_areas',
+			'ga_template'
 		]
 
 		for table in tables:

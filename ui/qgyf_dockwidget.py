@@ -31,6 +31,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest, QgsWkbTypes
 from qgis.utils import iface, spatialite_connect
 from .saveResearchArea import saveRA
 from ..lib.styles import Style
+from ..lib.ground_areas import GroundAreas
 from .mplwidget import MplWidget
 
 from functools import wraps
@@ -140,7 +141,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 cc = []
                 ground_features = ground_layer.getFeatures()
                 for fg in ground_features:
-                    c = f.geometry().intersects(fg.geometry())
+                    c = f.geometry().within(fg.geometry())
                     cc.append(c)
                 print('I see ' + str(cc))
                 if True in cc:
@@ -182,16 +183,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             cur.executemany('''INSERT INTO ga_template VALUES 
                 (NULL,?,?,?,?,?, CastToMultiPolygon(ST_Buffer(GeomFromText(?, ''' + self.crs + '''), POWER(?/3.14159, 0.5))))''', data)
 
-
-        cur.execute("DELETE FROM ground_areas")
-        cur.execute('''INSERT INTO ground_areas (id, ytgrupp, ytklass, faktor, yta, poang, geom)
-            SELECT  NULL, ytgrupp, ytklass, faktor, SUM(yta), SUM(poang), 
-            CastToMultiPolygon(ST_Union(geom)) AS geom FROM ga_template 
-            GROUP BY ytklass''')
-        cur.execute('''SELECT RecoverGeometryColumn('ground_areas', 'geom',  ''' + self.crs + ''', 'MULTIPOLYGON', 'XY')''')
-        cur.execute("DELETE FROM ga_template")
-        cur.execute('''INSERT INTO ga_template SELECT * FROM ground_areas''')
-
+        GroundAreas().mergeGA(cur)
                 
         cur.close()
         con.commit()
@@ -624,7 +616,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def switchLayerGroups(self):
         self.style = Style()
-        if self.tabWidget.currentIndex() == 1:
+        if self.tabWidget.currentIndex() < 2:
             self.style.visibility('Kvaliteter', False)
             self.style.visibility('Klassificering', True)
         else:
@@ -714,7 +706,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.checkHalsa.stateChanged.connect(checkGroup)
 
     def disableGroup(self):
-        if self.tabWidget.currentIndex() == 1:
+        if self.tabWidget.currentIndex() == 2:
             pathLayer = '{}\{}|layername={}'.format(self.path, QSettings().value('activeDataBase'), 'classification')
             table = QgsVectorLayer(pathLayer, 'classification', "ogr")
             features = table.getFeatures()

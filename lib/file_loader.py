@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtCore import QVariant, QSettings
 from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsFields, QgsField, QgsGeometry, QgsPointXY, QgsRectangle
 from qgis.utils import spatialite_connect, iface
+from .ground_areas import GroundAreas
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'attribute_selector.ui'))
@@ -114,7 +115,8 @@ class FileLoader():
     
   def loadAreas(self, areas):
     try:
-      lyr = QgsProject.instance().mapLayersByName('Grundytor')[0]
+      pathLayer = '{}\{}|layername={}'.format(QSettings().value("dataPath"), QSettings().value("activeDataBase"), 'ga_template')
+      lyr = QgsVectorLayer(pathLayer, 'ga_template', "ogr")
       lyr.startEditing()
 
       for feature in self.layer.getFeatures():
@@ -161,6 +163,14 @@ class FileLoader():
           QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Filen innehåller vissa objekt som inte går att importera.''')
 
       lyr.commitChanges()
+
+      con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+      cur = con.cursor()
+      GroundAreas().mergeGA(cur)
+      con.commit()
+      cur.close()
+      con.close()
+
     except:
       QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Nödvändiga kartlager saknas. Ladda in databasen på nytt.''')
 
@@ -195,7 +205,6 @@ class FileLoader():
       polygonLayer.commitChanges()
 
       # Fill classification table
-      print('This is my data: ' + str(data))
       data = [d for d in data if d is not None]
       data = [item for sublist in data for item in sublist]
       data = [d for d in data if d is not None]

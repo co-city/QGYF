@@ -77,14 +77,15 @@ class GroundAreas:
         cur.close()
         con.close()
 
-    def mergeGA(self, data, crs):
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
-        cur = con.cursor()
-        cur.executemany('INSERT INTO ground_areas VALUES (?,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ' + crs + ')))', data)
-
-        con.commit()
-        cur.close()
-        con.close()
+    def mergeGA(self, cur):
+        cur.execute("DELETE FROM ground_areas")
+        cur.execute('''INSERT INTO ground_areas (id, ytgrupp, ytklass, faktor, yta, poang, geom)
+            SELECT  NULL, ytgrupp, ytklass, faktor, SUM(yta), SUM(poang), 
+            CastToMultiPolygon(ST_Union(geom)) AS geom FROM ga_template 
+            GROUP BY ytklass''')
+        cur.execute('''SELECT RecoverGeometryColumn('ground_areas', 'geom',  ''' + str(QSettings().value('CRS')) + ''', 'MULTIPOLYGON', 'XY')''')
+        cur.execute("DELETE FROM ga_template")
+        cur.execute('''INSERT INTO ga_template SELECT * FROM ground_areas''')
 
 
     def showGA(self):

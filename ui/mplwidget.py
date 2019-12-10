@@ -15,7 +15,6 @@ class MplCanvas(Canvas):
         gs = GridSpec(4,1)
         self.ax = self.fig.add_subplot(gs[0:3,0])
         self.ax.axis('off')
-        self.ax.axis('equal')
         self.ax2 = self.fig.add_subplot(gs[3,0])
         self.ax2.axis('off')
         matplotlib.rcParams['font.size'] = 8.0

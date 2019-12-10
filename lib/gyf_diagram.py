@@ -7,6 +7,7 @@ try:
     import matplotlib.pyplot as plt
     matplotlib.use('QT5Agg')
     import numpy as np
+    from qgis.utils import spatialite_connect
 
     from ..ui.mplwidget import MplWidget
 except:
@@ -45,18 +46,17 @@ class Diagram:
         items = [[sizes[i], labels[i]] for i,x in enumerate(sizes)]
 
         outline = {"edgecolor":"white", 'linewidth': 0.8, 'antialiased': True}
-        legend = ['{:.1f} % - {}'.format(float(i[0]), i[1]) for i in items]
-
-        return sizes, legend, colors, outline
+        
+        return sizes, items, colors, outline
         
     def piePlot(self, dockwidget, factor_areas, groups):
+        dockwidget.plot.canvas.ax.axis('equal')
         dockwidget.plot.canvas.ax.cla()
         dockwidget.plot.canvas.ax.set_title('Fördelning av kvalitetspoäng')
-        sizes, legend, colors, outline = self.init(factor_areas, groups)
+        sizes, items, colors, outline = self.init(factor_areas, groups)
         patches, text = dockwidget.plot.canvas.ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
         # Legend
-        patches, legend, dummy =  zip(*sorted(zip(patches, legend, sizes), key=lambda x: x[2], reverse=True))
-        dockwidget.plot.canvas.ax2.legend(patches, legend, loc = 'center', shadow = None, frameon = False)
+        self.setLegend(items, patches, sizes, dockwidget.plot.canvas.ax2)
         dockwidget.plot.canvas.draw()
 
     def ecoAreaPlot(self, eco_area, total_area):
@@ -69,7 +69,6 @@ class Diagram:
         items = [[sizes[i], labels[i]] for i,x in enumerate(sizes)]
 
         outline = {"edgecolor":"white", 'linewidth': 0.8, 'antialiased': True}
-        legend = ['{:.1f} % - {}'.format(float(i[0]), i[1]) for i in items]
 
         # Plot
         gs = GridSpec(4,1)
@@ -82,12 +81,11 @@ class Diagram:
         ax.set_title('Andel grön- och hårdgjord yta')
 
         patches, text = ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
-        patches, legend, dummy =  zip(*sorted(zip(patches, legend, sizes), key=lambda x: x[2], reverse=True))
-        ax2.legend(patches, legend, loc = 'center', shadow = None, frameon = False)
+        self.setLegend(items, patches, sizes, ax2)
         chart_path = QSettings().value('dataPath') + '\PieChart2.png'
         plt.savefig(chart_path)
 
-    def balancePlot(self):
+    def balancePlot(self, dockwidget):
         con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
         cur.execute('SELECT COUNT(*) FROM classification WHERE kvalitet LIKE "%B%"')
@@ -106,18 +104,47 @@ class Diagram:
         result = (cur_values/max_values)*100
 
         items = ['Biologisk mångfald', 'Sociala värden', 'Klimatanpassning', 'Ljudkvalitet']
+        items = [[result[i], items[i]] for i,x in enumerate(result)]
+        labels = ['B', 'S', 'K', 'L']
         cmap = [
-            [0.36, 0.97, 0.41, 0.8], # green
+            [0, 0.7, 0, 0.8], # green
             [1, 0.8, 0, 0.8], # orange
             [0.6, 0.8, 1, 0.8], # blue
             [0.5, 0, 0, 0.8], # maroon
         ]
-        y = np.arange(len(items))
-        for i in y:
-            plt.bar(y[i], result[i], align='center', alpha=0.5, color=cmap[i], label=items[i])
-        plt.yticks(y, items)
-        plt.title('Balancering av möjliga faktorer')
-        plt.legend()
-        plt.tight_layout()
-        plt.show()
+        clabels = [
+            [0, 0.5, 0, 0.8], # green
+            [0.8, 0.6, 0, 0.8], # orange
+            [0, 0.35, 0.7, 0.8], # blue
+            [0.5, 0, 0, 0.8], # maroon
+        ]
+        x = np.arange(len(labels))
+
+        dockwidget.plot.canvas.fig.subplots_adjust(hspace=0.5)
+        dockwidget.plot.canvas.ax.cla()
+        dockwidget.obsText.clear()
+        patches = []
+        for i in x:
+            patch = dockwidget.plot.canvas.ax.bar(x[i], result[i], align='center', color=cmap[i])
+            patches.append(patch)
+
+        dockwidget.plot.canvas.ax.set_xticks(x)
+        dockwidget.plot.canvas.ax.set_xticklabels(labels)
+        for ticklabel, tickcolor in zip(dockwidget.plot.canvas.ax.get_xticklabels(), clabels):
+            ticklabel.set_color(tickcolor)
+            ticklabel.set_weight("bold")
+        dockwidget.plot.canvas.ax.set_ybound((0,100))
+        dockwidget.plot.canvas.ax.tick_params(axis='x', width=0)
+        dockwidget.plot.canvas.ax.set_title('Balancering av möjliga faktorer')
+        self.setLegend(items, patches, result, dockwidget.plot.canvas.ax2)
+        dockwidget.plot.canvas.draw()
+        if any(result < 60):
+            dockwidget.obsText.setText('''<p style="color:#cc2900">OBS! Minst 60 % av möjliga faktorer inom biologisk mångfald, \
+            sociala värden, klimatanpassning och ljudkvalitet ska uppnås för att balanseringen ska bli godkänd.</p>''')
+
+    def setLegend(self, items, patches, sizes, canvas):
+        legend = ['{:.1f} % - {}'.format(float(i[0]), i[1]) for i in items]
+        patches, legend, dummy =  zip(*sorted(zip(patches, legend, sizes), key=lambda x: x[2], reverse=True))
+        canvas.legend(patches, legend, loc = 'center', shadow = None, frameon = False)
+
 
