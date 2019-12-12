@@ -53,8 +53,9 @@ class GroundAreas:
 
             cur.execute("DELETE FROM ground_areas")
             # Merge all objects together
-            cur.execute("""INSERT INTO ground_areas (id, yta, geom)
-                SELECT NULL, AREA(st_unaryunion(st_collect(geom))), CastToMultiPolygon(st_unaryunion(st_collect(geom))) FROM
+            cur.execute("""INSERT INTO ground_areas (id, faktor, yta, poang, geom)
+                SELECT NULL, 1, AREA(st_unaryunion(st_collect(geom))), AREA(st_unaryunion(st_collect(geom))), 
+                CastToMultiPolygon(st_unaryunion(st_collect(geom))) FROM
                 (SELECT NULL, geom FROM polygon_object
                 UNION ALL
                 SELECT NULL, CastToPolygon(ST_Buffer(geom, 0.5)) FROM line_object

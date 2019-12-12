@@ -18,7 +18,7 @@ import datetime
 
 class ExportCreator:
 
-    def exportPDF(self, chart_path, gyf, exportDialog, area_id, groups, feature_gids, total):
+    def exportPDF(self, model, chart_path, gyf, exportDialog, area_id, groups, feature_gids, total):
 
         # Text from export dialog
         map_title = exportDialog.projectName.text()
@@ -26,7 +26,7 @@ class ExportCreator:
         output_path = exportDialog.pdfPath.text()
         output_name = exportDialog.pdfName.text()
         author = exportDialog.author.text()
-        gyf_version = 'GYF AP 2.0'
+        gyf_version = model['Version'] #AP 2.0
         date = datetime.datetime.today().strftime('%Y-%m-%d')
 
         # Get template

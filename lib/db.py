@@ -87,7 +87,7 @@ class Db:
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		ytgrupp TEXT,
 		ytklass TEXT,
-		faktor DOUBLE NOT NULL,
+		faktor DOUBLE,
 		yta DOUBLE,
 		poang DOUBLE);""")
 
@@ -97,7 +97,7 @@ class Db:
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		ytgrupp TEXT,
 		ytklass TEXT,
-		faktor DOUBLE NOT NULL,
+		faktor DOUBLE,
 		yta DOUBLE,
 		poang DOUBLE);""")
 

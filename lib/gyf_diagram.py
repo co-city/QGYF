@@ -21,7 +21,7 @@ class Diagram:
         sizes = []
         for group in labels:
             ii = [index for (index, g) in enumerate(groups) if g == group]
-            size = factor_areas[ii].sum()
+            size = sum([factor_areas[i] for i in ii])
             sizes.append(size*100/total)
 
         items = ['Biologisk mångfald',
@@ -48,10 +48,20 @@ class Diagram:
         outline = {"edgecolor":"white", 'linewidth': 0.8, 'antialiased': True}
         
         return sizes, items, colors, outline
+
+    def initCanvas(self, dockwidget):
+        gs = GridSpec(4,1)
+        dockwidget.plot.canvas.ax = dockwidget.plot.canvas.fig.add_subplot(gs[0:3,0])
+        dockwidget.plot.canvas.ax2 = dockwidget.plot.canvas.fig.add_subplot(gs[3,0])
+        dockwidget.plot.canvas.ax2.axis('off')
         
     def piePlot(self, dockwidget, factor_areas, groups):
-        dockwidget.plot.canvas.ax.axis('equal')
         dockwidget.plot.canvas.ax.cla()
+        #dockwidget.plot.canvas.fig.clf()
+        #if not hasattr(dockwidget.plot.canvas, 'ax'):
+        #    self.initCanvas(dockwidget)
+        dockwidget.plot.canvas.ax.axis('equal')
+        dockwidget.plot.canvas.ax.axis('off')
         dockwidget.plot.canvas.ax.set_title('Fördelning av kvalitetspoäng')
         sizes, items, colors, outline = self.init(factor_areas, groups)
         patches, text = dockwidget.plot.canvas.ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
@@ -85,22 +95,10 @@ class Diagram:
         chart_path = QSettings().value('dataPath') + '\PieChart2.png'
         plt.savefig(chart_path)
 
-    def balancePlot(self, dockwidget):
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
-        cur = con.cursor()
-        cur.execute('SELECT COUNT(*) FROM classification WHERE kvalitet LIKE "%B%"')
-        B = cur.fetchone()[0]
-        cur.execute('SELECT COUNT(*) FROM classification WHERE kvalitet LIKE "%S%"')
-        S = cur.fetchone()[0]
-        cur.execute('SELECT COUNT(*) FROM classification WHERE kvalitet LIKE "%K%"')
-        K = cur.fetchone()[0]
-        cur.execute('SELECT COUNT(*) FROM classification WHERE kvalitet LIKE "%L%"')
-        L = cur.fetchone()[0]
-        cur.close()
-        con.close()
-
+    def balancePlot(self, dockwidget, balancering):
+        
         max_values = np.array((34, 29, 20, 5))
-        cur_values = np.array((B, S, K, L))
+        cur_values = np.asarray(balancering)
         result = (cur_values/max_values)*100
 
         items = ['Biologisk mångfald', 'Sociala värden', 'Klimatanpassning', 'Ljudkvalitet']
@@ -120,8 +118,13 @@ class Diagram:
         ]
         x = np.arange(len(labels))
 
-        dockwidget.plot.canvas.fig.subplots_adjust(hspace=0.5)
         dockwidget.plot.canvas.ax.cla()
+        #dockwidget.plot.canvas.fig.clf()
+        #if not hasattr(dockwidget.plot.canvas, 'ax'):
+        #    self.initCanvas(dockwidget)
+        dockwidget.plot.canvas.ax.axis('auto')
+        dockwidget.plot.canvas.ax.axis('on')
+        dockwidget.plot.canvas.fig.subplots_adjust(hspace=1.5)
         dockwidget.obsText.clear()
         patches = []
         for i in x:

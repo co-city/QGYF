@@ -1,4 +1,4 @@
-from qgis.core import QgsProject, QgsVectorLayer, QgsApplication, QgsWkbTypes
+from qgis.core import QgsProject, QgsVectorLayer, QgsApplication, QgsWkbTypes, NULL
 from qgis.utils import iface
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QSettings
@@ -54,14 +54,16 @@ class GyfCalculator:
     group = feature["grupp"]
     feature_id = feature["gid"]
     ground_area_add = []
+    b_value_feature = feature["kvalitet"]
 
     if geometry_type == "Line":
       intersection_area = intersection.area() * height
       ground_area_add.append([intersection.area(), intersection_area])
     else:
       intersection_area = intersection.area()
-    
-    return intersection_area * factor, group, feature_id, ground_area_add
+
+    #print([feature["gid"], intersection_area, factor, intersection_area * factor])
+    return intersection_area * factor, group, feature_id, b_value_feature, ground_area_add
 
   def calculateGroundAreaIntersection(self, intersector, ground_area_lines):
     "Calculate the intersection of ground areas and the research area"
@@ -71,15 +73,20 @@ class GyfCalculator:
     else:
       pathLayer = '{}\{}|layername={}'.format(QSettings().value("dataPath"), QSettings().value("activeDataBase"), 'ground_areas')
       ground_layer = QgsVectorLayer(pathLayer, 'Grundytor', "ogr")
-    area = list(ground_layer.getFeatures())[0]
-    intersection = area.geometry().intersection(intersector.geometry())
-    area = intersection.area()
+    areas = list(ground_layer.getFeatures())
+    area_value = 0
+    b_value = []
+    for area in areas:
+      intersection = area.geometry().intersection(intersector.geometry())
+      area_value += intersection.area()
+      if intersection.area() > 0:
+        b_value.append(area['ytklass'])
     if ground_area_lines:
       minus_area = sum([i[0] for i in ground_area_lines])
       plus_area = sum([i[1] for i in ground_area_lines])
-      area = area - minus_area + plus_area
+      area_value = area_value - minus_area + plus_area
     
-    return area
+    return area_value, b_value
 
   def calculate(self):
     """
@@ -97,6 +104,8 @@ class GyfCalculator:
     feature_area_sum = 0
     selected_feature = None
     ground_area_lines = []
+    b_value_features = []
+    b_value = []
 
     research_area_layer = QgsProject.instance().mapLayersByName("Beräkningsområde")
     if research_area_layer:
@@ -113,42 +122,43 @@ class GyfCalculator:
         feature_area_sum = 0
         feature_area_factor_sum = 0
 
-        intersecting_features = [feature for feature in features]
-        # TODO: find a comparer to test intersection,
-        # the intersection calculation is not necsessary if the feature is completely outside the calculation area.
+        intersecting_features = [feature for feature in features if not feature.geometry().intersection(selected_feature.geometry()).isEmpty()]
 
         for feature in intersecting_features:
-          factor_area, group, feature_id, ground_area_add = self.calculateIntersectionArea(feature, selected_feature)
+          factor_area, group, feature_id, b_value_feature, ground_area_add = self.calculateIntersectionArea(feature, selected_feature)
           feature_area_factor_sum += factor_area
           factor_areas.append(factor_area)
           groups.append(group)
           feature_ids.append(feature_id)
+          b_value_features.append(b_value_feature)
           if ground_area_add:
             ground_area_lines += ground_area_add
 
-        feature_area_sum = self.calculateGroundAreaIntersection(selected_feature, ground_area_lines)
-        #print('Ground Area:' + str(feature_area_sum))
-
-        # Get rid of features which don't actually intersect the currently selected feature
-        factor_areas = np.asarray(factor_areas)
-        groups = np.asarray(groups)
-        feature_ids = np.asarray(feature_ids)
-
-        nonzero_indexes = np.where(factor_areas != 0.0)
-        factor_areas = factor_areas[nonzero_indexes]
-        groups = groups[nonzero_indexes]
-        feature_ids = feature_ids[nonzero_indexes]
-
+        feature_area_sum, b_value_areas = self.calculateGroundAreaIntersection(selected_feature, ground_area_lines)
+        print('Ground Area:' + str(feature_area_sum))
+        print('Faktor Area:' + str(feature_area_factor_sum))
+        
         eco_area = feature_area_sum + feature_area_factor_sum
         gyf = eco_area / calculation_area
+        b_value = self.balancering(b_value_areas, b_value_features)
       else:
         QMessageBox.warning(WelcomeDialog(), 'Inget beräkningsområde', 'Välj beräkningsområde för att beräkna GYF!')
 
     else:
       QMessageBox.warning(WelcomeDialog(), 'Inget beräkningsområde', 'Lägg till lager med beräkningsområde för att beräkna GYF!')
 
-    if type(factor_areas) == list:
-      factor_areas = np.array([])
+    return gyf, factor_areas, groups, feature_ids, selected_feature, feature_area_sum, eco_area, b_value
 
-    return gyf, factor_areas, groups, feature_ids, selected_feature, feature_area_sum, eco_area
+  def balancering(self, list1, list2):
+    values = list(set(list1 + list2))
+    values = [v for v in values if v != NULL]
+    print(values)
+    B = len([i for i in values if 'B' in i])
+    S = len([i for i in values if 'S' in i])
+    K = len([i for i in values if 'K' in i])
+    L = len([i for i in values if 'L' in i])
+    balancering = [B, S, K, L]
+    return balancering
+
+
 

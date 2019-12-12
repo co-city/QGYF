@@ -88,8 +88,7 @@ class QGYF:
 		QSettings().setValue('groundArea', 0)
 		QSettings().setValue('pointsCoord', 0)
 
-		QgsProject.instance().projectSaved.connect(self.projectSettings)
-
+		
 		self.actions = []
 		self.menu = self.translate(u'&QGYF')
 		self.toolbar = self.iface.addToolBar(u'QGYF')
@@ -98,6 +97,7 @@ class QGYF:
 		self.dockwidget = QGYFDockWidget()
 		self.area_id = None
 		self.diagram = Diagram()
+		self.db = Db()
 		self.createGA = GroundAreas()
 		self.switch = SwitchGYFs(self.dockwidget, self.plugin_dir)
 		self.gyfModel = self.switch.defineGYF()
@@ -107,6 +107,10 @@ class QGYF:
 		QSettings().value('dataPath'), self.gyfModel)
 		self.calculator = GyfCalculator(QSettings().value('dataPath'))
 		self.showWelcome()
+
+		QgsProject.instance().projectSaved.connect(self.projectSettings)
+		QgsProject.instance().layersAdded.connect(self.load2)
+			
 
 	def initGui(self):
 		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
@@ -188,6 +192,10 @@ class QGYF:
 		except:
 			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
 
+	def load2(self):
+		print('I see load')
+		lyrs = ["research_area","ground_areas","point_object","line_object","polygon_object",]
+
 	def load(self):
 		if QSettings().value('CRS'):
 			self.initDatabase(QSettings().value('dataPath'))
@@ -268,8 +276,7 @@ class QGYF:
 			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
 
 	def loadFile(self):
-		db = Db()
-		initialized = db.check(QSettings().value('dataPath'))
+		initialized = self.db.check(QSettings().value('dataPath'))
 		if not initialized:
 			self.load()
 
@@ -320,9 +327,11 @@ class QGYF:
 			if layer == "research_area":
 				self.style.styleResearchArea(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
+				#vlayer.geometryChanged.connect(lambda fid, vlayer=vlayer: self.dockwidget.areaAdded(fid, vlayer))
 			elif layer == "ground_areas":
-				self.style.styleGroundAreas(vlayer)
+				self.style.oneStyleGroundAreas(vlayer)
 				QgsProject.instance().addMapLayer(vlayer)
+				vlayer.setReadOnly(True)
 			else:
 				self.style.iniStyle(vlayer)
 				QgsProject.instance().addMapLayer(vlayer, False)
@@ -342,7 +351,7 @@ class QGYF:
 			elif geom_type == "Line":
 				feature["yta"] = feature.geometry().length()
 			layer.updateFeature(feature)
-			self.dockwidget.updateClassArea(QSettings().value('dataPath'), feature["gid"], feature["yta"])
+			self.dockwidget.updateClassArea(feature["gid"], feature["yta"])
 
 	def featureAdded(self, fid, layer):
 		feature = layer.getFeature(fid)
@@ -359,7 +368,6 @@ class QGYF:
 			layer.updateFeature(feature)
 
 	def initDatabase(self, path):
-		self.db = Db()
 		self.db.create(path)
 		self.quality = QualityTable()
 		self.quality.init(path, self.gyfModel)
@@ -388,15 +396,18 @@ class QGYF:
 
 	def calculate(self):
 		self.createDataView()
+		#if not hasattr(self.dockwidget.plot.canvas, 'ax'):
+		#	self.diagram.initCanvas(self.dockwidget)
+		self.dockwidget.plot.canvas.ax.cla()
 
-		gyf, factor_areas, groups, feature_ids, area_id, ground_area, eco_area = self.calculator.calculate()
+		gyf, factor_areas, groups, feature_ids, area_id, ground_area, eco_area, balancering = self.calculator.calculate()
 		self.dockwidget.gyfValue.setText("{0:.2f}".format(gyf))
 		# Plot
 		#try:
-		if factor_areas.size != 0 and self.gyfModel['Name']==r'GYF för allmän platsmark, C/O City':
+		if factor_areas and self.gyfModel['Version']=='GYF AP 2.0':
 			self.diagram.piePlot(self.dockwidget, factor_areas, groups)
-		else:
-			self.diagram.balancePlot(self.dockwidget)
+		if balancering and self.gyfModel['Version']=='GYF Kvartersmark':
+			self.diagram.balancePlot(self.dockwidget, balancering)
 		#except:
 		#	pass
 
@@ -431,12 +442,10 @@ class QGYF:
 				groups.append(checkbox.text())
 		groups = [g for g in groups if g in self.groups]
 		self.pdfCreator = ExportCreator()
-		self.pdfCreator.exportPDF(chart_path, gyf, self.exportDialog, self.area_id, groups, self.feature_ids, self.eco_area)
+		self.pdfCreator.exportPDF(self.gyfModel, chart_path, gyf, self.exportDialog, self.area_id, groups, self.feature_ids, self.eco_area)
 
 	def openCalculationDialog(self):
-		
-		db = Db()
-		initialized = db.check(QSettings().value('dataPath'))
+		initialized = self.db.check(QSettings().value('dataPath'))
 		if not initialized:
 			self.load()
 
@@ -448,15 +457,13 @@ class QGYF:
 			self.dockwidget.showClass()
 			self.dockwidget.showAreas(self.gyfModel)
 
-		print(self.gyfModel)
-
 	def initCalculationDialog(self):
 
 		# connect to provide cleanup on closing of dockwidget
 		self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
 		# Show GYF version
-		self.switch.adjustDockwidget(self.gyfModel)
+		self.switch.adjustDockwidget(self.gyfModel, self.layerSelectorDialog)
 
 		# Classification
 		self.dockwidget.switchLayerGroups()
@@ -520,9 +527,14 @@ class QGYF:
 			self.geometry = GeometryDialog(self.dockwidget, QSettings().value('dataPath'))
 
 	def openSettingsDialog(self):
-		self.settings = SettingsDialog(self.dockwidget, self.gyfModel, self.plugin_dir, None, self)
+		self.settings = SettingsDialog(self.dockwidget, self.gyfModel, self.plugin_dir, self.layerSelectorDialog, None, self)
 		self.settings.show()
+		self.settings.okButton.clicked.connect(self.returnModel)
+		print(self.gyfModel)
 		self.settings.okButton.clicked.connect(self.settings.close)
+
+	def returnModel(self):
+		self.gyfModel = self.switch.defineGYF()
 
 	def save(self):
 		path = QFileDialog.getSaveFileName(self.iface.mainWindow(), 'Spara som', QSettings().value('dataPath'), '*.sqlite')

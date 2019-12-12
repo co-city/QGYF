@@ -21,7 +21,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'settings.ui'))
 
 class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
-    def __init__(self, dockwidget, model, plugin_dir, parent=None, parentWidget=None):
+    def __init__(self, dockwidget, model, plugin_dir, layerSelectorDialog, parent=None, parentWidget=None):
         super(SettingsDialog, self).__init__(parent)
         self.setupUi(self)
         modelGyf = model
@@ -36,7 +36,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.activeDatabase.currentIndexChanged.connect(self.setDatabase)
         self.parent = parentWidget
         self.selectCRSButton.clicked.connect(self.setCRS)
-        updateDockwidget = lambda : self.updateDockwidget(dockwidget)
+        updateDockwidget = lambda : self.updateDockwidget(dockwidget, layerSelectorDialog)
         self.db = Db()
         self.quality = QualityTable()
         if self.db.checkClass(QSettings().value('dataPath')):
@@ -66,10 +66,12 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
             QSettings().setValue('model', self.currentGyf.currentText())
             global modelGyf
             modelGyf = self.switch.defineGYF()
-        
 
-    def updateDockwidget(self, dockwidget):
-        self.switch.adjustDockwidget(modelGyf)
+    def get_value(self):
+         return modelGyf
+        
+    def updateDockwidget(self, dockwidget, layerSelectorDialog):
+        self.switch.adjustDockwidget(modelGyf, layerSelectorDialog)
         dockwidget.showClass()
         
 

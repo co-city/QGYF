@@ -136,5 +136,17 @@ class Style:
         lyr.setRenderer(renderer)
         lyr.triggerRepaint()
 
+    def oneStyleGroundAreas(self, lyr):
+        symbol = QgsFillSymbol.createSimple({
+            'style': 'f_diagonal',
+            'color':'11,84,37,200',
+            'color_border': '11,84,37,255',
+            'width_border':'0.1',
+            'style_border': 'dot',
+            })
+        lyr.renderer().setSymbol(symbol)
+        lyr.triggerRepaint()
+
+
 
 

@@ -171,7 +171,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if type(obj[-1]) is str:
                  obj[-1] = float(obj[-1])      
             data.append([g, q, f, round(obj[-1], 1), round(obj[-1]*f, 1), geom[i]])
-        
+        #print(data)
         if layer.wkbType() == QgsWkbTypes.Polygon:
             cur.executemany('''INSERT INTO ga_template VALUES 
                 (NULL,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ''' + self.crs + ''')))''', data)
@@ -229,6 +229,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         self.areasTable.setSortingEnabled(True)
         self.areasTable.setColumnCount(6)
+        print(data)
         self.areasTable.setHorizontalHeaderLabels(['grupp', model['Klass_items'][0], 'F', 'yta', 'poäng', 'idd'])
 
         if data:
