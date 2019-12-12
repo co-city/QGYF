@@ -102,20 +102,36 @@ class ExportCreator:
         #    legend.model().setRootGroup(root)
         legend.setAutoUpdateModel(False)
 
-        # Table
+        # Table Grundytor & Kvaliteter
         root = QgsProject.instance().layerTreeRoot()
         content = [l.name() for l in root.children()]
         db_path = '{}\{}'.format(QSettings().value('dataPath'), QSettings().value('activeDataBase'))
         uri = QgsDataSourceUri()
         uri.setDatabase(db_path)
+        #Table 2 - ground areas 
+        uri.setDataSource('', 'ground_areas', None)
+        table2 = QgsVectorLayer(uri.uri(), 'ground_areas', 'spatialite')
+        if 'ground_areas' not in content:
+            QgsProject.instance().addMapLayer(table2)
+        tableLayout2 = sip.cast(composition.itemById("table2"), QgsLayoutFrame)
+        tableLayout2.refreshItemPosition()
+        tableLayout2 = tableLayout2.multiFrame()
+        tableLayout2.setVectorLayer(table2)
+        tableLayout2.setDisplayedFields(['id', 'ytgrupp', 'ytklass', 'faktor', 'yta', 'poang'])
+        #h = tableLayout2.totalHeight()
+        #Table 1 - qualities
         uri.setDataSource('', 'classification', None)
-        table = QgsVectorLayer(uri.uri(), 'classification', 'spatialite')
+        table1 = QgsVectorLayer(uri.uri(), 'classification', 'spatialite')
         if 'classification' not in content:
-            QgsProject.instance().addMapLayer(table)
+            QgsProject.instance().addMapLayer(table1)
 
         tableLayout = sip.cast(composition.itemById("table"), QgsLayoutFrame)
+        #position = tableLayout.positionAtReferencePoint(tableLayout.ReferencePoint())
+        #position.setX(position.x() + h)
+        #tableLayout.setReferencePoint(position)
+        tableLayout.refreshItemPosition()
         tableLayout = tableLayout.multiFrame()
-        tableLayout.setVectorLayer(table)
+        tableLayout.setVectorLayer(table1)
         tableLayout.setDisplayedFields(['id', 'geometri_typ', 'fil_namn', 'grupp', 'kvalitet', 'faktor', 'yta', 'poang'])
         # Filter
         feature_gids = "', '".join(i for i in feature_gids)
@@ -123,6 +139,8 @@ class ExportCreator:
         tableLayout.setFilterFeatures(True)
         tableLayout.setFeatureFilter(query)
         tableLayout.update()
+        #
+        #
 
         # Diagram
         chart = sip.cast(composition.itemById("chart"), QgsLayoutItemPicture)
@@ -149,4 +167,5 @@ class ExportCreator:
 
         # Reset map view
         research_area_lyr.setSubsetString('')
-        QgsProject.instance().removeMapLayer(table)
+        QgsProject.instance().removeMapLayer(table1)
+        QgsProject.instance().removeMapLayer(table2)
