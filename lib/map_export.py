@@ -112,18 +112,23 @@ class ExportCreator:
         uri.setDataSource('', 'ground_areas', None)
         table2 = QgsVectorLayer(uri.uri(), 'ground_areas', 'spatialite')
         if 'ground_areas' not in content:
-            QgsProject.instance().addMapLayer(table2)
+            QgsProject.instance().addMapLayer(table2, False)
         tableLayout2 = sip.cast(composition.itemById("table2"), QgsLayoutFrame)
         tableLayout2.refreshItemPosition()
         tableLayout2 = tableLayout2.multiFrame()
         tableLayout2.setVectorLayer(table2)
-        tableLayout2.setDisplayedFields(['id', 'ytgrupp', 'ytklass', 'faktor', 'yta', 'poang'])
+        tableLayout2.setDisplayedFields(['ytgrupp', 'ytklass', 'faktor', 'yta', 'poang'])
+        # label
+        table_areas = sip.cast(composition.itemById("table_areas"), QgsLayoutItemLabel)
+        table2_name = '<font face="tahoma" color="#238973"><b>'+ model['Klass_items'][0].title() + 'er</b></font>'
+        table_areas.setText(table2_name)
         #h = tableLayout2.totalHeight()
+        
         #Table 1 - qualities
         uri.setDataSource('', 'classification', None)
         table1 = QgsVectorLayer(uri.uri(), 'classification', 'spatialite')
         if 'classification' not in content:
-            QgsProject.instance().addMapLayer(table1)
+            QgsProject.instance().addMapLayer(table1, False)
 
         tableLayout = sip.cast(composition.itemById("table"), QgsLayoutFrame)
         #position = tableLayout.positionAtReferencePoint(tableLayout.ReferencePoint())
@@ -139,8 +144,11 @@ class ExportCreator:
         tableLayout.setFilterFeatures(True)
         tableLayout.setFeatureFilter(query)
         tableLayout.update()
-        #
-        #
+         # label
+        table_class = sip.cast(composition.itemById("table_class"), QgsLayoutItemLabel)
+        table1_name = '<font face="tahoma" color="#238973"><b>'+ model['Klass_items'][1].title() + 'er</b></font>'
+        table_class.setText(table1_name)
+
 
         # Diagram
         chart = sip.cast(composition.itemById("chart"), QgsLayoutItemPicture)

@@ -179,7 +179,6 @@ class Db:
 			cur.close()
 			con.close()
 			
-			print(result[0])
 			if result[0] == 0:
 				return True
 			else:
@@ -202,7 +201,7 @@ class Db:
 				count += result
 			cur.close()
 			con.close()
-			print(count)
+
 			if count == 0:
 				return True
 			else:

@@ -115,7 +115,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         cur.close()
         con.close()
 
-    def setY(self, model):
+    def setY(self):
         layer = iface.activeLayer()
         if not layer:
             return None
@@ -143,7 +143,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 for fg in ground_features:
                     c = f.geometry().within(fg.geometry())
                     cc.append(c)
-                print('I see ' + str(cc))
                 if True in cc:
                     removed.append(f)
 
@@ -189,17 +188,16 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con.commit()
         con.close()
 
-        self.showAreas(model)
+        self.showAreas()
         ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
         if ground_layer:
             ground_layer[0].triggerRepaint()
 
-    def removeY(self, model):
+    def removeY(self):
         items = self.areasTable.selectedItems()
         if items:
             selected_rows = list(set([i.row() for i in items]))
             ids = [[self.areasTable.item(i,5).text()] for i in selected_rows]
-            print(ids)
 
             con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
             cur = con.cursor()
@@ -212,13 +210,26 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             cur.close()
             con.commit()
             con.close()
-            self.showAreas(model)
+            self.showAreas()
             ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
             if ground_layer:
                 ground_layer[0].triggerRepaint()
 
-    def showAreas(self, model):
-        self.areasTable.clear()
+    def setTableLabels(self, model):
+        # Ground Areas
+        self.areasTable.setSortingEnabled(True)
+        self.areasTable.setColumnCount(6)
+        self.areasTable.setHorizontalHeaderLabels(['grupp', model['Klass_items'][0], 'F', 'yta', 'poäng', 'idd'])
+        self.areasTable.setColumnHidden(5, True)
+        # Classification
+        self.classtable.setSortingEnabled(True)
+        self.classtable.setColumnCount(8)
+        self.classtable.setHorizontalHeaderLabels(["geom", "filnamn", 'grupp', 'K', 'F', 'Yta', 'Poäng', 'gid'])
+        self.classtable.setColumnHidden(7, True)
+
+
+    def showAreas(self):
+        self.areasTable.setRowCount(0)
         con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
         cur = con.cursor()
 
@@ -227,21 +238,12 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         #id, grupp,	ytklass, faktor, yta, poang
         data = [list(d[1:-1]) + [d[0]] for d in data]
 
-        self.areasTable.setSortingEnabled(True)
-        self.areasTable.setColumnCount(6)
-        print(data)
-        self.areasTable.setHorizontalHeaderLabels(['grupp', model['Klass_items'][0], 'F', 'yta', 'poäng', 'idd'])
-
         if data:
             self.areasTable.setRowCount(len(data))
             for i, item in enumerate(data):
                 for j, field in enumerate(item):
                     self.areasTable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
-                    self.areasTable.horizontalHeader().setSectionResizeMode(j, QtWidgets.QHeaderView.ResizeToContents)
-        else:
-            self.areasTable.setRowCount(0)
-
-        self.areasTable.setColumnHidden(5, True)
+                    self.areasTable.horizontalHeader().setSectionResizeMode(j, QtWidgets.QHeaderView.ResizeToContents)       
 
         cur.close()
         con.close()
@@ -315,6 +317,8 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cur.close()
         con.close()
+
+        return items
 
     def getQ(self, table, group_list, q_list, text_area):
         q_list.clear() # 'gyf_quality', self.selectQGroup, self.selectQ, self.textQ
@@ -482,7 +486,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.showClass()
 
     def showClass(self):
-        self.classtable.clear()
+        self.classtable.setRowCount(0)
         root = QgsProject.instance().layerTreeRoot()
         content = [l.name() for l in root.children()]
         if 'Klassificering' in content:
@@ -493,20 +497,12 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             data = cur.fetchall()
             data = [list(d[1:-2]) + [int(d[-2]), int(d[-1]), d[0]] for d in data]
 
-            self.classtable.setSortingEnabled(True)
-            self.classtable.setColumnCount(8)
-            self.classtable.setHorizontalHeaderLabels(["geom", "filnamn", 'Grupp', 'K', 'F', 'Yta', 'Poäng', 'gid'])
-
             if data:
                 self.classtable.setRowCount(len(data))
                 for i, item in enumerate(data):
                     for j, field in enumerate(item):
                         self.classtable.setItem(i, j, QtWidgets.QTableWidgetItem(str(field)))
                         self.classtable.horizontalHeader().setSectionResizeMode(j, QtWidgets.QHeaderView.ResizeToContents)
-            else:
-                self.classtable.setRowCount(0)
-
-            self.classtable.setColumnHidden(7, True)
 
             cur.close()
             con.close()
@@ -675,6 +671,16 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
     # Visualization
+    def createCheckBoxes(self, group_list):
+        print(group_list)
+        for g in group_list[1:]:
+            self.checkbox = QtWidgets.QCheckBox(g)
+            self.checkbox.setCheckState(Qt.Unchecked)
+
+            self.checkBoxLayout.addWidget(self.checkbox)
+            self.checkBoxLayout.setAlignment(Qt.AlignCenter)
+
+
     def checkGroup(self, checkbox_list):
         views = ['polygon_class', 'line_class', 'point_class']
         view_names =	{

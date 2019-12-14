@@ -30,17 +30,17 @@ class AttributeSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
 
 class FileLoader():
 
-  def __init__(self, interface, layerSelectorDialog, dockwidget, path, model):
+  def __init__(self, interface, layerSelectorDialog, dockwidget, path):
     self.interface = interface
     self.layerSelectorDialog = layerSelectorDialog
     self.path = path
     self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
-    self.layerSelectorDialog.okButton.clicked.connect(lambda : self.updateDockwidget(dockwidget, model))
+    self.layerSelectorDialog.okButton.clicked.connect(lambda : self.updateDockwidget(dockwidget))
 
-  def updateDockwidget(self, dockwidget, model):
+  def updateDockwidget(self, dockwidget):
     if dockwidget:
       dockwidget.showClass()
-      dockwidget.showAreas(model)
+      dockwidget.showAreas()
 
   def loadFile(self):
     """

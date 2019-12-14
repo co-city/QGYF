@@ -90,7 +90,7 @@
        <string/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="groundareas">
        <property name="toolTip">
@@ -330,7 +330,7 @@
                <string>Sätt yta för punktobjekt/höjd för linjeobjekt</string>
               </property>
               <property name="text">
-               <string>Sätt punktyta/linjehöjd</string>
+               <string>Sätt höjd på grundyta</string>
               </property>
              </widget>
             </item>
@@ -762,95 +762,11 @@
        <attribute name="toolTip">
         <string>Sätt stil på de klassificerade objekten utifrån kvalitet</string>
        </attribute>
-       <widget class="QCheckBox" name="checkBio">
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>35</y>
-          <width>141</width>
-          <height>17</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Biologisk mångfald</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="checkBuller">
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>60</y>
-          <width>141</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Bullerreducering</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="checkVatten">
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>85</y>
-          <width>231</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Dagvatten- och skyfallshantering</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="checkKlimat">
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>110</y>
-          <width>141</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Mikroklimatreglering</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="checkPoll">
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>135</y>
-          <width>141</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Pollination</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="checkHalsa">
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>160</y>
-          <width>141</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Rekreation och hälsa</string>
-        </property>
-       </widget>
        <widget class="QRadioButton" name="showAll">
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>10</y>
+          <y>60</y>
           <width>281</width>
           <height>17</height>
          </rect>
@@ -862,14 +778,14 @@
          </font>
         </property>
         <property name="text">
-         <string>Visa alla kvaliteter per grupp</string>
+         <string>Visa grupper av kvaliteter</string>
         </property>
        </widget>
        <widget class="QRadioButton" name="showGroup">
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>220</y>
+          <y>300</y>
           <width>191</width>
           <height>17</height>
          </rect>
@@ -888,11 +804,32 @@
         <property name="geometry">
          <rect>
           <x>30</x>
-          <y>250</y>
+          <y>330</y>
           <width>251</width>
           <height>22</height>
          </rect>
         </property>
+       </widget>
+       <widget class="QComboBox" name="selectMain">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>421</width>
+          <height>22</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>85</y>
+          <width>381</width>
+          <height>201</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="checkBoxLayout"/>
        </widget>
       </widget>
       <widget class="QWidget" name="estimate">

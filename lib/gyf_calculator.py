@@ -152,7 +152,7 @@ class GyfCalculator:
   def balancering(self, list1, list2):
     values = list(set(list1 + list2))
     values = [v for v in values if v != NULL]
-    print(values)
+    
     B = len([i for i in values if 'B' in i])
     S = len([i for i in values if 'S' in i])
     K = len([i for i in values if 'K' in i])

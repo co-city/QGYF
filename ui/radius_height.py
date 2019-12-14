@@ -20,10 +20,20 @@ class GeometryDialog(QDialog, FORM_CLASS):
     def __init__(self, dockwidget, path, parent=None, parentWidget=None):
         super(GeometryDialog, self).__init__(parent)
         self.setupUi(self)
-        geometry = self.switchPointLine(dockwidget)
-        self.saveButton.clicked.connect(lambda : self.setValue(dockwidget, geometry, path))
+        if dockwidget.tabWidget.currentIndex() == 1:
+            geometry = self.switchPointLine(dockwidget)
+            self.saveButton.clicked.connect(lambda : self.setValue(dockwidget, geometry, path))
+        else:
+            self.radiusButton.setEnabled(False)
+            self.heightButton.setChecked(True)
+            selected_items = dockwidget.areasTable.selectedItems()
+            if selected_items:
+                self.show()
+                self.saveButton.clicked.connect(lambda : self.setValueArea(dockwidget, selected_items, path))
+            else:
+                QMessageBox.warning(self, 'Inget valt objekt', 'Välj grundyta i tabellen för att sätta höjden på.')
+            
         
-
     def switchPointLine(self, dockwidget):
         geometry = None 
         selected_items = dockwidget.classtable.selectedItems()
@@ -48,7 +58,7 @@ class GeometryDialog(QDialog, FORM_CLASS):
             else:
                 QMessageBox.warning(self, 'Olika geometrier', 'De valda objekten har olika geometrier. Välj antingen punkter eller linjer i klassificeringstabell.')
         else:
-            QMessageBox.warning(self, 'Inget valt objekt', 'Välj punkt- eller linjeobjekt i klassificeringstabell som du vill sätta geometri på.')
+            QMessageBox.warning(self, 'Inget valt objekt', 'Välj punkt- eller linjeobjekt i klassificeringstabell för att sätta geometri på.')
         
         return geometry
 
@@ -93,4 +103,33 @@ class GeometryDialog(QDialog, FORM_CLASS):
             self.close()
         except:
             QMessageBox.warning(self, 'Fel värde', 'Ange ett numeriskt värde för yta eller höjd.')
+
+    def setValueArea(self, dockwidget, selected_items, path):
+        selected_rows = list(set([i.row() for i in selected_items]))
+        ids = [dockwidget.areasTable.item(i, 5).text() for i in selected_rows]
+        value = self.valueLine.text()
+        #try:
+        value = round(float(value),1)
+        if value == 0:
+            value = 1.0
+        items = []
+        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        cur = con.cursor()
+        
+        for i in ids:
+            cur.execute('SELECT faktor, ytklass, yta, id FROM ground_areas WHERE id = (?);', [i])
+            y = [[j[0], j[1], j[2], j[3]] for j in cur.fetchall()]
+            items += y
+        values = [[y[2]*value, y[2]*value*y[0], y[1], y[3]] for y in items]
+
+        cur.executemany('UPDATE ground_areas SET yta = (?), poang = (?) WHERE ytklass = (?) AND id = (?);', values)
+
+        cur.close()
+        con.commit()
+        con.close()
+        dockwidget.showAreas()
+        self.close()
+        #except:
+        #    QMessageBox.warning(self, 'Fel värde', 'Ange ett numeriskt värde för höjd.')
+
 

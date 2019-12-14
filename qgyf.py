@@ -104,13 +104,21 @@ class QGYF:
 
 		self.layerSelectorDialog = LayerSelectorDialog(self.gyfModel)
 		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.dockwidget, 
-		QSettings().value('dataPath'), self.gyfModel)
+		QSettings().value('dataPath'))
 		self.calculator = GyfCalculator(QSettings().value('dataPath'))
 		self.showWelcome()
 
 		QgsProject.instance().projectSaved.connect(self.projectSettings)
-		QgsProject.instance().layersAdded.connect(self.load2)
-			
+		QgsProject.instance().readProject.connect(self.loadProject)
+
+	def loadProject(self):
+		if QgsProject.instance().fileName():
+			self.addLayers(QSettings().value('dataPath'), [
+				"research_area",
+				"ground_areas",
+				"point_object",
+				"line_object",
+				"polygon_object"])
 
 	def initGui(self):
 		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
@@ -192,10 +200,6 @@ class QGYF:
 		except:
 			QMessageBox.warning(ExportDialog(), 'Ingen PDF läsare', 'Det ser ut att ingen PDF läsare finns installerat på datorn.')
 
-	def load2(self):
-		print('I see load')
-		lyrs = ["research_area","ground_areas","point_object","line_object","polygon_object",]
-
 	def load(self):
 		if QSettings().value('CRS'):
 			self.initDatabase(QSettings().value('dataPath'))
@@ -208,7 +212,7 @@ class QGYF:
 			])
 			if self.dockwidget.isVisible():
 				self.dockwidget.showClass()
-				self.dockwidget.showAreas(self.gyfModel)
+				self.dockwidget.showAreas()
 		else:
 			QMessageBox.warning(ExportDialog(), 'Inget definierat koordinatsystem', 
 			'Sätt koordinatsystem i inställningar för att kunna skapa och ladda databas.')
@@ -288,7 +292,7 @@ class QGYF:
 			self.dockwidget.disableGroup()
 		if self.dockwidget.isVisible():
 			self.dockwidget.showClass()
-			self.dockwidget.showAreas(self.gyfModel)
+			self.dockwidget.showAreas()
 
 	def info(self):
 		self.welcome = WelcomeDialog()
@@ -455,7 +459,7 @@ class QGYF:
 			self.initCalculationDialog()
 			self.dockwidget.show()
 			self.dockwidget.showClass()
-			self.dockwidget.showAreas(self.gyfModel)
+			self.dockwidget.showAreas()
 
 	def initCalculationDialog(self):
 
@@ -473,8 +477,8 @@ class QGYF:
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRowsAreas)
 
 		# Qualities
-		self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
-		self.dockwidget.chooseQ('gyf_areas', self.dockwidget.selectYGroup, self.dockwidget.selectY, self.dockwidget.textY)
+		group_list = self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
+		group_areaslist = self.dockwidget.chooseQ('gyf_areas', self.dockwidget.selectYGroup, self.dockwidget.selectY, self.dockwidget.textY)
 
 		get_qualities = lambda : self.dockwidget.getQ('gyf_quality', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
 		self.dockwidget.selectQGroup.currentIndexChanged.connect(get_qualities)
@@ -485,12 +489,14 @@ class QGYF:
 
 		self.dockwidget.approveButton.clicked.connect(self.dockwidget.setQ)
 		self.dockwidget.removeButton.clicked.connect(self.dockwidget.removeQ)
-		self.dockwidget.approveButton_2.clicked.connect(lambda : self.dockwidget.setY(self.gyfModel))
-		self.dockwidget.removeButton_2.clicked.connect(lambda : self.dockwidget.removeY(self.gyfModel))
+		self.dockwidget.approveButton_2.clicked.connect(self.dockwidget.setY)
+		self.dockwidget.removeButton_2.clicked.connect(self.dockwidget.removeY)
 
+		self.dockwidget.setTableLabels(self.gyfModel)
 		self.dockwidget.classtable.itemSelectionChanged.connect(self.dockwidget.highlightFeatures)
 		self.dockwidget.areasTable.itemSelectionChanged.connect(self.dockwidget.highlightAreas)
 		self.dockwidget.geometryButton.clicked.connect(self.openGeometryDialog)
+		self.dockwidget.geometryButton_2.clicked.connect(self.openGeometryDialog)
 
 		# Objects
 		self.dockwidget.setLayers(self.dockwidget.selectLayer)
@@ -499,10 +505,11 @@ class QGYF:
 		self.dockwidget.selectLayer_2.currentIndexChanged.connect(lambda : self.dockwidget.selectStart(self.dockwidget.selectLayer_2))
 
 		# Visualisation
+		#self.dockwidget.createCheckBoxes(group_list)
 		self.dockwidget.tabWidget.currentChanged.connect(self.createDataView)
-		self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.disableGroup)
-		self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
-		self.dockwidget.groupList()
+		#self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.disableGroup)
+		#self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
+		#self.dockwidget.groupList()
 
 		# Estimation of GYF
 		# Research area

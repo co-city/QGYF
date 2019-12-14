@@ -77,13 +77,14 @@ class SwitchGYFs:
         ### Gound areas - enabled/disabled
         self.dockwidget.tabWidget.setTabEnabled(0, model['Ground_areas_enabled'])
         ### Import GYF model
-        self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
+        group_list = self.dockwidget.chooseQ('gyf_qgroup', self.dockwidget.selectQGroup, self.dockwidget.selectQ, self.dockwidget.textQ)
         
         ### Labels
         for n, t in enumerate(model['Tabs_labels']):
             self.dockwidget.tabWidget.setTabText(n,t)
         for n, t in enumerate(model['Klass_items']):
-            layerSelectorDialog.tabWidget.setTabText(n,t)
+            layerSelectorDialog.tabWidget.setTabText(n,t.title())
+        self.dockwidget.setTableLabels(model)
         
         # Tab1
         self.dockwidget.label_YQ.setText('Välj ' + model['Klass_items'][0])
@@ -94,6 +95,12 @@ class SwitchGYFs:
         self.dockwidget.label_Q.setText('Välj ' + model['Klass_items'][1])
         self.dockwidget.approveButton.setText('Lägg till ' + model['Klass_items'][1])
         self.dockwidget.removeButton.setText('Ta bort ' + model['Klass_items'][1])
+        # Tab3
+        self.dockwidget.showAll.setText('Visa grupper av ' + model['Klass_items'][0] + 'er')
+        self.dockwidget.showGroup.setText('Visa ' + model['Klass_items'][0] + 'er per grupp')
+        items = [i.title()+'er' for i in model['Klass_items']]
+        self.dockwidget.selectMain.addItems(items)
+        self.dockwidget.createCheckBoxes(group_list)
         # Tab4
         #self.dockwidget.plot.canvas.fig.clf()
         self.dockwidget.plot.canvas.ax.cla()
