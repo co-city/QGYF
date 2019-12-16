@@ -8,12 +8,12 @@ import os
 import sys
 from qgis.core import QgsProject, QgsVectorLayer, QgsFillSymbol, QgsLineSymbol, QgsMarkerSymbol, QgsRendererCategory, QgsCategorizedSymbolRenderer
 from qgis.utils import spatialite_connect, iface
-from PyQt5.QtCore import QSettings
 
 class Style:
     
-    def styleCategories(self, path):
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))        
+    def styleCategories(self):
+        proj = QgsProject.instance()
+        con = spatialite_connect("{}\{}".format(proj.readEntry("QGYF", "dataPath")[0], proj.readEntry("QGYF", 'activeDataBase')[0]))        
         cur = con.cursor()
         cur.execute('''SELECT grupp FROM gyf_qgroup''')
         items = [i[0] for i in cur.fetchall()][:6]
@@ -55,7 +55,7 @@ class Style:
         views = ['Punktkvalitet', 'Linjekvalitet', 'Ytkvalitet']
         symbols = dict(zip(views, [categories1, categories2, categories3]))
         for v, c in symbols.items():
-            l = QgsProject.instance().mapLayersByName(v)
+            l = proj.mapLayersByName(v)
             if l:
                 l = l[0]
                 renderer = QgsCategorizedSymbolRenderer('grupp', c)

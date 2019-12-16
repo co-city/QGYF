@@ -1,6 +1,6 @@
 try:
     from PyQt5 import QtWidgets
-    from PyQt5.QtCore import QSettings
+    from qgis.core import QgsProject
     from matplotlib.gridspec import GridSpec
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
     import matplotlib
@@ -70,6 +70,7 @@ class Diagram:
         dockwidget.plot.canvas.draw()
 
     def ecoAreaPlot(self, eco_area, total_area):
+        proj = QgsProject.instance()
         labels = ['Grön yta', 'Grå yta']
         colors = [
                 [0, 0.6, 0, 0.8], # green
@@ -92,7 +93,7 @@ class Diagram:
 
         patches, text = ax.pie(sizes, colors=colors, startangle=90, wedgeprops=outline)
         self.setLegend(items, patches, sizes, ax2)
-        chart_path = QSettings().value('dataPath') + '\PieChart2.png'
+        chart_path = proj.readEntry("QGYF", "dataPath")[0] + '\PieChart2.png'
         plt.savefig(chart_path)
 
     def balancePlot(self, dockwidget, balancering):

@@ -8,18 +8,19 @@ Created on: 2019-03-18 13:30:53
 import os
 import sys
 from qgis.utils import spatialite_connect
-from PyQt5.QtCore import QSettings
+from qgis.core import QgsProject
 
 class QualityTable:
 
-    def init(self, path, model):
+    def init(self, model):
         """ Populate the table "gyf_quality" with GYF values """
         
         areas = self.readInputGYF(model['Input_ground_areas'])
         group = self.readInputGYF(model['Input_groups'])
         q_f   = self.readInputGYF(model['Input_categories'])
+        proj = QgsProject.instance()
 
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(proj.readEntry("QGYF", "dataPath")[0], proj.readEntry("QGYF", "activeDataBase")[0]))
         cur = con.cursor()
         cur.execute("SELECT id FROM gyf_qgroup")
         if cur.fetchall():

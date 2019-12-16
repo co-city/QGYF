@@ -16,8 +16,9 @@ from PyQt5.QtWidgets import QMessageBox
 class GroundAreas:
 
     def initAP(self):
+        proj = QgsProject.instance()
 
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(proj.readEntry("QGYF", "dataPath")[0], proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
 
         tables = ['polygon_object', 'line_object', 'point_object']
@@ -79,25 +80,28 @@ class GroundAreas:
         con.close()
 
     def mergeGA(self, cur):
+        proj = QgsProject.instance()
+        crs = proj.readEntry("QGYF", "CRS")[0]
         cur.execute("DELETE FROM ground_areas")
         cur.execute('''INSERT INTO ground_areas (id, ytgrupp, ytklass, faktor, yta, poang, geom)
             SELECT  NULL, ytgrupp, ytklass, faktor, SUM(yta), SUM(poang), 
             CastToMultiPolygon(ST_Union(geom)) AS geom FROM ga_template 
             GROUP BY ytklass''')
-        cur.execute('''SELECT RecoverGeometryColumn('ground_areas', 'geom',  ''' + str(QSettings().value('CRS')) + ''', 'MULTIPOLYGON', 'XY')''')
+        cur.execute('''SELECT RecoverGeometryColumn('ground_areas', 'geom',  ''' + crs + ''', 'MULTIPOLYGON', 'XY')''')
         cur.execute("DELETE FROM ga_template")
         cur.execute('''INSERT INTO ga_template SELECT * FROM ground_areas''')
 
 
     def showGA(self):
         self.style = Style()
-        root = QgsProject.instance().layerTreeRoot()
-        lyr = QgsProject.instance().mapLayersByName('Grundytor')
+        proj = QgsProject.instance()
+        root = proj.layerTreeRoot()
+        lyr = proj.mapLayersByName('Grundytor')
         if not lyr:
-            pathLayer = '{}\{}|layername={}'.format(QSettings().value('dataPath'), QSettings().value('activeDataBase'), 'ground_areas')
+            pathLayer = '{}\{}|layername={}'.format(proj.readEntry("QGYF", "dataPath")[0], proj.readEntry("QGYF", 'activeDataBase')[0], 'ground_areas')
             vlayer = QgsVectorLayer(pathLayer, 'Grundytor', 'ogr')
             self.style.styleGroundAreas(vlayer)
-            QgsProject.instance().addMapLayer(vlayer, False)
+            proj.addMapLayer(vlayer, False)
             root.insertLayer(3, vlayer)
         else:
             lyr[0].triggerRepaint()

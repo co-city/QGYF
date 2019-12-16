@@ -12,7 +12,7 @@ import uuid
 from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.QtCore import QVariant, QSettings
+from PyQt5.QtCore import QVariant
 from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsFields, QgsField, QgsGeometry, QgsPointXY, QgsRectangle
 from qgis.utils import spatialite_connect, iface
 from .ground_areas import GroundAreas
@@ -30,10 +30,13 @@ class AttributeSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
 
 class FileLoader():
 
-  def __init__(self, interface, layerSelectorDialog, dockwidget, path):
+  def __init__(self, interface, layerSelectorDialog, dockwidget):
     self.interface = interface
     self.layerSelectorDialog = layerSelectorDialog
-    self.path = path
+    self.proj = QgsProject.instance()
+    self.path = self.proj.readEntry("QGYF", "dataPath")[0]
+    self.db = self.proj.readEntry("QGYF", "activeDataBase")[0]
+    
     self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
     self.layerSelectorDialog.okButton.clicked.connect(lambda : self.updateDockwidget(dockwidget))
 
@@ -47,7 +50,7 @@ class FileLoader():
     Load file and add features to input layers of matching type (Point, Line, Polygon).
     @param {QtWidget} interface
     """
-    file = QFileDialog.getOpenFileName(self.interface, 'Öppna fil', QSettings().value('dataPath'), '*.shp; *.dxf')
+    file = QFileDialog.getOpenFileName(self.interface, 'Öppna fil', self.path, '*.shp; *.dxf')
     filePath = file[0]
 
     self.ignore_mappings = False
@@ -115,7 +118,7 @@ class FileLoader():
     
   def loadAreas(self, areas):
     try:
-      pathLayer = '{}\{}|layername={}'.format(QSettings().value("dataPath"), QSettings().value("activeDataBase"), 'ga_template')
+      pathLayer = '{}\{}|layername={}'.format(self.path, self.db, 'ga_template')
       lyr = QgsVectorLayer(pathLayer, 'ga_template', "ogr")
       lyr.startEditing()
 
@@ -164,7 +167,7 @@ class FileLoader():
 
       lyr.commitChanges()
 
-      con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+      con = spatialite_connect("{}\{}".format(self.path, self.db))
       cur = con.cursor()
       GroundAreas().mergeGA(cur)
       con.commit()
@@ -177,9 +180,9 @@ class FileLoader():
   def loadFeatures(self, filters, classifications):
     try:
       data = []
-      pointLayer = QgsProject.instance().mapLayersByName("Punktobjekt")[0]
-      lineLayer = QgsProject.instance().mapLayersByName("Linjeobjekt")[0]
-      polygonLayer = QgsProject.instance().mapLayersByName("Ytobjekt")[0]
+      pointLayer = self.proj.mapLayersByName("Punktobjekt")[0]
+      lineLayer = self.proj.mapLayersByName("Linjeobjekt")[0]
+      polygonLayer = self.proj.mapLayersByName("Ytobjekt")[0]
       pointLayer.startEditing()
       lineLayer.startEditing()
       polygonLayer.startEditing()
@@ -210,7 +213,7 @@ class FileLoader():
       data = [d for d in data if d is not None]
       
       if data:
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.path, self.db))
         cur = con.cursor()
         cur.executemany('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?)', data)
         cur.close()
@@ -220,7 +223,7 @@ class FileLoader():
       # Zoom to features
       extent = QgsRectangle()
       extent.setMinimal()
-      root = QgsProject.instance().layerTreeRoot()
+      root = self.proj.layerTreeRoot()
       group = root.findGroup("Klassificering")
       for child in group.children():
         extent.combineExtentWith(child.layer().extent())

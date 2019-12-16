@@ -6,16 +6,18 @@ Created on: 2019-03-25 16:20:53
 """
 import os
 import sys
-from PyQt5.QtCore import QSettings
 from qgis.utils import spatialite_connect, iface
 from qgis.core import QgsProject, QgsVectorLayer, QgsDataSourceUri
 from .styles import Style
 
 class DbView:
 
-    def init(self, path):
+    def init(self):
+        proj = QgsProject.instance()
+        path = proj.readEntry("QGYF", "dataPath")[0]
+        db = proj.readEntry("QGYF", 'activeDataBase')[0]
 
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(path, db))
         cur = con.cursor()
 
         cur.execute('DROP VIEW IF EXISTS polygon_class')
@@ -77,7 +79,7 @@ class DbView:
         cur.close()
         con.close()
 
-        root = QgsProject.instance().layerTreeRoot()
+        root = proj.layerTreeRoot()
         mygroup = root.findGroup('Kvaliteter')
         if not mygroup:
             mygroup = root.insertGroup(1, 'Kvaliteter')
@@ -93,13 +95,13 @@ class DbView:
 		}
 
         for view in views:
-            lyr = QgsProject.instance().mapLayersByName(view_names[view])
+            lyr = proj.mapLayersByName(view_names[view])
             if not lyr:
-                pathLayer = '{}\{}|layername={}'.format(path, QSettings().value('activeDataBase'), view)
+                pathLayer = '{}\{}|layername={}'.format(path, db, view)
                 vlayer = QgsVectorLayer(pathLayer, view_names[view], 'ogr')
                 vlayer.setProviderEncoding("utf-8")
                 self.style.oneColor(vlayer)
-                QgsProject.instance().addMapLayer(vlayer, False)
+                proj.addMapLayer(vlayer, False)
                 mygroup.addLayer(vlayer)
             else:
                 lyr[0].triggerRepaint()

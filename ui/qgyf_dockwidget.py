@@ -26,7 +26,7 @@ import os
 import threading
 import uuid
 from PyQt5 import QtGui, QtWidgets, uic
-from PyQt5.QtCore import QSettings, pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest, QgsWkbTypes, NULL
 from qgis.utils import iface, spatialite_connect
 from .saveResearchArea import saveRA
@@ -84,6 +84,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setupUi(self)
         self.feature_selection_lock = False
         self.row_selection_lock = False
+        self.proj = QgsProject.instance()
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -97,7 +98,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             return None
 
         self.textY.clear()
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
 
         if self.selectY.count() > 0:
@@ -125,7 +126,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         attributes = []
         geom = []
-        pathLayer = '{}\{}|layername={}'.format(QSettings().value("dataPath"), QSettings().value("activeDataBase"), 'ground_areas')
+        pathLayer = '{}\{}|layername={}'.format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0], 'ground_areas')
         ground_layer = QgsVectorLayer(pathLayer, 'Grundytor', "ogr")
         
         g = self.selectYGroup.currentText()
@@ -157,13 +158,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             return None
         
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
         cur.execute('SELECT faktor FROM gyf_areas WHERE kvalitet = ?', [q])
         f = cur.fetchone()[0]
 
         data = []
-        crs = str(QSettings().value('CRS'))
+        crs = self.proj.readEntry("QGYF", "CRS")[0]
         for i, obj in enumerate(attributes):
             if type(obj[-1]) is str:
                  obj[-1] = float(obj[-1])      
@@ -187,7 +188,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         con.close()
 
         self.showAreas()
-        ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
+        ground_layer = self.proj.mapLayersByName('Grundytor')
         if ground_layer:
             ground_layer[0].triggerRepaint()
 
@@ -197,7 +198,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             selected_rows = list(set([i.row() for i in items]))
             ids = [[self.areasTable.item(i,5).text()] for i in selected_rows]
 
-            con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+            con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
             cur = con.cursor()
 
             for i in ids:
@@ -209,7 +210,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             con.commit()
             con.close()
             self.showAreas()
-            ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
+            ground_layer = self.proj.mapLayersByName('Grundytor')
             if ground_layer:
                 ground_layer[0].triggerRepaint()
 
@@ -228,7 +229,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def showAreas(self):
         self.areasTable.setRowCount(0)
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
 
         cur.execute('SELECT * FROM ground_areas')
@@ -250,7 +251,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if self.row_selection_lock is False:
             selected_items = self.areasTable.selectedItems()
 
-            ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
+            ground_layer = self.proj.mapLayersByName('Grundytor')
             if ground_layer:
                 self.feature_selection_lock = True
                 timer = Timer()
@@ -282,7 +283,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     self.areasTable.selectRow(row)
 
     def highlightRowsAreas(self):
-        ground_layer = QgsProject.instance().mapLayersByName('Grundytor')
+        ground_layer = self.proj.mapLayersByName('Grundytor')
         if ground_layer:
             selected = ground_layer[0].getSelectedFeatures()
 
@@ -303,7 +304,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         #group_list.setStyleSheet("QListView::item {height:90px;}")
         #q_list.setStyleSheet("QListView::item {height:90px;}")
         group_list.clear()
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
 
         text_area.clear()
@@ -321,7 +322,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def getQ(self, table, group_list, q_list, text_area):
         q_list.clear() # 'gyf_quality', self.selectQGroup, self.selectQ, self.textQ
         text_area.clear()
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
 
         i = str(group_list.currentIndex())
@@ -338,7 +339,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             return None
 
         self.textQ.clear()
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
 
         if self.selectQ.count() > 0:
@@ -380,12 +381,12 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 'linje': 'Linjeobjekt'
             }.get(x, 'Ytobjekt')
 
-        l = QgsProject.instance().mapLayersByName(lyr(comboBox.currentText()))
+        l = self.proj.mapLayersByName(lyr(comboBox.currentText()))
         if l:
             iface.setActiveLayer(l[0])
 
     def checkGID(self, layer):
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
         features = layer.getFeatures()
         for f in features:
@@ -424,7 +425,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     QgsWkbTypes.LineString: 'linje'}.get(x, 'yta')
         geom = set_geom(layer.wkbType())
 
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
 
         if self.selectQ.currentText() != '':
@@ -454,7 +455,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.showClass()
 
     def updateClassArea(self, gid, yta):
-        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
         cur.execute('SELECT kvalitet, faktor FROM classification WHERE gid = (?);', [gid])
         factor = [[j[0], j[1]] for j in cur.fetchall()]
@@ -472,7 +473,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             selected_rows = list(set([i.row() for i in items]))
             ids = [[self.classtable.item(i,3).text(), self.classtable.item(i,7).text()] for i in selected_rows]
 
-            con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+            con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
             cur = con.cursor()
 
             for i in ids:
@@ -485,10 +486,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def showClass(self):
         self.classtable.setRowCount(0)
-        root = QgsProject.instance().layerTreeRoot()
+        root = self.proj.layerTreeRoot()
         content = [l.name() for l in root.children()]
         if 'Klassificering' in content:
-            con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+            con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
             cur = con.cursor()
 
             cur.execute('SELECT * FROM classification')
@@ -532,9 +533,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if self.row_selection_lock is False:
             selected_items = self.classtable.selectedItems()
 
-            point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')
-            line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')
-            polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')
+            point_layer = self.proj.mapLayersByName('Punktobjekt')
+            line_layer = self.proj.mapLayersByName('Linjeobjekt')
+            polygon_layer = self.proj.mapLayersByName('Ytobjekt')
             layers = point_layer + line_layer + polygon_layer
 
             if layers:
@@ -579,9 +580,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def highlightRows(self):
 
-        point_layer = QgsProject.instance().mapLayersByName('Punktobjekt')
-        line_layer = QgsProject.instance().mapLayersByName('Linjeobjekt')
-        polygon_layer = QgsProject.instance().mapLayersByName('Ytobjekt')
+        point_layer = self.proj.mapLayersByName('Punktobjekt')
+        line_layer = self.proj.mapLayersByName('Linjeobjekt')
+        polygon_layer = self.proj.mapLayersByName('Ytobjekt')
         layers = point_layer + line_layer + polygon_layer
 
         if layers:
@@ -641,7 +642,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.window.cancelButton.clicked.connect(cancel)
 
     def createArea(self):
-        l = QgsProject.instance().mapLayersByName('Beräkningsområde')
+        l = self.proj.mapLayersByName('Beräkningsområde')
         if l:
             l = l[0]
             iface.setActiveLayer(l)
@@ -661,7 +662,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 a.trigger()
                 break
 
-        l = QgsProject.instance().mapLayersByName('Beräkningsområde')
+        l = self.proj.mapLayersByName('Beräkningsområde')
         if l:
             l = l[0]
             iface.setActiveLayer(l)
@@ -687,7 +688,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 		  'polygon_class': 'Ytkvalitet'
 		}
         for v in views:
-            view = QgsProject.instance().mapLayersByName(view_names[v])
+            view = self.proj.mapLayersByName(view_names[v])
             if view:
                 view = view[0]
                 unchecked_list = [c.text() for c in checkbox_list if not c.isChecked()]
@@ -712,7 +713,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def disableGroup(self):
         if self.tabWidget.currentIndex() == 2:
-            pathLayer = '{}\{}|layername={}'.format(QSettings().value('dataPath'), QSettings().value('activeDataBase'), 'classification')
+            pathLayer = '{}\{}|layername={}'.format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0], 'classification')
             table = QgsVectorLayer(pathLayer, 'classification', "ogr")
             features = table.getFeatures()
             current_groups = []

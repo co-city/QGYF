@@ -6,7 +6,6 @@ Created on: 2019-04-09 10:20:53
 """
 
 from PyQt5.QtXml import QDomDocument
-from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QMessageBox
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayout, QgsReadWriteContext, QgsLayoutItemPicture, QgsLayoutTable, QgsLayoutMultiFrame, QgsLayoutFrame
 from qgis.core import QgsLayoutItemLabel, QgsLayoutItemMap, QgsLayoutItemLegend, QgsLayoutExporter, QgsLayerTree, QgsDataSourceUri, QgsMapLayer
@@ -37,8 +36,9 @@ class ExportCreator:
         template_file.close()
 
         document = QDomDocument()
+        proj = QgsProject.instance()
         document.setContent(template_content)
-        composition = QgsLayout(QgsProject.instance())
+        composition = QgsLayout(proj)
         composition.loadFromTemplate(document, QgsReadWriteContext())
 
         # Title
@@ -69,7 +69,7 @@ class ExportCreator:
 
         # Research Area
         area_id = area_id.id()
-        research_area_lyr = QgsProject.instance().mapLayersByName('Beräkningsområde')[0]
+        research_area_lyr = proj.mapLayersByName('Beräkningsområde')[0]
         query = "id = " + str(area_id)
         research_area_lyr.setSubsetString(query)
         for feature in research_area_lyr.getFeatures():
@@ -103,16 +103,17 @@ class ExportCreator:
         legend.setAutoUpdateModel(False)
 
         # Table Grundytor & Kvaliteter
-        root = QgsProject.instance().layerTreeRoot()
+        root = proj.layerTreeRoot()
         content = [l.name() for l in root.children()]
-        db_path = '{}\{}'.format(QSettings().value('dataPath'), QSettings().value('activeDataBase'))
+        
+        db_path = '{}\{}'.format(proj.readEntry("QGYF", "dataPath")[0], proj.readEntry("QGYF", 'activeDataBase')[0])
         uri = QgsDataSourceUri()
         uri.setDatabase(db_path)
         #Table 2 - ground areas 
         uri.setDataSource('', 'ground_areas', None)
         table2 = QgsVectorLayer(uri.uri(), 'ground_areas', 'spatialite')
         if 'ground_areas' not in content:
-            QgsProject.instance().addMapLayer(table2, False)
+            proj.addMapLayer(table2, False)
         tableLayout2 = sip.cast(composition.itemById("table2"), QgsLayoutFrame)
         tableLayout2.refreshItemPosition()
         tableLayout2 = tableLayout2.multiFrame()
@@ -128,7 +129,7 @@ class ExportCreator:
         uri.setDataSource('', 'classification', None)
         table1 = QgsVectorLayer(uri.uri(), 'classification', 'spatialite')
         if 'classification' not in content:
-            QgsProject.instance().addMapLayer(table1, False)
+            proj.addMapLayer(table1, False)
 
         tableLayout = sip.cast(composition.itemById("table"), QgsLayoutFrame)
         #position = tableLayout.positionAtReferencePoint(tableLayout.ReferencePoint())
@@ -158,7 +159,7 @@ class ExportCreator:
         # Diagram
         chart2 = sip.cast(composition.itemById("chart2"), QgsLayoutItemPicture)
         if float(gyf) > 0.0:
-            chart2.setPicturePath(QSettings().value('dataPath') + '\PieChart2.png')
+            chart2.setPicturePath(proj.readEntry("QGYF", "dataPath")[0] + '\PieChart2.png')
             chart2.refreshPicture()
 
         # Metadata
@@ -175,5 +176,5 @@ class ExportCreator:
 
         # Reset map view
         research_area_lyr.setSubsetString('')
-        QgsProject.instance().removeMapLayer(table1)
-        QgsProject.instance().removeMapLayer(table2)
+        proj.removeMapLayer(table1)
+        proj.removeMapLayer(table2)

@@ -11,9 +11,9 @@ from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QStandardItemModel
 from PyQt5.QtGui import QStandardItem
-from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QMessageBox
 from qgis.utils import spatialite_connect
+from qgis.core import QgsProject
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'layer_selector.ui'))
@@ -73,6 +73,7 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
             self.addedMappings.remove(data)
 
     def addToImport(self, items_list, n):
+        proj = QgsProject.instance()
         layers_list = self.layers
 
         classification_indexes = items_list.selectedIndexes()
@@ -92,7 +93,7 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
             else:
                 item = layer
                 digit_check = 1
-            if digit_check or (self.classifications.selectedIndexes() and QSettings().value('model') == r"GYF AP, C/O City"):
+            if digit_check or (self.classifications.selectedIndexes() and proj.readEntry("QGYF", "model")[0] == r"GYF AP, C/O City"):
 
                 if self.classifications_2.selectedIndexes():
                     check = layer + " > " + self.tabWidget.tabText(0)
@@ -107,10 +108,11 @@ class LayerSelectorDialog(QtWidgets.QDialog, FORM_CLASS):
                         self.importsModel.appendRow(QStandardItem(item))
                 
 
-    def loadClassifications(self, path):
+    def loadClassifications(self):
+        proj = QgsProject.instance()
         classifications_list = self.classifications
         areas_list = self.classifications_2
-        con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(proj.readEntry("QGYF", "dataPath")[0], proj.readEntry("QGYF", 'activeDataBase')[0]))
 
         cur = con.cursor()
         cur.execute("""

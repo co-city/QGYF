@@ -1,22 +1,21 @@
 from qgis.core import QgsProject, QgsVectorLayer, QgsApplication, QgsWkbTypes, NULL
 from qgis.utils import iface
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtCore import QSettings
 from ..ui.welcome import WelcomeDialog
 import numpy as np
 
 class GyfCalculator:
-  def __init__(self, path):
-    self.path = path
+  def __init__(self):
+    self.proj = QgsProject.instance()
 
   def getFeatures(self):
     """
     Get features from given layers.
     @return {list} features
     """
-    polygon_layer = QgsProject.instance().mapLayersByName("Ytkvalitet")[0]
-    line_layer = QgsProject.instance().mapLayersByName("Linjekvalitet")[0]
-    point_layer = QgsProject.instance().mapLayersByName("Punktkvalitet")[0]
+    polygon_layer = self.proj.mapLayersByName("Ytkvalitet")[0]
+    line_layer = self.proj.mapLayersByName("Linjekvalitet")[0]
+    point_layer = self.proj.mapLayersByName("Punktkvalitet")[0]
     # Clear visualisation filters if they were set
     polygon_layer.setSubsetString('')
     line_layer.setSubsetString('')
@@ -67,11 +66,11 @@ class GyfCalculator:
 
   def calculateGroundAreaIntersection(self, intersector, ground_area_lines):
     "Calculate the intersection of ground areas and the research area"
-    ground_layer = QgsProject.instance().mapLayersByName("Grundytor")
+    ground_layer = self.proj.mapLayersByName("Grundytor")
     if ground_layer:
       ground_layer = ground_layer[0]
     else:
-      pathLayer = '{}\{}|layername={}'.format(QSettings().value("dataPath"), QSettings().value("activeDataBase"), 'ground_areas')
+      pathLayer = '{}\{}|layername={}'.format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", "activeDataBase")[0], 'ground_areas')
       ground_layer = QgsVectorLayer(pathLayer, 'Grundytor', "ogr")
     areas = list(ground_layer.getFeatures())
     area_value = 0
@@ -107,7 +106,7 @@ class GyfCalculator:
     b_value_features = []
     b_value = []
 
-    research_area_layer = QgsProject.instance().mapLayersByName("Beräkningsområde")
+    research_area_layer = self.proj.mapLayersByName("Beräkningsområde")
     if research_area_layer:
       research_area_layer = research_area_layer[0]
       if research_area_layer.isEditable():
@@ -152,7 +151,7 @@ class GyfCalculator:
   def balancering(self, list1, list2):
     values = list(set(list1 + list2))
     values = [v for v in values if v != NULL]
-    
+
     B = len([i for i in values if 'B' in i])
     S = len([i for i in values if 'S' in i])
     K = len([i for i in values if 'K' in i])

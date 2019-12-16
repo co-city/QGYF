@@ -8,14 +8,13 @@ QGYF settings dialog
 import os, fnmatch
 from PyQt5 import uic
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from qgis.utils import iface, spatialite_connect
 from ..lib.db import Db
 from ..lib.gyf_tables import QualityTable
 from ..lib.switch_gyf import SwitchGYFs
 from qgis.gui import QgsProjectionSelectionDialog
-from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsProject, QgsCoordinateReferenceSystem
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'settings.ui'))
@@ -24,12 +23,13 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, dockwidget, model, plugin_dir, layerSelectorDialog, parent=None, parentWidget=None):
         super(SettingsDialog, self).__init__(parent)
         self.setupUi(self)
+        self.proj = QgsProject.instance()
         modelGyf = model
         self.switch = SwitchGYFs(dockwidget, plugin_dir)
         self.populate()
         self.populateGYF()
-        self.dataPath.setText(QSettings().value('dataPath'))
-        crs = QgsCoordinateReferenceSystem(QSettings().value('CRS'))
+        self.dataPath.setText(self.proj.readEntry("QGYF", "dataPath")[0])
+        crs = QgsCoordinateReferenceSystem(int(self.proj.readEntry("QGYF", "CRS")[0]))
         self.crs.setText(crs.description())
         self.selectPathButton.clicked.connect(self.openFileDialog)
         self.clearDatabaseButton.clicked.connect(self.clearDataBase)
@@ -39,7 +39,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         updateDockwidget = lambda : self.updateDockwidget(dockwidget, layerSelectorDialog)
         self.db = Db()
         self.quality = QualityTable()
-        if self.db.checkClass(QSettings().value('dataPath')):
+        if self.db.checkClass():
             self.currentGyf.setEnabled(True)
             self.currentGyf.currentIndexChanged.connect(self.setGYF)
             if dockwidget.isVisible():
@@ -53,7 +53,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         index = 0
         for m in models:
             self.currentGyf.addItem(m)
-            if m == QSettings().value('model'):
+            if m == self.proj.readEntry("QGYF", "model")[0]:
                 activeIndex = index
             index += 1
 
@@ -63,7 +63,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
     def setGYF(self, index):
         self.currentGyf.setCurrentIndex(index)
         if self.currentGyf.currentText():
-            QSettings().setValue('model', self.currentGyf.currentText())
+            self.proj.writeEntry("QGYF", "model",self.currentGyf.currentText())
             global modelGyf
             modelGyf = self.switch.defineGYF()
 
@@ -76,7 +76,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         
 
     def clearDataBase(self):
-        self.db.clear("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
+        self.db.clear()
         self.msg = QMessageBox()
         self.msg.setIcon(QMessageBox.Information)
         self.msg.setWindowTitle("Information")
@@ -87,26 +87,26 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
     def openFileDialog(self):
         path = QFileDialog.getExistingDirectory(self, 'Öppna fil', '', QFileDialog.ShowDirsOnly)
         if path:
-            QSettings().setValue('dataPath', path)
-            self.dataPath.setText(QSettings().value('dataPath'))
+            self.proj.writeEntry("QGYF", "dataPath", path)
+            self.dataPath.setText(self.proj.readEntry("QGYF", "dataPath")[0])
             self.activeDatabase.clear()
             self.populate()
 
     def setDatabase(self, index):
         self.activeDatabase.setCurrentIndex(index)
         if self.activeDatabase.currentText():
-            QSettings().setValue('activeDataBase', self.activeDatabase.currentText())
-            crs_id = self.getCRS(QSettings().value('activeDataBase'))
-            QSettings().setValue('CRS', crs_id)
-            crs = QgsCoordinateReferenceSystem(crs_id)
+            self.proj.writeEntry("QGYF", "activeDataBase", self.activeDatabase.currentText())
+            crs_id = self.getCRS(self.proj.readEntry("QGYF", "activeDataBase")[0])
+            self.proj.writeEntry("QGYF", "CRS", crs_id)
+            crs = QgsCoordinateReferenceSystem(int(crs_id))
             self.crs.setText(crs.description())
         else:
-            QSettings().setValue('activeDataBase', 'qgyf.sqlite')
+            self.proj.writeEntry("QGYF", "activeDataBase", 'qgyf.sqlite')
 
     def populate(self):
-        if not os.path.exists(QSettings().value('dataPath')):
-            QSettings().setValue('dataPath', os.getenv('APPDATA') + '\QGYF')
-        listOfFiles = os.listdir(QSettings().value('dataPath'))
+        if not os.path.exists(self.proj.readEntry("QGYF", "dataPath")[0]):
+            self.proj.writeEntry("QGYF", "dataPath", os.getenv('APPDATA') + '\QGYF')
+        listOfFiles = os.listdir(self.proj.readEntry("QGYF", "dataPath")[0])
         pattern = "*.sqlite"
         self.activeDatabase.clear()
         activeIndex = 0
@@ -114,7 +114,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         for entry in listOfFiles:
             if fnmatch.fnmatch(entry, pattern):
                 self.activeDatabase.addItem(entry)
-                if entry == QSettings().value('activeDataBase'):
+                if entry == self.proj.readEntry("QGYF", "activeDataBase")[0]:
                     activeIndex = index
                 index += 1
 
@@ -126,21 +126,21 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         crs_id = projSelector.crs().authid()
         if crs_id:
             crs_id = ''.join(c for c in crs_id if c.isdigit())
-            QSettings().setValue('CRS', crs_id)
-            print(QSettings().value('CRS'))
+            self.proj.writeEntry("QGYF", "CRS", crs_id)
+            print(self.proj.readEntry("QGYF", "CRS")[0])
         self.crs.setText(projSelector.crs().description())
 
     def setCRS(self):
-        if os.path.exists(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase")):
-            if not self.db.checkObjects(QSettings().value('dataPath')):
+        if os.path.exists("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", "activeDataBase")[0])):
+            if not self.db.checkObjects():
                 QMessageBox.warning(self, 'Koordinatsystem kan inte ändras', '''Den aktiva databasen ''' \
                         '''innehåller data. Töm databasen för att sätta ett nytt koordinatsystem.''')
             else:
                 try:
                     self.defineCRS()
-                    os.remove(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase"))
-                    self.db.create(QSettings().value('dataPath'))               
-                    self.quality.init(path, modelGyf)
+                    os.remove("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", "activeDataBase")[0]))
+                    self.db.create()               
+                    self.quality.init(modelGyf)
                 except:
                     QMessageBox.information(self, 'Koordinatsystem kan inte ändras', '''Det går inte att ändra på koordinatsystem ''' \
                         '''för att databasen används i nuvarande QGIS projekt. Ta bort alla lager som tillhör till QGYF databas ''' \
@@ -149,9 +149,8 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.defineCRS()
 
     def getCRS(self, db):
-        print(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase"))
-        if os.path.exists(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase")):
-            con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), db))
+        if os.path.exists("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], db)):
+            con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], db))
             cur = con.cursor()
 
             cur.execute('SELECT srid FROM geometry_columns;')

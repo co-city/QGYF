@@ -7,8 +7,8 @@ Created on: 2019-11-09 22:05:53
 """
 import os
 import os.path
-from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QMessageBox
+from qgis.core import QgsProject
 
 from ..ui.layer_selector import LayerSelectorDialog
 from ..ui.mplwidget import MplWidget
@@ -20,6 +20,7 @@ class SwitchGYFs:
     def __init__(self, dockwidget, plugin_dir):
         self.dockwidget = dockwidget
         self.plugin_dir = plugin_dir
+        self.proj = QgsProject.instance()
         
 
     def defineGYF(self):
@@ -56,13 +57,14 @@ class SwitchGYFs:
             ['Delfaktorer','Tilläggsfaktorer', 'Visualisera', 'Beräkna'],
             ['delfaktor', 'tilläggsfaktor']]
 
-        if QSettings().value('model') == r"GYF AP, C/O City":
+        if self.proj.readEntry("QGYF", "model")[0] == r"GYF AP, C/O City":
             gyf_model = dict(zip(gyf_var, gyf_ap))
         else:
             gyf_model = dict(zip(gyf_var, gyf_kvarters))
 
-        if QSettings().value("activeDataBase") and os.path.exists(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase")):
-            QualityTable().init(QSettings().value('dataPath'), gyf_model)
+        db = self.proj.readEntry("QGYF", "activeDataBase")[0]
+        if db and os.path.exists("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], db)):
+            QualityTable().init(gyf_model)
         
         return gyf_model
 

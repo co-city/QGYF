@@ -8,7 +8,7 @@ import os
 import sys
 sys.path.append(r'C:\Program Files\QGIS 3.4\apps\qgis\python')
 from qgis.utils import spatialite_connect
-from PyQt5.QtCore import QSettings
+from qgis.core import QgsProject
 
 class Db:
 
@@ -17,9 +17,8 @@ class Db:
 		Check for existing sqlite database for QGYF estimations, create one if needed.
 		Initialize tables to store geo-objects (point, line, polygon) and calculations.
 		"""
-
-		if QSettings().value('CRS'):
-			crs = str(QSettings().value('CRS'))
+		if QgsProject.instance().readEntry("QGYF", "CRS")[0]:
+			crs = QgsProject.instance().readEntry("QGYF", "CRS")[0]
 		else:
 			crs = '3006' # SWEREF99 TM is default
 
@@ -145,17 +144,19 @@ class Db:
 
 		cur.execute("""SELECT InitSpatialMetaData();""")
 
-	def check(self, path):
+	def check(self):
 		"""
 		Check if the database is initialized
 		"""
 		# Check path to database.
+		path = QgsProject.instance().readEntry("QGYF", "dataPath")[0]
+		db = QgsProject.instance().readEntry("QGYF", "activeDataBase")[0]
+
 		if not os.path.isdir(path):
 			os.mkdir(path)
 
-		if QSettings().value("activeDataBase") and os.path.exists(path + r'\\' + QSettings().value("activeDataBase")):
-
-			con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+		if db and os.path.exists("{}\{}".format(path, db)):
+			con = spatialite_connect("{}\{}".format(path, db))
 			cur = con.cursor()
 			cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
 
@@ -168,14 +169,16 @@ class Db:
 		else:
 			return None
 
-	def checkClass(self, path):
+	def checkClass(self):
 		"""
 		Check if the classification table is filled
 		"""
-		if not os.path.exists("{}\{}".format(path, QSettings().value('activeDataBase'))):
+		db = QgsProject.instance().readEntry("QGYF", "activeDataBase")[0]
+		path = QgsProject.instance().readEntry("QGYF", "dataPath")[0]
+		if not os.path.exists("{}\{}".format(path, db)):
 			return True
 		else:
-			con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+			con = spatialite_connect("{}\{}".format(path, db))
 			cur = con.cursor()
 			cur.execute("SELECT count(*) FROM classification;")
 
@@ -188,14 +191,16 @@ class Db:
 			else:
 				return False
 
-	def checkObjects(self, path):
+	def checkObjects(self):
 		"""
 		Check if the db contains data
 		"""
-		if not os.path.exists("{}\{}".format(path, QSettings().value('activeDataBase'))):
+		db = QgsProject.instance().readEntry("QGYF", "activeDataBase")[0]
+		path = QgsProject.instance().readEntry("QGYF", "dataPath")[0]
+		if not os.path.exists("{}\{}".format(path, db)):
 			return True
 		else:
-			con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+			con = spatialite_connect("{}\{}".format(path, db))
 			cur = con.cursor()
 			tables = ['ground_areas', 'polygon_object', 'line_object', 'point_object']
 			count = 0
@@ -213,11 +218,13 @@ class Db:
 
 
 
-	def clear(self, path):
+	def clear(self):
 		"""
 		Empty existing tables.
 		"""
-		con = spatialite_connect(path)
+		db = QgsProject.instance().readEntry("QGYF", "activeDataBase")[0]
+		path = QgsProject.instance().readEntry("QGYF", "dataPath")[0]
+		con = spatialite_connect("{}\{}".format(path, db))
 		cur = con.cursor()
 
 		tables = [
@@ -239,16 +246,18 @@ class Db:
 		cur.close()
 		con.close()
 
-	def create(self, path):
+	def create(self):
 		"""
 		Initialize database.
 		"""
 		# Check path to database.
+		path = QgsProject.instance().readEntry("QGYF", "dataPath")[0]
 		if not os.path.isdir(path):
 			os.mkdir(path)
 
 		# Create a database or connect to existing one.
-		con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+		db = QgsProject.instance().readEntry("QGYF", "activeDataBase")[0]
+		con = spatialite_connect("{}\{}".format(path, db))
 		cur = con.cursor()
 
 		cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
