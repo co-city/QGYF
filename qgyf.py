@@ -451,10 +451,13 @@ class QGYF:
 	def openCalculationDialog(self):
 		initialized = self.db.check(QSettings().value('dataPath'))
 		if not initialized:
-			self.load()
+			QMessageBox.information(ExportDialog(), 'Ingen aktiv databas', 'Sätt sina inställningar och skapa en databas först för att börja QGYFs beräkningsprocess.')
+			#self.load()
+			return
 
 		self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 		if not self.pluginIsActive:
+			print(self.pluginIsActive)
 			self.pluginIsActive = True
 			self.initCalculationDialog()
 			self.dockwidget.show()

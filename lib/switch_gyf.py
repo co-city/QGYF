@@ -61,7 +61,8 @@ class SwitchGYFs:
         else:
             gyf_model = dict(zip(gyf_var, gyf_kvarters))
 
-        QualityTable().init(QSettings().value('dataPath'), gyf_model)
+        if QSettings().value("activeDataBase") and os.path.exists(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase")):
+            QualityTable().init(QSettings().value('dataPath'), gyf_model)
         
         return gyf_model
 
@@ -96,11 +97,16 @@ class SwitchGYFs:
         self.dockwidget.approveButton.setText('Lägg till ' + model['Klass_items'][1])
         self.dockwidget.removeButton.setText('Ta bort ' + model['Klass_items'][1])
         # Tab3
+        items = [i.title()+'er' for i in model['Klass_items']]
+        self.dockwidget.label_Areas.setText(items[0])
+        self.dockwidget.showAreasClass.setText(items[0])
+        self.dockwidget.showAreasLabels.setText('Visa upp etiketter med ' + model['Klass_items'][0] + 'er')
+        self.dockwidget.showAreasPopups.setText('Aktivera popups med ' + model['Klass_items'][0] + 's beskrivningar')
+        self.dockwidget.label_Qualities.setText(items[1])
         self.dockwidget.showAll.setText('Visa grupper av ' + model['Klass_items'][0] + 'er')
         self.dockwidget.showGroup.setText('Visa ' + model['Klass_items'][0] + 'er per grupp')
-        items = [i.title()+'er' for i in model['Klass_items']]
-        self.dockwidget.selectMain.addItems(items)
         self.dockwidget.createCheckBoxes(group_list)
+        self.dockwidget.selectGroup.addItems(group_list)
         # Tab4
         #self.dockwidget.plot.canvas.fig.clf()
         self.dockwidget.plot.canvas.ax.cla()

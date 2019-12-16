@@ -153,16 +153,20 @@ class Db:
 		if not os.path.isdir(path):
 			os.mkdir(path)
 
-		con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
-		cur = con.cursor()
-		cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+		if QSettings().value("activeDataBase") and os.path.exists(path + r'\\' + QSettings().value("activeDataBase")):
 
-		result = cur.fetchall()
+			con = spatialite_connect("{}\{}".format(path, QSettings().value('activeDataBase')))
+			cur = con.cursor()
+			cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
 
-		cur.close()
-		con.close()
+			result = cur.fetchall()
 
-		return result
+			cur.close()
+			con.close()
+
+			return result
+		else:
+			return None
 
 	def checkClass(self, path):
 		"""

@@ -84,9 +84,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setupUi(self)
         self.feature_selection_lock = False
         self.row_selection_lock = False
-        self.path = QSettings().value('dataPath')
-        if QSettings().value('CRS'):
-            self.crs = str(QSettings().value('CRS'))
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -100,7 +97,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             return None
 
         self.textY.clear()
-        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         if self.selectY.count() > 0:
@@ -160,12 +157,13 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             return None
         
-        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
         cur.execute('SELECT faktor FROM gyf_areas WHERE kvalitet = ?', [q])
         f = cur.fetchone()[0]
 
         data = []
+        crs = str(QSettings().value('CRS'))
         for i, obj in enumerate(attributes):
             if type(obj[-1]) is str:
                  obj[-1] = float(obj[-1])      
@@ -173,14 +171,14 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         #print(data)
         if layer.wkbType() == QgsWkbTypes.Polygon:
             cur.executemany('''INSERT INTO ga_template VALUES 
-                (NULL,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ''' + self.crs + ''')))''', data)
+                (NULL,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ''' + crs + ''')))''', data)
         elif layer.wkbType() == QgsWkbTypes.LineString:
             cur.executemany('''INSERT INTO ga_template VALUES 
-                (NULL,?,?,?,?,?, CastToMultiPolygon(ST_Buffer(GeomFromText(?, ''' + self.crs + '''), 0.5)))''', data)
+                (NULL,?,?,?,?,?, CastToMultiPolygon(ST_Buffer(GeomFromText(?, ''' + crs + '''), 0.5)))''', data)
         else:
             data = [d + [d[3]] for d in data]
             cur.executemany('''INSERT INTO ga_template VALUES 
-                (NULL,?,?,?,?,?, CastToMultiPolygon(ST_Buffer(GeomFromText(?, ''' + self.crs + '''), POWER(?/3.14159, 0.5))))''', data)
+                (NULL,?,?,?,?,?, CastToMultiPolygon(ST_Buffer(GeomFromText(?, ''' + crs + '''), POWER(?/3.14159, 0.5))))''', data)
 
         GroundAreas().mergeGA(cur)
                 
@@ -199,7 +197,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             selected_rows = list(set([i.row() for i in items]))
             ids = [[self.areasTable.item(i,5).text()] for i in selected_rows]
 
-            con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+            con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
             cur = con.cursor()
 
             for i in ids:
@@ -230,7 +228,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def showAreas(self):
         self.areasTable.setRowCount(0)
-        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         cur.execute('SELECT * FROM ground_areas')
@@ -305,7 +303,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         #group_list.setStyleSheet("QListView::item {height:90px;}")
         #q_list.setStyleSheet("QListView::item {height:90px;}")
         group_list.clear()
-        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         text_area.clear()
@@ -323,7 +321,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def getQ(self, table, group_list, q_list, text_area):
         q_list.clear() # 'gyf_quality', self.selectQGroup, self.selectQ, self.textQ
         text_area.clear()
-        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         i = str(group_list.currentIndex())
@@ -340,7 +338,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             return None
 
         self.textQ.clear()
-        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         if self.selectQ.count() > 0:
@@ -387,7 +385,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             iface.setActiveLayer(l[0])
 
     def checkGID(self, layer):
-        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
         features = layer.getFeatures()
         for f in features:
@@ -426,7 +424,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     QgsWkbTypes.LineString: 'linje'}.get(x, 'yta')
         geom = set_geom(layer.wkbType())
 
-        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
 
         if self.selectQ.currentText() != '':
@@ -456,7 +454,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.showClass()
 
     def updateClassArea(self, gid, yta):
-        con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+        con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
         cur = con.cursor()
         cur.execute('SELECT kvalitet, faktor FROM classification WHERE gid = (?);', [gid])
         factor = [[j[0], j[1]] for j in cur.fetchall()]
@@ -474,7 +472,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             selected_rows = list(set([i.row() for i in items]))
             ids = [[self.classtable.item(i,3).text(), self.classtable.item(i,7).text()] for i in selected_rows]
 
-            con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+            con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
             cur = con.cursor()
 
             for i in ids:
@@ -490,7 +488,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         root = QgsProject.instance().layerTreeRoot()
         content = [l.name() for l in root.children()]
         if 'Klassificering' in content:
-            con = spatialite_connect("{}\{}".format(self.path, QSettings().value('activeDataBase')))
+            con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), QSettings().value('activeDataBase')))
             cur = con.cursor()
 
             cur.execute('SELECT * FROM classification')
@@ -714,7 +712,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def disableGroup(self):
         if self.tabWidget.currentIndex() == 2:
-            pathLayer = '{}\{}|layername={}'.format(self.path, QSettings().value('activeDataBase'), 'classification')
+            pathLayer = '{}\{}|layername={}'.format(QSettings().value('dataPath'), QSettings().value('activeDataBase'), 'classification')
             table = QgsVectorLayer(pathLayer, 'classification', "ogr")
             features = table.getFeatures()
             current_groups = []

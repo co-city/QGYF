@@ -766,7 +766,7 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>60</y>
+          <y>225</y>
           <width>281</width>
           <height>17</height>
          </rect>
@@ -785,7 +785,7 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>300</y>
+          <y>500</y>
           <width>191</width>
           <height>17</height>
          </rect>
@@ -804,32 +804,131 @@
         <property name="geometry">
          <rect>
           <x>30</x>
-          <y>330</y>
+          <y>530</y>
           <width>251</width>
           <height>22</height>
          </rect>
         </property>
        </widget>
-       <widget class="QComboBox" name="selectMain">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>421</width>
-          <height>22</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>30</x>
-          <y>85</y>
+          <y>250</y>
           <width>381</width>
-          <height>201</height>
+          <height>241</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="checkBoxLayout"/>
+       </widget>
+       <widget class="QRadioButton" name="showAreasOneStyle">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>40</y>
+          <width>281</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>En stil</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_Areas">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>5</y>
+          <width>167</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Grundytor&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="showAreasGroups">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>65</y>
+          <width>281</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Grönska / Vatten</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="showAreasClass">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>90</y>
+          <width>281</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Yteklass</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="showAreasLabels">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>128</y>
+          <width>351</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Visa upp etiketter med delfaktorer</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="showAreasPopups">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>150</y>
+          <width>351</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Aktivera popups med delfaktors beskrivningar</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_Qualities">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>190</y>
+          <width>167</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Kvaliteter&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
        </widget>
       </widget>
       <widget class="QWidget" name="estimate">
@@ -839,7 +938,7 @@
        <attribute name="toolTip">
         <string>Här beräknas GYF:en utifrån din klassificering</string>
        </attribute>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -961,7 +1060,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>11</x>

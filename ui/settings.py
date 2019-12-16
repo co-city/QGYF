@@ -125,7 +125,9 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         projSelector.exec()
         crs_id = projSelector.crs().authid()
         if crs_id:
+            crs_id = ''.join(c for c in crs_id if c.isdigit())
             QSettings().setValue('CRS', crs_id)
+            print(QSettings().value('CRS'))
         self.crs.setText(projSelector.crs().description())
 
     def setCRS(self):
@@ -147,6 +149,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.defineCRS()
 
     def getCRS(self, db):
+        print(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase"))
         if os.path.exists(QSettings().value("dataPath") + r'\\' + QSettings().value("activeDataBase")):
             con = spatialite_connect("{}\{}".format(QSettings().value('dataPath'), db))
             cur = con.cursor()
