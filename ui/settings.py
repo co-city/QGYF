@@ -29,10 +29,11 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.populate()
         self.populateGYF()
         self.dataPath.setText(self.proj.readEntry("QGYF", "dataPath")[0])
-        crs = QgsCoordinateReferenceSystem(int(self.proj.readEntry("QGYF", "CRS")[0]))
-        self.crs.setText(crs.description())
+        if self.proj.readEntry("QGYF", "CRS")[0]:
+            crs = QgsCoordinateReferenceSystem(int(self.proj.readEntry("QGYF", "CRS")[0]))
+            self.crs.setText(crs.description())
         self.selectPathButton.clicked.connect(self.openFileDialog)
-        self.clearDatabaseButton.clicked.connect(self.clearDataBase)
+        self.clearDatabaseButton.clicked.connect(lambda : self.clearDataBase(dockwidget))
         self.activeDatabase.currentIndexChanged.connect(self.setDatabase)
         self.parent = parentWidget
         self.selectCRSButton.clicked.connect(self.setCRS)
@@ -66,16 +67,13 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.proj.writeEntry("QGYF", "model",self.currentGyf.currentText())
             global modelGyf
             modelGyf = self.switch.defineGYF()
-
-    def get_value(self):
-         return modelGyf
         
     def updateDockwidget(self, dockwidget, layerSelectorDialog):
-        self.switch.adjustDockwidget(modelGyf, layerSelectorDialog)
+        self.checkbox_list = self.switch.adjustDockwidget(modelGyf, layerSelectorDialog)
         dockwidget.showClass()
         
 
-    def clearDataBase(self):
+    def clearDataBase(self, dockwidget):
         self.db.clear()
         self.msg = QMessageBox()
         self.msg.setIcon(QMessageBox.Information)
@@ -83,6 +81,9 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.msg.setText("Databasen rensades")
         self.msg.show()
         iface.mapCanvas().refreshAllLayers()
+        if dockwidget.isVisible():
+            dockwidget.showClass()
+            dockwidget.showAreas()
         
     def openFileDialog(self):
         path = QFileDialog.getExistingDirectory(self, 'Öppna fil', '', QFileDialog.ShowDirsOnly)
@@ -98,7 +99,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.proj.writeEntry("QGYF", "activeDataBase", self.activeDatabase.currentText())
             crs_id = self.getCRS(self.proj.readEntry("QGYF", "activeDataBase")[0])
             self.proj.writeEntry("QGYF", "CRS", crs_id)
-            crs = QgsCoordinateReferenceSystem(int(crs_id))
+            crs = QgsCoordinateReferenceSystem(int(float(crs_id)))
             self.crs.setText(crs.description())
         else:
             self.proj.writeEntry("QGYF", "activeDataBase", 'qgyf.sqlite')

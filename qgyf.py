@@ -97,6 +97,8 @@ class QGYF:
 		self.switch = SwitchGYFs(self.dockwidget, self.plugin_dir)
 		self.gyfModel = self.switch.defineGYF()
 		self.layerSelectorDialog = LayerSelectorDialog(self.gyfModel)
+		self.fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.dockwidget)
+		
 		self.showWelcome()
 
 		#self.proj.projectSaved.connect(self.projectSettings)
@@ -271,17 +273,16 @@ class QGYF:
 			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
 
 	def loadFile(self):
-		fileLoader = FileLoader(self.iface.mainWindow(), self.layerSelectorDialog, self.dockwidget)
 		initialized = self.db.check()
 		if not initialized:
 			self.load()
 
 		self.layerSelectorDialog.loadClassifications()
-		fileLoader.loadFile()
+		self.fileLoader.loadFile()
 		root = self.proj.layerTreeRoot()
 		content = [l.name() for l in root.children()]
 		if 'Kvaliteter' in content:
-			self.dockwidget.disableGroup()
+			self.dockwidget.disableGroup(self.checkbox_list)
 		if self.dockwidget.isVisible():
 			self.dockwidget.showClass()
 			self.dockwidget.showAreas()
@@ -324,7 +325,8 @@ class QGYF:
 			if layer == "research_area":
 				self.style.styleResearchArea(vlayer)
 				self.proj.addMapLayer(vlayer)
-				#vlayer.geometryChanged.connect(lambda fid, vlayer=vlayer: self.dockwidget.areaAdded(fid, vlayer))
+				vlayer.geometryChanged.connect(lambda fid, geom, vlayer=vlayer: self.dockwidget.areaAdded(fid, vlayer))
+				vlayer.featureAdded.connect(lambda fid, vlayer=vlayer: self.dockwidget.areaAdded(fid, vlayer))
 			elif layer == "ground_areas":
 				self.style.oneStyleGroundAreas(vlayer)
 				self.proj.addMapLayer(vlayer)
@@ -464,7 +466,7 @@ class QGYF:
 		self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
 		# Show GYF version
-		self.switch.adjustDockwidget(self.gyfModel, self.layerSelectorDialog)
+		self.checkbox_list = self.switch.adjustDockwidget(self.gyfModel, self.layerSelectorDialog)
 
 		# Classification
 		self.dockwidget.switchLayerGroups()
@@ -505,7 +507,7 @@ class QGYF:
 		#self.dockwidget.createCheckBoxes(group_list)
 		self.dockwidget.tabWidget.currentChanged.connect(self.createDataView)
 		#self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.disableGroup)
-		#self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
+		self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.switchLayerGroups)
 		#self.dockwidget.groupList()
 
 		# Estimation of GYF
@@ -545,7 +547,7 @@ class QGYF:
 		new_path = path[0]
 		database = self.proj.readEntry("QGYF", 'activeDataBase')[0]
 		path = "{}/{}".format(self.proj.readEntry("QGYF", 'dataPath')[0], database)
-		if path and new_path:
+		if path and new_path and os.path.exists(path):
 			copyfile(path, new_path)
 
 

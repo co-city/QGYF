@@ -46,11 +46,7 @@ class GroundAreas:
 
         if count != QSettings().value('objectCount') or total_area != QSettings().value('groundArea') or points_x != QSettings().value('pointsCoord'):
 
-            cur.execute("""SELECT gid FROM polygon_object WHERE ST_IsValid(geom) != 1""")
-            failed = cur.fetchall()
-            if failed:
-                QMessageBox.warning(ExportDialog(), 'Fel geometri', 'Din polygon data verkar innehålla objekt med fel geometri (dvs. a bow-tie polygon). Det ska försöka behandlas automatiskt.\nOm det inte går ska lager med grundytor inte byggas upp. I detta fall måste problemet åtgärdas manuellt.\n\nGlobala ID för felobjekt:\n' + str(failed))
-                cur.execute("""UPDATE polygon_object SET geom = ST_MakeValid(geom) WHERE ST_IsValid(geom) != 1""")
+            self.checkInvalidGeom(cur, 'polygon_object', 'gid', True)
 
             cur.execute("DELETE FROM ground_areas")
             # Merge all objects together
@@ -83,13 +79,32 @@ class GroundAreas:
         proj = QgsProject.instance()
         crs = proj.readEntry("QGYF", "CRS")[0]
         cur.execute("DELETE FROM ground_areas")
+        print('I managed to delete null')
+        
+        self.checkInvalidGeom(cur, 'ga_template', 'id', True)
+        
         cur.execute('''INSERT INTO ground_areas (id, ytgrupp, ytklass, faktor, yta, poang, geom)
             SELECT  NULL, ytgrupp, ytklass, faktor, SUM(yta), SUM(poang), 
             CastToMultiPolygon(ST_Union(geom)) AS geom FROM ga_template 
             GROUP BY ytklass''')
+        print('I managed to insert')
         cur.execute('''SELECT RecoverGeometryColumn('ground_areas', 'geom',  ''' + crs + ''', 'MULTIPOLYGON', 'XY')''')
+        print('I managed to recover geometry')
         cur.execute("DELETE FROM ga_template")
+        print('I managed to delete')
         cur.execute('''INSERT INTO ga_template SELECT * FROM ground_areas''')
+        print('I managed to insert')
+
+
+    def checkInvalidGeom(self, cur, table, idd, showMessage):
+        cur.execute("SELECT " + idd + " FROM " + table + " WHERE ST_IsValid(geom) != 1")
+        failed = cur.fetchall()
+        print(failed)
+        if failed:
+            if showMessage:
+                QMessageBox.warning(ExportDialog(), 'Fel geometri', 
+                'Din polygon data verkar innehålla objekt med fel geometri (dvs. a bow-tie polygon). Det ska försöka behandlas automatiskt.\nOm det inte går ska lager med grundytor inte byggas upp. I detta fall måste problemet åtgärdas manuellt.\n\nGlobala ID för felobjekt:\n' + str(failed))
+            cur.execute("UPDATE " + table + " SET geom = ST_MakeValid(geom) WHERE ST_IsValid(geom) != 1")
 
 
     def showGA(self):

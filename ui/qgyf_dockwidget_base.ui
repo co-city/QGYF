@@ -765,8 +765,8 @@
        <widget class="QRadioButton" name="showAll">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>225</y>
+          <x>30</x>
+          <y>255</y>
           <width>281</width>
           <height>17</height>
          </rect>
@@ -784,8 +784,8 @@
        <widget class="QRadioButton" name="showGroup">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>500</y>
+          <x>30</x>
+          <y>530</y>
           <width>191</width>
           <height>17</height>
          </rect>
@@ -804,7 +804,7 @@
         <property name="geometry">
          <rect>
           <x>30</x>
-          <y>530</y>
+          <y>560</y>
           <width>251</width>
           <height>22</height>
          </rect>
@@ -813,19 +813,23 @@
        <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
-          <x>30</x>
-          <y>250</y>
-          <width>381</width>
+          <x>20</x>
+          <y>280</y>
+          <width>391</width>
           <height>241</height>
          </rect>
         </property>
-        <layout class="QVBoxLayout" name="checkBoxLayout"/>
+        <layout class="QVBoxLayout" name="checkBoxLayout" stretch="">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+        </layout>
        </widget>
        <widget class="QRadioButton" name="showAreasOneStyle">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>40</y>
+          <x>30</x>
+          <y>70</y>
           <width>281</width>
           <height>21</height>
          </rect>
@@ -837,27 +841,14 @@
          </font>
         </property>
         <property name="text">
-         <string>En stil</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_Areas">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>5</y>
-          <width>167</width>
-          <height>30</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Grundytor&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Gemensam stil</string>
         </property>
        </widget>
        <widget class="QRadioButton" name="showAreasGroups">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>65</y>
+          <x>30</x>
+          <y>95</y>
           <width>281</width>
           <height>21</height>
          </rect>
@@ -875,8 +866,8 @@
        <widget class="QRadioButton" name="showAreasClass">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>90</y>
+          <x>30</x>
+          <y>120</y>
           <width>281</width>
           <height>21</height>
          </rect>
@@ -888,14 +879,14 @@
          </font>
         </property>
         <property name="text">
-         <string>Yteklass</string>
+         <string>Olika stil för yteklass</string>
         </property>
        </widget>
        <widget class="QCheckBox" name="showAreasLabels">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>128</y>
+          <x>30</x>
+          <y>158</y>
           <width>351</width>
           <height>17</height>
          </rect>
@@ -907,8 +898,8 @@
        <widget class="QCheckBox" name="showAreasPopups">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>150</y>
+          <x>30</x>
+          <y>180</y>
           <width>351</width>
           <height>17</height>
          </rect>
@@ -917,17 +908,76 @@
          <string>Aktivera popups med delfaktors beskrivningar</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_Qualities">
+       <widget class="QLabel" name="gyfVersion_3">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>10</y>
+          <width>409</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>100</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>GYF för allmän platsmark, C/O City</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::RichText</enum>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="label_Areas">
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>190</y>
-          <width>167</width>
-          <height>30</height>
+          <y>50</y>
+          <width>301</width>
+          <height>17</height>
          </rect>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Kvaliteter&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Grundytor</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="label_Qualities">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>230</y>
+          <width>301</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Kvaliteter</string>
         </property>
        </widget>
       </widget>
@@ -938,92 +988,131 @@
        <attribute name="toolTip">
         <string>Här beräknas GYF:en utifrån din klassificering</string>
        </attribute>
-       <widget class="QWidget" name="layoutWidget">
+       <widget class="QWidget" name="">
         <property name="geometry">
          <rect>
-          <x>0</x>
+          <x>12</x>
           <y>10</y>
-          <width>191</width>
-          <height>121</height>
+          <width>431</width>
+          <height>751</height>
          </rect>
         </property>
-        <layout class="QGridLayout" name="gridLayout_3">
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="spacing">
           <number>10</number>
          </property>
-         <property name="horizontalSpacing">
-          <number>6</number>
-         </property>
-         <property name="verticalSpacing">
-          <number>10</number>
-         </property>
-         <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Beräkningsområde&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QPushButton" name="createRA">
+         <item>
+          <widget class="QLabel" name="gyfVersion_4">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
+             <verstretch>100</verstretch>
             </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>23</height>
-            </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>75</width>
-             <height>16777215</height>
+             <width>409</width>
+             <height>24</height>
             </size>
            </property>
-           <property name="toolTip">
-            <string>Rita upp ett avgränsningsområde där du vill beräkna GYF</string>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
            </property>
            <property name="text">
-            <string>Skapa</string>
+            <string>GYF för allmän platsmark, C/O City</string>
+           </property>
+           <property name="textFormat">
+            <enum>Qt::RichText</enum>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QPushButton" name="selectRA">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+         <item>
+          <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,1,3">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetFixedSize</enum>
            </property>
-           <property name="minimumSize">
-            <size>
-             <width>75</width>
-             <height>23</height>
-            </size>
+           <property name="spacing">
+            <number>10</number>
            </property>
-           <property name="maximumSize">
-            <size>
-             <width>75</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>Välj ett avgränsningsområde där du vill beräkna GYF</string>
-           </property>
-           <property name="text">
-            <string>Välj</string>
-           </property>
-          </widget>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="selectRA">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>75</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>75</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Välj ett avgränsningsområde där du vill beräkna GYF</string>
+             </property>
+             <property name="text">
+              <string>Välj</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QPushButton" name="createRA">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>75</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Rita upp ett avgränsningsområde där du vill beräkna GYF</string>
+             </property>
+             <property name="text">
+              <string>Skapa</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QLabel" name="label_6">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Beräkningsområde&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="2" column="0" colspan="2">
+         <item>
           <widget class="QPushButton" name="calculate">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1033,14 +1122,14 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>121</width>
              <height>33</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>167</width>
-             <height>16777215</height>
+             <width>121</width>
+             <height>33</height>
             </size>
            </property>
            <property name="font">
@@ -1058,24 +1147,6 @@
            </property>
           </widget>
          </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="layoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>11</x>
-          <y>141</y>
-          <width>441</width>
-          <height>621</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="spacing">
-          <number>25</number>
-         </property>
-         <property name="rightMargin">
-          <number>10</number>
-         </property>
          <item>
           <widget class="QLabel" name="gyfValue">
            <property name="maximumSize">
@@ -1100,7 +1171,7 @@
          <item>
           <widget class="MplWidget" name="plot" native="true">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1122,7 +1193,7 @@
          <item>
           <widget class="QTextBrowser" name="obsText">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>

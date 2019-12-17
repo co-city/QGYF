@@ -34,8 +34,6 @@ class FileLoader():
     self.interface = interface
     self.layerSelectorDialog = layerSelectorDialog
     self.proj = QgsProject.instance()
-    self.path = self.proj.readEntry("QGYF", "dataPath")[0]
-    self.db = self.proj.readEntry("QGYF", "activeDataBase")[0]
     
     self.layerSelectorDialog.okButton.clicked.connect(self.importToMap)
     self.layerSelectorDialog.okButton.clicked.connect(lambda : self.updateDockwidget(dockwidget))
@@ -50,7 +48,7 @@ class FileLoader():
     Load file and add features to input layers of matching type (Point, Line, Polygon).
     @param {QtWidget} interface
     """
-    file = QFileDialog.getOpenFileName(self.interface, 'Öppna fil', self.path, '*.shp; *.dxf')
+    file = QFileDialog.getOpenFileName(self.interface, 'Öppna fil', self.proj.readEntry("QGYF", "dataPath")[0], '*.shp; *.dxf')
     filePath = file[0]
 
     self.ignore_mappings = False
@@ -117,65 +115,60 @@ class FileLoader():
     self.layerSelectorDialog.close()
     
   def loadAreas(self, areas):
-    try:
-      pathLayer = '{}\{}|layername={}'.format(self.path, self.db, 'ga_template')
-      lyr = QgsVectorLayer(pathLayer, 'ga_template', "ogr")
-      lyr.startEditing()
+    #try:
+    geometry_list = []
+    area_list = []
+    attr = []
 
-      for feature in self.layer.getFeatures():
-        try:
-          type = self.prepareFeature(feature)
-          if type == "Point":
-            area = 25.0
-            radius = round((area/3.14159)**0.5, 2)
-            geom = feature.geometry().buffer(radius, 20)
-            feature.setGeometry(geom)
-          if type == "Line":
-            area = feature.geometry().length()
-            geom = feature.geometry().buffer(0.5, 20)
-            feature.setGeometry(geom)
-          if type == "Polygon":
-            area = feature.geometry().area()
-          
-          a_list = self.layerSelectorDialog.areas_list
-          index = feature.fields().indexFromName(self.filter_attribute)
-          layer_name = feature.attributes()[index]
-          try:
-            layer_name = layer_name.encode("windows-1252").decode("utf-8")
-          except:
-            layer_name = layer_name
+    for feature in self.layer.getFeatures():
+      #try:
+      ftype = self.prepareFeature(feature)
+      if ftype == "Point":
+        area = 25.0
+        radius = round((area/3.14159)**0.5, 2)
+        geom = feature.geometry().buffer(radius, 20)
+        feature.setGeometry(geom)
+      if ftype == "Line":
+        area = feature.geometry().length()
+        geom = feature.geometry().buffer(0.5, 20)
+        feature.setGeometry(geom)
+      if ftype == "Polygon":
+        area = feature.geometry().area()
+      
+      a_list = self.layerSelectorDialog.areas_list
+      index = feature.fields().indexFromName(self.filter_attribute)
+      layer_name = feature.attributes()[index]
 
-          if any(str(layer_name) in filtr for filtr in areas):
-            f = 0.0
-            group_name = None
-            k = [i[1] for i in areas if i[0] == str(layer_name)][0]
-            k, group_name, f = self.findQuality(a_list, k)
+      if any(str(layer_name) in filtr for filtr in areas):
+        geometry_list.append(feature.geometry().asWkt())
+        area_list.append(area)
+        f = 0.0
+        group_name = None
+        k = [i[1] for i in areas if i[0] == str(layer_name)][0]
+        k, group_name, f = self.findQuality(a_list, k)
+        attr.append([group_name, k, f])
+      #except:
+      #  QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Filen innehåller vissa objekt som inte går att importera.''')
+    data = []
+    for i,obj in enumerate(attr):
+      data.append(obj + [round(area_list[i], 1), round(area_list[i]*obj[-1], 1), geometry_list[i]])
 
-            fields = QgsFields()
-            fields.append(QgsField("id", QVariant.Int, "serial"))
-            fields.append(QgsField("ytgrupp", QVariant.String, "text"))
-            fields.append(QgsField("ytklass", QVariant.String, "text"))
-            fields.append(QgsField("faktor", QVariant.String, "double"))
-            fields.append(QgsField("yta", QVariant.Double, "double"))
-            fields.append(QgsField("poang", QVariant.Double, "double"))
+    crs = self.proj.readEntry("QGYF", "CRS")[0]
 
-            feature.setFields(fields, True)
-            feature.setAttributes([None, group_name, k, f, round(area, 1), round(area*f, 1)])
-            lyr.addFeature(feature)
-        except:
-          QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Filen innehåller vissa objekt som inte går att importera.''')
+    con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", "activeDataBase")[0]))
+    cur = con.cursor()
+    cur.executemany('''INSERT INTO ga_template VALUES 
+      (NULL,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ''' + crs + ''')))''', data)
 
-      lyr.commitChanges()
+    print('I come in into function')
 
-      con = spatialite_connect("{}\{}".format(self.path, self.db))
-      cur = con.cursor()
-      GroundAreas().mergeGA(cur)
-      con.commit()
-      cur.close()
-      con.close()
+    GroundAreas().mergeGA(cur)
+    con.commit()
+    cur.close()
+    con.close()
 
-    except:
-      QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Nödvändiga kartlager saknas. Ladda in databasen på nytt.''')
+    #except:
+    #  QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Nödvändiga kartlager saknas. Ladda in databasen på nytt.''')
 
   def loadFeatures(self, filters, classifications):
     try:
@@ -206,6 +199,9 @@ class FileLoader():
       pointLayer.commitChanges()
       lineLayer.commitChanges()
       polygonLayer.commitChanges()
+      iface.vectorLayerTools().stopEditing(pointLayer)
+      iface.vectorLayerTools().stopEditing(lineLayer)
+      iface.vectorLayerTools().stopEditing(polygonLayer)
 
       # Fill classification table
       data = [d for d in data if d is not None]
@@ -213,7 +209,7 @@ class FileLoader():
       data = [d for d in data if d is not None]
       
       if data:
-        con = spatialite_connect("{}\{}".format(self.path, self.db))
+        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", "activeDataBase")[0]))
         cur = con.cursor()
         cur.executemany('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?)', data)
         cur.close()
@@ -284,6 +280,7 @@ class FileLoader():
     if type == "Polygon":
       geom = feature.geometry().fromPolygonXY(feature.geometry().asPolygon())
       feature.setGeometry(geom)
+      feature.geometry().makeValid()
 
     if type == "Point":
       geom = feature.geometry().fromPointXY(feature.geometry().asPoint())
@@ -302,6 +299,7 @@ class FileLoader():
 
       if type == "Polygon":
         feature.setGeometry(geom)
+        feature.geometry().makeValid()
 
       if type == "Line":
         geom = feature.geometry().fromPolylineXY(feature.geometry().asPolyline())

@@ -648,7 +648,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             iface.setActiveLayer(l)
             iface.actionToggleEditing().trigger()
             iface.actionAddFeature().trigger()
-            l.featureAdded.connect(lambda fid: self.areaAdded(fid, l))
+            #l.featureAdded.connect(lambda fid: self.areaAdded(fid, l))
             l.featureAdded.connect(lambda fid: self.showSaveDialog(fid, l))
 
     def areaAdded(self, fid, layer):
@@ -671,14 +671,17 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     # Visualization
     def createCheckBoxes(self, group_list):
-        print(group_list)
+        for i in reversed(range(self.checkBoxLayout.count())):
+            self.checkBoxLayout.itemAt(i).widget().deleteLater()
+        
+        checkbox_list = []
         for g in group_list[1:]:
             self.checkbox = QtWidgets.QCheckBox(g)
-            self.checkbox.setCheckState(Qt.Unchecked)
-
+            self.checkbox.setCheckState(Qt.Checked)
             self.checkBoxLayout.addWidget(self.checkbox)
-            self.checkBoxLayout.setAlignment(Qt.AlignCenter)
-
+            self.checkBoxLayout.setAlignment(Qt.AlignLeft)
+            checkbox_list.append(self.checkbox)
+        return checkbox_list
 
     def checkGroup(self, checkbox_list):
         views = ['polygon_class', 'line_class', 'point_class']
@@ -697,37 +700,21 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 view.setSubsetString(query)
 
 
-    def groupList(self):
-        checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
-        checkbox_list = [getattr(self, n) for n in checkboxnames]
-        for checkbox in checkbox_list:
-            checkbox.setChecked(True)
-
+    def enableGroupList(self, checkbox_list):
         checkGroup = lambda : self.checkGroup(checkbox_list)
-        self.checkBio.stateChanged.connect(checkGroup)
-        self.checkBuller.stateChanged.connect(checkGroup)
-        self.checkVatten.stateChanged.connect(checkGroup)
-        self.checkKlimat.stateChanged.connect(checkGroup)
-        self.checkPoll.stateChanged.connect(checkGroup)
-        self.checkHalsa.stateChanged.connect(checkGroup)
+        for checkbox in checkbox_list:
+            checkbox.stateChanged.connect(checkGroup)
 
-    def disableGroup(self):
+    def disableGroup(self, checkbox_list):
         if self.tabWidget.currentIndex() == 2:
-            pathLayer = '{}\{}|layername={}'.format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0], 'classification')
-            table = QgsVectorLayer(pathLayer, 'classification', "ogr")
-            features = table.getFeatures()
-            current_groups = []
-            for feature in features:
-                index = feature.fields().indexFromName("grupp")
-                group = feature.attributes()[index]
-                try:
-                  group = group.encode("windows-1252").decode("utf-8")
-                except:
-                  group = group
-                current_groups.append(group)
-            current_groups = list(set(current_groups))
-            checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
-            checkbox_list = [getattr(self, n) for n in checkboxnames]
+            con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
+            cur = con.cursor()
+            cur.execute('SELECT grupp FROM classification')
+            current_groups = list(set([j[0] for j in cur.fetchall()]))
+            print(current_groups)
+            cur.close()
+            con.close()
+
             for checkbox in checkbox_list:
                 if checkbox.text() in current_groups:
                     checkbox.setEnabled(True)

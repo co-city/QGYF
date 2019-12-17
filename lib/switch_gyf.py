@@ -99,27 +99,38 @@ class SwitchGYFs:
         self.dockwidget.approveButton.setText('Lägg till ' + model['Klass_items'][1])
         self.dockwidget.removeButton.setText('Ta bort ' + model['Klass_items'][1])
         # Tab3
+        ## labels
         items = [i.title()+'er' for i in model['Klass_items']]
         self.dockwidget.label_Areas.setText(items[0])
-        self.dockwidget.showAreasClass.setText(items[0])
+        self.dockwidget.label_Areas.setStyleSheet("color: #238973")
+        self.dockwidget.showAreasClass.setText('Olika stil för ' + items[0])
         self.dockwidget.showAreasLabels.setText('Visa upp etiketter med ' + model['Klass_items'][0] + 'er')
         self.dockwidget.showAreasPopups.setText('Aktivera popups med ' + model['Klass_items'][0] + 's beskrivningar')
         self.dockwidget.label_Qualities.setText(items[1])
+        self.dockwidget.label_Qualities.setStyleSheet("color: #238973")
         self.dockwidget.showAll.setText('Visa grupper av ' + model['Klass_items'][0] + 'er')
         self.dockwidget.showGroup.setText('Visa ' + model['Klass_items'][0] + 'er per grupp')
-        self.dockwidget.createCheckBoxes(group_list)
+        # Qualities
+        checkbox_list = self.dockwidget.createCheckBoxes(group_list)
+        self.dockwidget.enableGroupList(checkbox_list)
+        self.dockwidget.tabWidget.currentChanged.connect(lambda: self.dockwidget.disableGroup(checkbox_list))
+
+
         self.dockwidget.selectGroup.addItems(group_list)
         # Tab4
-        #self.dockwidget.plot.canvas.fig.clf()
         self.dockwidget.plot.canvas.ax.cla()
         self.dockwidget.plot.canvas.ax.axis('off')
         self.dockwidget.obsText.clear()
-
+        
+        return checkbox_list
+        
         
     def showGYFname(self, model):
         gyf_name = '<h3 style="color:#238973">' + model['Name'] + '</h3>'
         self.dockwidget.gyfVersion.setText(gyf_name)
         self.dockwidget.gyfVersion_2.setText(gyf_name)
+        self.dockwidget.gyfVersion_3.setText(gyf_name)
+        self.dockwidget.gyfVersion_4.setText(gyf_name)
 
     def pdfGYF(self, model):
         docPath = self.plugin_dir + '/gyf_models/' + model['Doc']
