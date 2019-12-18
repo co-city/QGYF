@@ -13,7 +13,7 @@ from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtCore import QVariant
-from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsGeometry, QgsPointXY, QgsRectangle
+from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsGeometry, QgsPointXY
 from qgis.utils import spatialite_connect, iface
 from .ground_areas import GroundAreas
 
@@ -39,7 +39,7 @@ class FileLoader():
     self.layerSelectorDialog.okButton.clicked.connect(lambda : self.updateDockwidget(dockwidget))
 
   def updateDockwidget(self, dockwidget):
-    if dockwidget:
+    if dockwidget.isVisible():
       dockwidget.showClass()
       dockwidget.showAreas()
 
@@ -119,26 +119,7 @@ class FileLoader():
     cur.close()
     con.close()
     
-    self.zoomToExtent()
     self.layerSelectorDialog.close()
-
-  def zoomToExtent(self):
-    extent = QgsRectangle()
-    extent.setMinimal()
-    root = self.proj.layerTreeRoot()
-    ground_layer = self.proj.mapLayersByName('Grundytor')
-    if ground_layer:
-      ground_layer[0].updateExtents()
-      ground_layer[0].triggerRepaint()
-      extent.combineExtentWith(ground_layer[0].extent())
-    group = root.findGroup("Klassificering")
-    if group:
-      for child in group.children():
-        child.layer().updateExtents()
-        child.layer().triggerRepaint()
-        extent.combineExtentWith(child.layer().extent())
-    iface.mapCanvas().setExtent(extent)
-    iface.mapCanvas().refresh()
     
   def loadAreas(self, cur, areas):
     #try:
@@ -222,7 +203,6 @@ class FileLoader():
           classification = list(filter(lambda classification: classification[0] == str(layer_name), classifications))
           
           if classification and area > 0:
-            print('I am inside classification: ' + str(ftype) + ', ' + str(area))
             for cl in classification:
               data.append(self.insertQuality(cl, feature, gid, area))
     data = [d for d in data if d is not None]

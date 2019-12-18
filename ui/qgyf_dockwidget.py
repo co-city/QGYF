@@ -229,6 +229,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def showAreas(self):
         self.areasTable.setRowCount(0)
+        #self.areasTable.clear()
         con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
         cur = con.cursor()
 
@@ -258,6 +259,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 timer.setTimeout(self.resetFeatureSelectionLock, 0.1)
 
                 if selected_items:
+                    #print('Selection Ground area ROW > Feature')
                     selected_rows = list(set([i.row() for i in selected_items]))
                     ids = [self.areasTable.item(i, 5).text() for i in selected_rows]
                     features = list(ground_layer[0].getFeatures())
@@ -283,20 +285,22 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     self.areasTable.selectRow(row)
 
     def highlightRowsAreas(self):
-        ground_layer = self.proj.mapLayersByName('Grundytor')
-        if ground_layer:
-            selected = ground_layer[0].getSelectedFeatures()
+        if self.tabWidget.currentIndex() == 0:
+            #print('Selection Feature > Ground area')
+            ground_layer = self.proj.mapLayersByName('Grundytor')
+            if ground_layer:
+                selected = ground_layer[0].getSelectedFeatures()
 
-            self.row_selection_lock = True
-            timer = Timer()
-            timer.setTimeout(self.resetRowSelectionLock, 0.2)
+                self.row_selection_lock = True
+                timer = Timer()
+                timer.setTimeout(self.resetRowSelectionLock, 0.2)
 
-            if self.feature_selection_lock is False and self.tabWidget.currentIndex() == 0:
-                self.areasTable.clearSelection()
-                self.areasTable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
-                self.selectRowByAreas(selected)
+                if self.feature_selection_lock is False and self.tabWidget.currentIndex() == 0:
+                    self.areasTable.clearSelection()
+                    self.areasTable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+                    self.selectRowByAreas(selected)
 
-            self.areasTable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+                self.areasTable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
     # CLASSIFICATION
 
@@ -486,6 +490,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def showClass(self):
         self.classtable.setRowCount(0)
+        #self.classtable.clear()
         root = self.proj.layerTreeRoot()
         content = [l.name() for l in root.children()]
         if 'Klassificering' in content:
@@ -539,12 +544,12 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             layers = point_layer + line_layer + polygon_layer
 
             if layers:
-
                 self.feature_selection_lock = True
                 timer = Timer()
                 timer.setTimeout(self.resetFeatureSelectionLock, 0.1)
 
                 if selected_items:
+                    #print('Selection Class > Feature')
                     selected_rows = list(set([i.row() for i in selected_items]))
                     gids = [[self.classtable.item(i, 0).text(), self.classtable.item(i, 7).text()] for i in selected_rows]
                     if point_layer:
@@ -580,35 +585,38 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def highlightRows(self):
 
-        point_layer = self.proj.mapLayersByName('Punktobjekt')
-        line_layer = self.proj.mapLayersByName('Linjeobjekt')
-        polygon_layer = self.proj.mapLayersByName('Ytobjekt')
-        layers = point_layer + line_layer + polygon_layer
+        if self.tabWidget.currentIndex() == 1:
+            #print('Selection Feature > Class')
 
-        if layers:
-            selected_points = []
-            selected_lines = []
-            selected_polygons = []
+            point_layer = self.proj.mapLayersByName('Punktobjekt')
+            line_layer = self.proj.mapLayersByName('Linjeobjekt')
+            polygon_layer = self.proj.mapLayersByName('Ytobjekt')
+            layers = point_layer + line_layer + polygon_layer
 
-            if point_layer:
-                selected_points = point_layer[0].getSelectedFeatures()
-            if line_layer:
-                selected_lines = line_layer[0].getSelectedFeatures()
-            if polygon_layer:
-                selected_polygons = polygon_layer[0].getSelectedFeatures()
+            if layers:
+                selected_points = []
+                selected_lines = []
+                selected_polygons = []
 
-            self.row_selection_lock = True
-            timer = Timer()
-            timer.setTimeout(self.resetRowSelectionLock, 0.2)
+                if point_layer:
+                    selected_points = point_layer[0].getSelectedFeatures()
+                if line_layer:
+                    selected_lines = line_layer[0].getSelectedFeatures()
+                if polygon_layer:
+                    selected_polygons = polygon_layer[0].getSelectedFeatures()
 
-            if self.feature_selection_lock is False and self.tabWidget.currentIndex() == 1:
-                self.classtable.clearSelection()
-                self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
-                self.selectRowByFeatures(selected_points, "punkt")
-                self.selectRowByFeatures(selected_lines, "linje")
-                self.selectRowByFeatures(selected_polygons, "yta")
+                self.row_selection_lock = True
+                timer = Timer()
+                timer.setTimeout(self.resetRowSelectionLock, 0.2)
 
-            self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+                if self.feature_selection_lock is False:
+                    self.classtable.clearSelection()
+                    self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+                    self.selectRowByFeatures(selected_points, "punkt")
+                    self.selectRowByFeatures(selected_lines, "linje")
+                    self.selectRowByFeatures(selected_polygons, "yta")
+
+                self.classtable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
     def switchLayerGroups(self):
         self.style = Style()

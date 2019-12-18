@@ -24,7 +24,7 @@
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QVariant
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QApplication, QFileDialog, QMessageBox
-from qgis.core import QgsProject, QgsVectorLayer, QgsCoordinateReferenceSystem, QgsFields, QgsField, NULL, QgsWkbTypes
+from qgis.core import QgsProject, QgsVectorLayer, QgsCoordinateReferenceSystem, QgsFields, QgsField, NULL, QgsWkbTypes, QgsRectangle
 from qgis.gui import QgsFileWidget
 from .resources import *
 
@@ -272,6 +272,25 @@ class QGYF:
 			self.welcome.okButton.clicked.connect(self.welcome.close)
 			self.welcome.checkBox.clicked.connect(self.saveCheckBoxStatus)
 
+	def zoomToExtent(self):
+		self.addLayers(self.proj.readEntry("QGYF", "dataPath")[0], [
+			"research_area",
+			"ground_areas",
+			"point_object",
+			"line_object",
+			"polygon_object",
+		])
+		extent = QgsRectangle()
+		extent.setMinimal()
+		root = self.proj.layerTreeRoot()
+		ground_layer = self.proj.mapLayersByName('Grundytor')
+		extent.combineExtentWith(ground_layer[0].extent())
+		group = root.findGroup("Klassificering")
+		for child in group.children():
+			extent.combineExtentWith(child.layer().extent())
+		self.iface.mapCanvas().setExtent(extent)
+		self.iface.mapCanvas().refresh()
+
 	def loadFile(self):
 		initialized = self.db.check()
 		if not initialized:
@@ -279,13 +298,12 @@ class QGYF:
 
 		self.layerSelectorDialog.loadClassifications()
 		self.fileLoader.loadFile()
+		
+		self.layerSelectorDialog.okButton.clicked.connect(self.zoomToExtent)
 		root = self.proj.layerTreeRoot()
 		content = [l.name() for l in root.children()]
 		if 'Kvaliteter' in content:
 			self.dockwidget.disableGroup()
-		if self.dockwidget.isVisible():
-			self.dockwidget.showClass()
-			self.dockwidget.showAreas()
 
 	def info(self):
 		self.welcome = WelcomeDialog()
@@ -372,6 +390,7 @@ class QGYF:
 		self.quality.init(self.gyfModel)
 
 	def onClosePlugin(self):
+		print('Closing plugin')
 		self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
 
 	def unload(self):
@@ -381,6 +400,8 @@ class QGYF:
 				action)
 			self.iface.removeToolBarIcon(action)
 		del self.toolbar
+		#self.iface.mapCanvas().selectionChanged.disconnect(self.dockwidget.highlightRows)
+		#self.iface.mapCanvas().selectionChanged.disconnect(self.dockwidget.highlightRowsAreas)
 
 	def createDataView(self):
 		if self.dockwidget.tabWidget.currentIndex() > 1:
@@ -458,8 +479,6 @@ class QGYF:
 			self.pluginIsActive = True
 			self.initCalculationDialog()
 			self.dockwidget.show()
-			self.dockwidget.showClass()
-			self.dockwidget.showAreas()
 
 	def initCalculationDialog(self):
 		print('Plugin is active ' + str(self.pluginIsActive))
@@ -474,6 +493,8 @@ class QGYF:
 		self.dockwidget.switchLayerGroups()
 
 		# Highlight rows in classification table
+		self.dockwidget.showClass()
+		self.dockwidget.showAreas()
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRows)
 		self.iface.mapCanvas().selectionChanged.connect(self.dockwidget.highlightRowsAreas)
 
