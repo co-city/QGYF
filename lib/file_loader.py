@@ -214,7 +214,7 @@ class FileLoader():
     if line_list:
       cur.executemany('INSERT INTO line_object VALUES (NULL,?,?,?,?, CastToLinestring(GeomFromText(?, ' + crs + ')))', line_list)
     if polygon_list:
-      cur.executemany('INSERT INTO polygon_object VALUES (NULL,?,?,?,?, CastToPolygon(GeomFromText(?, ' + crs + ')))', polygon_list)
+      cur.executemany('INSERT INTO polygon_object VALUES (NULL,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ' + crs + ')))', polygon_list)
       print('I managed to insert polygons')
       GroundAreas().checkInvalidGeom(cur, 'polygon_object', 'gid', False)
     if data:

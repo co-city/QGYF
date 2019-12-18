@@ -104,7 +104,10 @@ class GroundAreas:
             if showMessage:
                 QMessageBox.warning(ExportDialog(), 'Fel geometri', 
                 'Din polygon data verkar innehålla objekt med fel geometri (dvs. a bow-tie polygon). Det ska försöka behandlas automatiskt.\nOm det inte går ska lager med grundytor inte byggas upp. I detta fall måste problemet åtgärdas manuellt.\n\nGlobala ID för felobjekt:\n' + str(failed))
-            cur.execute("UPDATE " + table + " SET geom = ST_MakeValid(geom) WHERE ST_IsValid(geom) != 1")
+            cur.execute("UPDATE " + table + " SET geom = ST_MakeValid(geom)  WHERE ST_IsValid(geom) != 1")
+            print('Geometry has been updated')
+            cur.execute("UPDATE " + table + " SET yta = AREA(geom)")
+            print('Areas has been updated')
 
 
     def showGA(self):

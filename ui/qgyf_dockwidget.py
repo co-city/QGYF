@@ -170,7 +170,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                  obj[-1] = float(obj[-1])      
             data.append([g, q, f, round(obj[-1], 1), round(obj[-1]*f, 1), geom[i]])
         #print(data)
-        if layer.wkbType() == QgsWkbTypes.Polygon:
+        if layer.wkbType() == QgsWkbTypes.MultiPolygon:
             cur.executemany('''INSERT INTO ga_template VALUES 
                 (NULL,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ''' + crs + ''')))''', data)
         elif layer.wkbType() == QgsWkbTypes.LineString:

@@ -345,7 +345,7 @@ class QGYF:
 		feature = layer.getFeature(fid)
 		geom_type = QgsWkbTypes.geometryDisplayString(geom.type())
 		if len(feature["gid"]) == 36:
-			if geom_type == "Polygon":
+			if geom_type == "MultiPolygon":
 				feature["yta"] = feature.geometry().area()
 			elif geom_type == "Line":
 				feature["yta"] = feature.geometry().length()
@@ -357,7 +357,7 @@ class QGYF:
 		geom_type = QgsWkbTypes.geometryDisplayString(feature.geometry().type())
 		if feature["gid"] == NULL or len(feature["gid"]) != 36:
 			feature["gid"] = str(uuid.uuid4())
-			if geom_type == "Polygon":
+			if geom_type == "MultiPolygon":
 				feature["yta"] = feature.geometry().area()
 			elif geom_type == "Point":
 				if type(feature["yta"]) != float:
@@ -435,8 +435,9 @@ class QGYF:
 		except:
 			pass
 		groups = []
-		checkboxnames = ['checkBio', 'checkBuller', 'checkVatten', 'checkKlimat', 'checkPoll', 'checkHalsa']
-		checkbox_list = [getattr(self.dockwidget, n) for n in checkboxnames]
+		checkbox_list = []
+		for i in range(self.dockwidget.checkBoxLayout.count()):
+			checkbox_list.append(self.dockwidget.checkBoxLayout.itemAt(i).widget())
 		for checkbox in checkbox_list:
 			if checkbox.isEnabled() and checkbox.isChecked():
 				groups.append(checkbox.text())
