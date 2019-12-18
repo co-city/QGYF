@@ -118,8 +118,27 @@ class FileLoader():
     con.commit()
     cur.close()
     con.close()
-
+    
+    self.zoomToExtent()
     self.layerSelectorDialog.close()
+
+  def zoomToExtent(self):
+    extent = QgsRectangle()
+    extent.setMinimal()
+    root = self.proj.layerTreeRoot()
+    ground_layer = self.proj.mapLayersByName('Grundytor')
+    if ground_layer:
+      ground_layer[0].updateExtents()
+      ground_layer[0].triggerRepaint()
+      extent.combineExtentWith(ground_layer[0].extent())
+    group = root.findGroup("Klassificering")
+    if group:
+      for child in group.children():
+        child.layer().updateExtents()
+        child.layer().triggerRepaint()
+        extent.combineExtentWith(child.layer().extent())
+    iface.mapCanvas().setExtent(extent)
+    iface.mapCanvas().refresh()
     
   def loadAreas(self, cur, areas):
     #try:
@@ -201,12 +220,12 @@ class FileLoader():
         
         if classifications:
           classification = list(filter(lambda classification: classification[0] == str(layer_name), classifications))
-          if classification:
+          
+          if classification and area > 0:
+            print('I am inside classification: ' + str(ftype) + ', ' + str(area))
             for cl in classification:
               data.append(self.insertQuality(cl, feature, gid, area))
     data = [d for d in data if d is not None]
-    print('DATA: ' + str(data))
-
 
     #try:
     if point_list:
@@ -222,16 +241,6 @@ class FileLoader():
     
     #except:
     #  QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Filen innehåller vissa objekt som inte går att importera.''')
-
-    # Zoom to features
-    extent = QgsRectangle()
-    extent.setMinimal()
-    root = self.proj.layerTreeRoot()
-    group = root.findGroup("Klassificering")
-    for child in group.children():
-      extent.combineExtentWith(child.layer().extent())
-    iface.mapCanvas().setExtent(extent)
-    iface.mapCanvas().refresh()
 
     #except:
     #  QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Nödvändiga kartlager saknas. Ladda in databasen på nytt.''')
@@ -284,17 +293,17 @@ class FileLoader():
     if (geometry_type == "Polygon"):
       geometry_type = "yta"
 
-      quality_name = classification[1]
+    quality_name = classification[1]
 
-      q_list = self.layerSelectorDialog.qualities_list
-      factor = -1
-      group_name = None
+    q_list = self.layerSelectorDialog.qualities_list
+    factor = -1
+    group_name = None
 
-      quality_name, group_name, factor = self.findQuality(q_list, quality_name)
+    quality_name, group_name, factor = self.findQuality(q_list, quality_name)
 
-      if factor != -1:
-        data = [gid, geometry_type, self.fileName, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
-        # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
+    if factor != -1:
+      data = [gid, geometry_type, self.fileName, group_name, quality_name, factor, round(yta, 1), round(factor*yta, 1)]
+      # gid, geometri_typ, filnamn, grupp, kvalitet, faktor, yta, poäng
 
     return data
 

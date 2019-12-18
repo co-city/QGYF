@@ -715,7 +715,6 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             cur = con.cursor()
             cur.execute('SELECT grupp FROM classification')
             current_groups = list(set([j[0] for j in cur.fetchall()]))
-            print(current_groups)
             cur.close()
             con.close()
 

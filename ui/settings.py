@@ -150,7 +150,7 @@ class SettingsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.defineCRS()
 
     def getCRS(self, db):
-        if os.path.exists("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], db)):
+        if os.path.exists("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], db)) and db:
             con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], db))
             cur = con.cursor()
 

@@ -462,6 +462,7 @@ class QGYF:
 			self.dockwidget.showAreas()
 
 	def initCalculationDialog(self):
+		print('Plugin is active ' + str(self.pluginIsActive))
 
 		# connect to provide cleanup on closing of dockwidget
 		self.dockwidget.closingPlugin.connect(self.onClosePlugin)
