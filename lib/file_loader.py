@@ -13,7 +13,7 @@ from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtCore import QVariant
-from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsFields, QgsField, QgsGeometry, QgsPointXY, QgsRectangle
+from qgis.core import QgsProject, QgsVectorLayer, QgsWkbTypes, QgsGeometry, QgsPointXY, QgsRectangle
 from qgis.utils import spatialite_connect, iface
 from .ground_areas import GroundAreas
 
@@ -92,6 +92,9 @@ class FileLoader():
     areas = []
     classifications = []
 
+    con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", "activeDataBase")[0]))
+    cur = con.cursor()
+    
     if not self.ignore_mappings:
       for mapping in self.layerSelectorDialog.addedMappings:
         values = re.split(' > | : ', mapping)
@@ -106,15 +109,19 @@ class FileLoader():
       print('Filters: ' + str(filters))
       print('Classifications: ' + str(classifications))
       print('Areas: ' + str(areas))
-      self.loadFeatures(filters, classifications)
+      self.loadFeatures(cur, filters, classifications)
       if areas:
-        self.loadAreas(areas)
+        self.loadAreas(cur, areas)
     else:
-      self.loadFeatures(None, None)
+      self.loadFeatures(cur, None, None)
+    
+    con.commit()
+    cur.close()
+    con.close()
 
     self.layerSelectorDialog.close()
     
-  def loadAreas(self, areas):
+  def loadAreas(self, cur, areas):
     #try:
     geometry_list = []
     area_list = []
@@ -155,119 +162,79 @@ class FileLoader():
 
     crs = self.proj.readEntry("QGYF", "CRS")[0]
 
-    con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", "activeDataBase")[0]))
-    cur = con.cursor()
     cur.executemany('''INSERT INTO ga_template VALUES 
       (NULL,?,?,?,?,?, CastToMultiPolygon(GeomFromText(?, ''' + crs + ''')))''', data)
 
     print('I come in into function')
 
     GroundAreas().mergeGA(cur)
-    con.commit()
-    cur.close()
-    con.close()
 
     #except:
     #  QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Nödvändiga kartlager saknas. Ladda in databasen på nytt.''')
 
-  def loadFeatures(self, filters, classifications):
-    try:
-      data = []
-      pointLayer = self.proj.mapLayersByName("Punktobjekt")[0]
-      lineLayer = self.proj.mapLayersByName("Linjeobjekt")[0]
-      polygonLayer = self.proj.mapLayersByName("Ytobjekt")[0]
-      pointLayer.startEditing()
-      lineLayer.startEditing()
-      polygonLayer.startEditing()
+  def loadFeatures(self, cur, filters, classifications):
+    crs = self.proj.readEntry("QGYF", "CRS")[0]
+    data = []
+    point_list = []
+    polygon_list = []
+    line_list = []
 
-      for feature in self.layer.getFeatures():
-        try:
-          type = self.prepareFeature(feature)
-          if type == "Point":
-            area = 25.0
-            data_feature = self.addFeature(feature, type, pointLayer, filters, classifications, area)
-          if type == "Line":
-            area = feature.geometry().length()
-            data_feature = self.addFeature(feature, type, lineLayer, filters, classifications, area)
-          if type == "Polygon":
-            area = feature.geometry().area()
-            data_feature = self.addFeature(feature, type, polygonLayer, filters, classifications, area)
-          data.append(data_feature)
-        except:
-          QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Filen innehåller vissa objekt som inte går att importera.''')
+    for feature in self.layer.getFeatures():
+      ftype = self.prepareFeature(feature)
+      index = feature.fields().indexFromName(self.filter_attribute)
+      layer_name = feature.attributes()[index]
 
-      pointLayer.commitChanges()
-      lineLayer.commitChanges()
-      polygonLayer.commitChanges()
-      iface.vectorLayerTools().stopEditing(pointLayer)
-      iface.vectorLayerTools().stopEditing(lineLayer)
-      iface.vectorLayerTools().stopEditing(polygonLayer)
+      if not filters or any(str(layer_name) in filtr for filtr in filters):
+        gid = str(uuid.uuid4())
+        if ftype == "Point":
+          area = 25.0
+          data_object = [gid, self.fileName, layer_name, area, feature.geometry().asWkt()]
+          point_list.append(data_object)
+        if ftype == "Line":
+          area = feature.geometry().length()
+          data_object = [gid, self.fileName, layer_name, area, feature.geometry().asWkt()]
+          line_list.append(data_object)
+        if ftype == "Polygon":
+          area = feature.geometry().area()
+          data_object = [gid, self.fileName, layer_name, area, feature.geometry().asWkt()]
+          polygon_list.append(data_object)
+        
+        if classifications:
+          classification = list(filter(lambda classification: classification[0] == str(layer_name), classifications))
+          if classification:
+            for cl in classification:
+              data.append(self.insertQuality(cl, feature, gid, area))
+    data = [d for d in data if d is not None]
+    print('DATA: ' + str(data))
 
-      # Fill classification table
-      data = [d for d in data if d is not None]
-      data = [item for sublist in data for item in sublist]
-      data = [d for d in data if d is not None]
-      
-      if data:
-        con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", "activeDataBase")[0]))
-        cur = con.cursor()
-        cur.executemany('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?)', data)
-        cur.close()
-        con.commit()
-        con.close()
 
-      # Zoom to features
-      extent = QgsRectangle()
-      extent.setMinimal()
-      root = self.proj.layerTreeRoot()
-      group = root.findGroup("Klassificering")
-      for child in group.children():
-        extent.combineExtentWith(child.layer().extent())
-      iface.mapCanvas().setExtent(extent)
-      iface.mapCanvas().refresh()
+    #try:
+    if point_list:
+      cur.executemany('INSERT INTO point_object VALUES (NULL,?,?,?,?, CastToPoint(GeomFromText(?, ' + crs + ')))', point_list)
+    if line_list:
+      cur.executemany('INSERT INTO line_object VALUES (NULL,?,?,?,?, CastToLinestring(GeomFromText(?, ' + crs + ')))', line_list)
+    if polygon_list:
+      cur.executemany('INSERT INTO polygon_object VALUES (NULL,?,?,?,?, CastToPolygon(GeomFromText(?, ' + crs + ')))', polygon_list)
+      print('I managed to insert polygons')
+      GroundAreas().checkInvalidGeom(cur, 'polygon_object', 'gid', False)
+    if data:
+      cur.executemany('INSERT INTO classification VALUES (?, ?, ?, ?, ?, ?, ?, ?)', data)
+    
+    #except:
+    #  QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Filen innehåller vissa objekt som inte går att importera.''')
 
-    except:
-      QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Nödvändiga kartlager saknas. Ladda in databasen på nytt.''')
+    # Zoom to features
+    extent = QgsRectangle()
+    extent.setMinimal()
+    root = self.proj.layerTreeRoot()
+    group = root.findGroup("Klassificering")
+    for child in group.children():
+      extent.combineExtentWith(child.layer().extent())
+    iface.mapCanvas().setExtent(extent)
+    iface.mapCanvas().refresh()
 
-  def addFeature(self, feature, type, layer, filters, classifications, area):
-    """
-    Convert attributes and add features to input layer.
-    @param {QgsFeature} feature
-    @param {string} type
-    @param {QgsVectorLayer} layer
-    @param {list} filters
-    @param {list} classifications
-    """
-    index = feature.fields().indexFromName(self.filter_attribute)
-    layer_name = feature.attributes()[index]
-    data_feature = None
-
-    try:
-      layer_name = layer_name.encode("windows-1252").decode("utf-8")
-    except:
-      layer_name = layer_name
-
-    if not filters or any(str(layer_name) in filtr for filtr in filters):
-      fields = QgsFields()
-      fields.append(QgsField("id", QVariant.Int, "serial"))
-      fields.append(QgsField("gid", QVariant.String, "text"))
-      fields.append(QgsField("filnamn", QVariant.String, "text"))
-      fields.append(QgsField("beskrivning", QVariant.String, "text"))
-      fields.append(QgsField("yta", QVariant.Double, "double"))
-      gid = str(uuid.uuid4())
-
-      feature.setFields(fields, True)
-      feature.setAttributes([None, gid, self.fileName, layer_name, area])
-      layer.addFeature(feature)
-
-      if classifications:
-        classification = list(filter(lambda classification: classification[0] == str(layer_name), classifications))
-        if classification:
-          data_feature = []
-          for cl in classification:
-            data_feature.append(self.insertQuality(cl, feature, gid, area))
-
-    return data_feature
+    #except:
+    #  QMessageBox.information(self.layerSelectorDialog, 'Importfel', '''Nödvändiga kartlager saknas. Ladda in databasen på nytt.''')
 
   def prepareFeature(self, feature):
 
@@ -279,8 +246,8 @@ class FileLoader():
 
     if type == "Polygon":
       geom = feature.geometry().fromPolygonXY(feature.geometry().asPolygon())
+      #geom = geom.makeValid()
       feature.setGeometry(geom)
-      feature.geometry().makeValid()
 
     if type == "Point":
       geom = feature.geometry().fromPointXY(feature.geometry().asPoint())
@@ -298,8 +265,8 @@ class FileLoader():
       type = QgsWkbTypes.geometryDisplayString(geom.type())
 
       if type == "Polygon":
+        #geom = geom.makeValid()
         feature.setGeometry(geom)
-        feature.geometry().makeValid()
 
       if type == "Line":
         geom = feature.geometry().fromPolylineXY(feature.geometry().asPolyline())

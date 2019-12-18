@@ -678,10 +678,11 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         for g in group_list[1:]:
             self.checkbox = QtWidgets.QCheckBox(g)
             self.checkbox.setCheckState(Qt.Checked)
+            self.checkbox.setStyleSheet('font-size: 9pt;')
             self.checkBoxLayout.addWidget(self.checkbox)
             self.checkBoxLayout.setAlignment(Qt.AlignLeft)
+            self.checkBoxLayout.setAlignment(Qt.AlignTop)
             checkbox_list.append(self.checkbox)
-        return checkbox_list
 
     def checkGroup(self, checkbox_list):
         views = ['polygon_class', 'line_class', 'point_class']
@@ -700,12 +701,15 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 view.setSubsetString(query)
 
 
-    def enableGroupList(self, checkbox_list):
+    def enableGroupList(self):
+        checkbox_list = []
+        for i in range(self.checkBoxLayout.count()):
+            checkbox_list.append(self.checkBoxLayout.itemAt(i).widget())
         checkGroup = lambda : self.checkGroup(checkbox_list)
         for checkbox in checkbox_list:
             checkbox.stateChanged.connect(checkGroup)
 
-    def disableGroup(self, checkbox_list):
+    def disableGroup(self):
         if self.tabWidget.currentIndex() == 2:
             con = spatialite_connect("{}\{}".format(self.proj.readEntry("QGYF", "dataPath")[0], self.proj.readEntry("QGYF", 'activeDataBase')[0]))
             cur = con.cursor()
@@ -714,6 +718,10 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             print(current_groups)
             cur.close()
             con.close()
+
+            checkbox_list = []
+            for i in range(self.checkBoxLayout.count()):
+                checkbox_list.append(self.checkBoxLayout.itemAt(i).widget())
 
             for checkbox in checkbox_list:
                 if checkbox.text() in current_groups:

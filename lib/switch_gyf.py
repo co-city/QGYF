@@ -111,9 +111,9 @@ class SwitchGYFs:
         self.dockwidget.showAll.setText('Visa grupper av ' + model['Klass_items'][0] + 'er')
         self.dockwidget.showGroup.setText('Visa ' + model['Klass_items'][0] + 'er per grupp')
         # Qualities
-        checkbox_list = self.dockwidget.createCheckBoxes(group_list)
-        self.dockwidget.enableGroupList(checkbox_list)
-        self.dockwidget.tabWidget.currentChanged.connect(lambda: self.dockwidget.disableGroup(checkbox_list))
+        self.dockwidget.createCheckBoxes(group_list)
+        self.dockwidget.enableGroupList()
+        self.dockwidget.tabWidget.currentChanged.connect(self.dockwidget.disableGroup)
 
 
         self.dockwidget.selectGroup.addItems(group_list)
@@ -122,8 +122,7 @@ class SwitchGYFs:
         self.dockwidget.plot.canvas.ax.axis('off')
         self.dockwidget.obsText.clear()
         
-        return checkbox_list
-        
+
         
     def showGYFname(self, model):
         gyf_name = '<h3 style="color:#238973">' + model['Name'] + '</h3>'

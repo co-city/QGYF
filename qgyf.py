@@ -282,7 +282,7 @@ class QGYF:
 		root = self.proj.layerTreeRoot()
 		content = [l.name() for l in root.children()]
 		if 'Kvaliteter' in content:
-			self.dockwidget.disableGroup(self.checkbox_list)
+			self.dockwidget.disableGroup()
 		if self.dockwidget.isVisible():
 			self.dockwidget.showClass()
 			self.dockwidget.showAreas()
@@ -466,7 +466,7 @@ class QGYF:
 		self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
 		# Show GYF version
-		self.checkbox_list = self.switch.adjustDockwidget(self.gyfModel, self.layerSelectorDialog)
+		self.switch.adjustDockwidget(self.gyfModel, self.layerSelectorDialog)
 
 		# Classification
 		self.dockwidget.switchLayerGroups()
