@@ -8,7 +8,7 @@
                              -------------------
         begin                : 2019-03-01
         git sha              : $Format:%H$
-        copyright            : (C) 2019 by C/O City
+        copyright            : (C) 2019 by C/O City, Stockholms Stad
         email                : info@cocity.se
  ***************************************************************************/
 
@@ -680,7 +680,9 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     # Visualization
     def createCheckBoxes(self, group_list):
         for i in reversed(range(self.checkBoxLayout.count())):
-            self.checkBoxLayout.itemAt(i).widget().deleteLater()
+            widgetToRemove = self.checkBoxLayout.itemAt(i).widget()
+            self.checkBoxLayout.removeWidget(widgetToRemove)
+            widgetToRemove.deleteLater()
         
         checkbox_list = []
         for g in group_list[1:]:
@@ -713,6 +715,7 @@ class QGYFDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         checkbox_list = []
         for i in range(self.checkBoxLayout.count()):
             checkbox_list.append(self.checkBoxLayout.itemAt(i).widget())
+        print( [c.text() for c in checkbox_list])
         checkGroup = lambda : self.checkGroup(checkbox_list)
         for checkbox in checkbox_list:
             checkbox.stateChanged.connect(checkGroup)

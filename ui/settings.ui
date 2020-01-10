@@ -63,7 +63,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Sökväg till databas:</string>
+        <string>Sökväg till databas</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -115,7 +115,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>GYF model</string>
+        <string>GYFs modell</string>
        </property>
       </widget>
      </item>

@@ -8,7 +8,7 @@
 							  -------------------
 		begin                : 2019-03-01
 		git sha              : $Format:%H$
-		copyright            : (C) 2019 by C/O City
+		copyright            : (C) 2019 by C/O City, Stockholms Stad
 		email                : info@cocity.se
  ***************************************************************************/
 

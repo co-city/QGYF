@@ -44,7 +44,7 @@ class SwitchGYFs:
             'gyf_AP_groundareas.txt',
             0,
             ['Grundytor','Klassificera', 'Visualisera', 'Beräkna'],
-            ['yteklass', 'kvalitet']]
+            ['ytklass', 'kvalitet']]
 
         gyf_kvarters = [
             r'GYF för kvartersmark, Stockholm Stad',
@@ -108,8 +108,8 @@ class SwitchGYFs:
         self.dockwidget.showAreasPopups.setText('Aktivera popups med ' + model['Klass_items'][0] + 's beskrivningar')
         self.dockwidget.label_Qualities.setText(items[1])
         self.dockwidget.label_Qualities.setStyleSheet("color: #238973")
-        self.dockwidget.showAll.setText('Visa grupper av ' + model['Klass_items'][0] + 'er')
-        self.dockwidget.showGroup.setText('Visa ' + model['Klass_items'][0] + 'er per grupp')
+        self.dockwidget.showAll.setText('Visa grupper av ' + model['Klass_items'][1] + 'er')
+        self.dockwidget.showGroup.setText('Visa ' + model['Klass_items'][1] + 'er per grupp')
         # Qualities
         self.dockwidget.createCheckBoxes(group_list)
         self.dockwidget.enableGroupList()
